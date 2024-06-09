@@ -2,7 +2,7 @@
 
 # BlackMusic
 
-🎯 A brief description of what this project does and who it's for
+🎯 A music player designed to deliver an unparalleled audio experience. BlackMusic integrates a vast catalog of music with superior playback capabilities. 
 
 ## Acknowledgements
 
