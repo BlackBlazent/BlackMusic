@@ -103,13 +103,13 @@ Install my-project with npm
 
 | API         | Description                                         | Requirement Level   |
 |-------------|-----------------------------------------------------|---------------------|
-| Google      | <a href="">Google Search API</a>                    | 100% (Highly Recommended) |
-| Yandex      |  <a href="">Yandex Search API</a>                   | 100% (Highly Recommended) |
-| YouTube     |  <a href="">YouTube Data API</a>                    | 100% (Highly Recommended) |
+| Spotify     | <a href="">Spotify API</a>                          | 100% (Highly Recommended) |
+| Yandex Music|  <a href="">Yandex Music API</a>                    | 100% (Highly Recommended) |
+| YouTube Music|  <a href="">YouTube Music API</a>                    | 100% (Highly Recommended) |
 | Facebook    |  <a href="">Facebook Graph API</a>                  | 60% (Recommended)         |
 | Wikipedia   |  <a href="">Wikipedia API</a>                       | 40% (Advisable)           |
 | IMDb        |  <a href="">IMDb API</a>                            | 60% (Recommended)         |
-| Wiki Fandom |  <a href="">Wiki Fandom API</a>                     | 20% (Rarely Needed)       |
+| Apple Music |  <a href="">Wiki Fandom API</a>                     | 20% (Rarely Needed)       |
 
 
 
