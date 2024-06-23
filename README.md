@@ -1,4 +1,4 @@
-![Logo]((https://github.com/LoneStamp/BlackMusic/blob/main/.github/public_assets/bmusic-banner.png))
+![Logo](https://github.com/LoneStamp/BlackMusic/blob/main/.github/public_assets/bmusic-banner.png)
 
 # Appname and Version
  *BlackMusic* **1.1.01.0001**
