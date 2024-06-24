@@ -1,7 +1,7 @@
 ![Logo](https://github.com/LoneStamp/BlackMusic/blob/main/.github/public_assets/bmusic-banner.png)
 
 # Appname and Version
- *BlackMusic* **1.1.01.0001**
+ *BlackMusic* **1.1.01.001.0001**
 
 ## Description
 🎯 A music player designed to deliver an unparalleled audio experience. BlackMusic integrates a vast catalog of music with superior playback capabilities. 
