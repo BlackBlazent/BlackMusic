@@ -132,17 +132,22 @@ What did you learn while building this project? What challenges did you face and
 ## Downloads
 Available on:
 
-- Desktop
+## Desktop
 ---
-| Linux | Windows | Mac |
-|--|--|--|
-|![linux](https://github.com/LoneStamp99/Vvdo/assets/93658802/aaad78d0-6e4f-4dec-9586-207b86a4a6ff)|![windows-logo](https://github.com/LoneStamp99/Vvdo/assets/93658802/16780aaa-10e5-4b63-87ac-0edfe30c0053)|![mac](https://github.com/LoneStamp99/Vvdo/assets/93658802/2c26d1c7-b2dc-4e42-a3d7-f2ab25e88b45)|
 
-- Mobile
+| Platforms| Mirrors 1 | Mirror 2|
+|-------|-------|------|
+| [![linux](https://github.com/LoneStamp99/Vvdo/assets/93658802/aaad78d0-6e4f-4dec-9586-207b86a4a6ff)](https://your-download-link-for-linux)|[Download]()| [Download]()| 
+| [![windows-logo](https://github.com/LoneStamp99/Vvdo/assets/93658802/16780aaa-10e5-4b63-87ac-0edfe30c0053)](https://your-download-link-for-windows)|[Download]()| [Download]()| 
+|[![mac](https://github.com/LoneStamp99/Vvdo/assets/93658802/2c26d1c7-b2dc-4e42-a3d7-f2ab25e88b45)](https://your-download-link-for-mac) |[Download]()| [Download]()|
+
+## Mobile
 ---
+
 | Android | IOS |
 |--|--|
-|![android](https://github.com/LoneStamp99/Vvdo/assets/93658802/4bda63de-cd31-4d34-8afc-00f445fe66b6)|![ios](https://github.com/LoneStamp99/Vvdo/assets/93658802/a7cbc065-4ef7-4bf7-a633-1e8e631717ff)|
+| [![android](https://github.com/LoneStamp99/Vvdo/assets/93658802/4bda63de-cd31-4d34-8afc-00f445fe66b6)](https://your-download-link-for-android) | [![ios](https://github.com/LoneStamp99/Vvdo/assets/93658802/a7cbc065-4ef7-4bf7-a633-1e8e631717ff)](https://your-download-link-for-ios) |
+
 
 
 - Web
