@@ -111,6 +111,7 @@ Install my-project with npm
 | Wikipedia   |  <a href="">Wikipedia API</a>                       | 40% (Advisable)           |
 | IMDb        |  <a href="">IMDb API</a>                            | 60% (Recommended)         |
 | Apple Music |  <a href="">Wiki Fandom API</a>                     | 20% (Rarely Needed)       |
+| Tidal |  <a href="">Tidal API</a>                     | 20% (Rarely Needed)       |
 
 
 
