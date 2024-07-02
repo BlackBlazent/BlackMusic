@@ -4,25 +4,25 @@ Source code (Alpha release preview only)
 # Appname and Version
  *BlackMusic* **1.1.01.001.0001**
 
-## Description
+### Description
 🎯 A music player designed to deliver an unparalleled audio experience. BlackMusic integrates a vast catalog of music with superior playback capabilities. 
 
-## Date created
+### Date created
 
 
-## Completion date
+### Completion date
 [000000] at
 
-## Date published
+### Date published
 [000000] at
 
-## Developer/Authors by
+### Developer/Authors by
 - []()
 
-## Copyright
+### Copyright
 © 2024 BlackMusic
 
-## Badges
+### Badges
 
 Add badges from somewhere like: [shields.io](https://shields.io/)
 
@@ -30,7 +30,7 @@ Add badges from somewhere like: [shields.io](https://shields.io/)
 [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)](https://opensource.org/licenses/)
 [![AGPL License](https://img.shields.io/badge/license-AGPL-blue.svg)](http://www.gnu.org/licenses/agpl-3.0)
 
-## Table of Contents
+### Table of Contents
 1. [Preface](#preface)
 2. [Demo](#demo)
 3. [Galleries](#galleries)
@@ -55,30 +55,30 @@ Add badges from somewhere like: [shields.io](https://shields.io/)
 22. [References](#references)
 23. [Appendix](#appendix)
 
-## Preface
+### Preface
 
-## Demo
+### Demo
 
 Insert gif or link to demo
 
-## Galleries
+### Galleries
 
-## Tech Stack
+### Tech Stack
 
 **Client:** React, Redux, TailwindCSS
 
 **Server:** Node, Express
 
-## Roadmap
+### Roadmap
 
 - Additional browser support
 - Add more integrations
 
-## Documentation
+### Documentation
 
 [Documentation](https://linktodocumentation)
 
-## Installation
+### Installation
 
 Install my-project with npm
 
@@ -87,7 +87,7 @@ Install my-project with npm
   cd my-project
 ```
     
-## Environment Variables
+### Environment Variables
 
 **Note**: APIs have request limits for optimal performance. Fill in your own API keys.
 
@@ -115,25 +115,25 @@ Install my-project with npm
 
 
 
-## Features
+### Features
 
 - Light/dark mode toggle
 - Live previews
 - Fullscreen mode
 - Cross platform
 
-## Optimizations
+### Optimizations
 
 What optimizations did you make in your code? E.g. refactors, performance improvements, accessibility
 
-## Lessons Learned
+### Lessons Learned
 
 What did you learn while building this project? What challenges did you face and how did you overcome them?
 
-## Downloads
+### Downloads
 Available on:
 
-## Desktop
+### Desktop
 ---
 
 | Platforms| Mirrors 1 | Mirror 2|
@@ -142,7 +142,7 @@ Available on:
 | [![windows-logo](https://github.com/LoneStamp99/Vvdo/assets/93658802/16780aaa-10e5-4b63-87ac-0edfe30c0053)](https://your-download-link-for-windows)|[Download]()| [Download]()| 
 |[![mac](https://github.com/LoneStamp99/Vvdo/assets/93658802/2c26d1c7-b2dc-4e42-a3d7-f2ab25e88b45)](https://your-download-link-for-mac) |[Download]()| [Download]()|
 
-## Mobile
+### Mobile
 ---
 
 | Android | IOS |
@@ -155,36 +155,36 @@ Available on:
 ---
 [BlackVivido]
 
-## Related
+### Related
 
 Here are some related projects
 
 [Awesome README](https://github.com/matiassingers/awesome-readme)
 
-## Used By
+### Used By
 
 This project is used by the following companies:
 
 - Company 1
 - Company 2
 
-## FAQ
+### FAQ
 
 #### Question 1
 
 Answer 1
 
-#### Question 2
+##### Question 2
 
 Answer 2
 
-## Feedback
+### Feedback
 
 If you have any feedback, please reach out to us at fake@fake.com
 
-## License
+### License
 
-## Contributing
+### Contributing
 
 Contributions are always welcome!
 
@@ -192,20 +192,20 @@ See `contributing.md` for ways to get started.
 
 Please adhere to this project's `code of conduct`.
 
-## Support
+### Support
 
 For support, email fake@fake.com or join our Slack channel.
 
 
-## Acknowledgements
+### Acknowledgements
 
 - [Awesome Readme Templates](https://awesomeopensource.com/project/elangosundar/awesome-README-templates)
 - [Awesome README](https://github.com/matiassingers/awesome-readme)
 - [How to write a Good readme](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
 
-## Privacy Policy and Terms of Service
+### Privacy Policy and Terms of Service
 To learn more about how we collect, store, and use user data, please read our Privacy Policy at [Link to Privacy Policy]. Our Terms of Service govern the use of BlackVivido or Vvdo and can be found at [Link to Terms of Service]. By using our app, you agree to these terms.
 
-## References
+### References
 
-## Appendix
+### Appendix
