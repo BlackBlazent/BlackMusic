@@ -113,6 +113,7 @@ Install my-project with npm
 | Apple Music |  <a href="">Wiki Fandom API</a>                     | 20% (Rarely Needed)       |
 | Tidal |  <a href="">Tidal API</a>                     | 20% (Rarely Needed)       |
 | Last.fm |  <a href="">Last.fm API</a>                     | 20% (Rarely Needed)       |
+| Music Story |  <a href="">Music Story API</a>                     | 20% (Rarely Needed)       |
 
 
 
