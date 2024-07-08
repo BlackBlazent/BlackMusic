@@ -115,6 +115,8 @@ Install my-project with npm
 | Tidal |  <a href="">Tidal API</a>                     | 20% (Rarely Needed)       |
 | Last.fm |  <a href="">Last.fm API</a>                     | 20% (Rarely Needed)       |
 | Music Story |  <a href="">Music Story API</a>                     | 20% (Rarely Needed)       |
+| Pandora |  <a href="">Pandora API</a>                     | 20% (Rarely Needed)       |
+| iHeartRadio|  <a href="">iHeartRadio API</a>                     | 20% (Rarely Needed)       |
 
 
 
