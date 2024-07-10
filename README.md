@@ -150,9 +150,10 @@ Available on:
 ### Mobile
 ---
 
-| Android | IOS |
-|--|--|
-| [![android](https://github.com/LoneStamp99/Vvdo/assets/93658802/4bda63de-cd31-4d34-8afc-00f445fe66b6)](https://your-download-link-for-android) | [![ios](https://github.com/LoneStamp99/Vvdo/assets/93658802/a7cbc065-4ef7-4bf7-a633-1e8e631717ff)](https://your-download-link-for-ios) |
+| Android | Mirror 1| Mirror 2|
+|---------|---------|---------|
+| [![android](https://github.com/LoneStamp99/Vvdo/assets/93658802/4bda63de-cd31-4d34-8afc-00f445fe66b6)](https://your-download-link-for-android) | [Download]()| [Download]()|
+|[![ios](https://github.com/LoneStamp99/Vvdo/assets/93658802/a7cbc065-4ef7-4bf7-a633-1e8e631717ff)](https://your-download-link-for-ios) | [Download]()| [Download]()|
 
 
 
