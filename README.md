@@ -72,7 +72,7 @@ Insert gif or link to demo
 ##### Videos
 |                      |                      |                      |                      |
 |----------------------|----------------------|----------------------|----------------------|
-|![BlackMusic Home](https://raw.githubusercontent.com/LoneStamp/BlackMusic/tree/main/public/photos/blackmusic-home.png)(https://raw.githubusercontent.com//LoneStamp/BlackMusic/tree/main/public/videos/blackmusic-home.mp4)                      |                      |                      |                      |
+|![BlackMusic Home](https://github.com/LoneStamp/BlackMusic/blob/main/public/videos/blackmusic-home.gif?raw=true)                      |                      |                      |                      |
 
 ### Tech Stack
 
