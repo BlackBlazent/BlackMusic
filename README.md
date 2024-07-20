@@ -63,6 +63,11 @@ Insert gif or link to demo
 
 ### Galleries
 
+##### Photos
+|                      |                      |                      |                      |
+|----------------------|----------------------|----------------------|----------------------|
+|                      |                      |                      |                      |
+
 ### Tech Stack
 
 **Client:** React, Redux, TailwindCSS
