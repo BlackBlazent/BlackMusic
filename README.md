@@ -64,17 +64,15 @@ Insert gif or link to demo
 ### Galleries
 
 ##### Photos
-|                      |                      |                      |                      |
-|----------------------|----------------------|----------------------|----------------------|
-| <img src="https://github.com/LoneStamp/BlackMusic/blob/main/public/photos/blackmusic-home.png?raw=true" alt="BlackMusic | Home" title="Home Section" width="auto" height="auto"/> |
-|                      |                      |                      |                      |
+
+| ![BlackMusic Home](https://github.com/LoneStamp/BlackMusic/blob/main/public/photos/blackmusic-home.png?raw=true) | ![Image 2](https://example.com/image2.png "Image 2 Title") | ![Image 3](https://example.com/image3.png "Image 3 Title") | ![Image 4](https://example.com/image4.png "Image 4 Title") |
+|:--:|:--:|:--:|:--:|
 
 
 ##### Videos
 |                      |                      |                      |                      |
 |----------------------|----------------------|----------------------|----------------------|
 |                      |                      |                      |                      |
-
 
 ### Tech Stack
 
