@@ -176,10 +176,20 @@ Available on:
 
 Here are some related projects
 
--
--
--
--
+- <a href="https://github.com/Taiko2k/Tauon">Tauon</a>
+- <a href="https://github.com/jwallet/spy-spotify">Spy Spotify</a>
+- <a href="https://github.com/yaronzz/Tidal-Media-Downloader-PRO">Tidal Media Downloader</a>
+- <a href="https://github.com/yaronzz/Tidal-Media-Downloader-PRO">Tidal Media Downloader</a>
+- <a href="https://github.com/kraxarn/spotify-qt">Spotify QT</a>
+- <a href="https://github.com/jhelumcorp/gyawun">Gwayun</a>
+- <a href="https://github.com/jeffvli/feishin">feishin</a>
+- <a href="https://github.com/SathyaBhat/spotify-dl">Spotify Dl</a>
+- <a href="https://github.com/univrsal/tuna">Tuna</a>
+- <a href="https://github.com/nukeop/nuclear">Nuclear</a>
+- <a href="https://github.com/marin-m/SongRec">SongRec</a>
+- <a href="https://github.com/Stremio/stremio-video">Streameo Video</a>
+- <a href="https://github.com/nathom/streamrip">Streamrip</a>
+- <a href="https://github.com/martpie/museeks">Museeks</a>
 
 [Awesome README](https://github.com/matiassingers/awesome-readme)
 
