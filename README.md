@@ -66,7 +66,7 @@ Insert gif or link to demo
 ##### Photos
 |                      |                      |                      |                      |
 |----------------------|----------------------|----------------------|----------------------|
-| <img src="" alt="BlackMusic | Home" title="Home Section" width="600px" height="800px"/>                     |                      |                      |                      |
+| <img src="https://github.com/LoneStamp/BlackMusic/blob/main/public/photos/blackmusic-home.png?raw=true" alt="BlackMusic | Home" title="Home Section" width="600px" height="800px"/>                     |                      |                      |                      |
 
 
 ##### Videos
