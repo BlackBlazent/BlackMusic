@@ -76,9 +76,30 @@ Insert gif or link to demo
 
 ### Tech Stack
 
-**Client:** React, Redux, TailwindCSS
+**Client:** 
+- **Front-end:**
+  - TypeScript
+  - HTML
+  - CSS
+  - JavaScript
+- **Backend (Client-side):**
+  - C++
+  - Python
 
-**Server:** Node, Express
+**Server:**
+- **Back-end:**
+  - Node.js
+- **Cloud provider:**
+  - AWS
+- **Containerization:**
+  - Docker
+
+**Database:**
+- MySQL
+- NoSQL (e.g., MongoDB)
+
+**Cloud Services:**
+- Firebase (for real-time database, authentication, hosting)
 
 ### Roadmap
 
