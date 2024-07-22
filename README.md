@@ -85,7 +85,7 @@ Insert gif or link to demo
 | **Back-end:**       | Node.js                                                           |
 | **Cloud provider:** | AWS                                                               |
 | **Containerization:** | Docker                                                          |
-| **Database:**       | MySQL, NoSQL (e.g., MongoDB)                                      |
+| **Database:**       | MySQL, NoSQL (MongoDB), SqlLite                                      |
 | **Cloud Services:** | Firebase (for real-time database, authentication, hosting)        |
 
 ### Roadmap
