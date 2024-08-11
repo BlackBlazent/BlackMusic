@@ -192,6 +192,9 @@ Here are some related projects
 - <a href="https://github.com/Stremio/stremio-video">Streameo Video</a>
 - <a href="https://github.com/nathom/streamrip">Streamrip</a>
 - <a href="https://github.com/martpie/museeks">Museeks</a>
+- <a href="https://github.com/harjot-oberai/MusicDNA">MusicDNA</a>
+- <a href="https://github.com/MarshallOfSound/Google-Play-Music-Desktop-Player-UNOFFICIAL-">Google-Play-Music-Desktop-Player-UNOFFICIAL</a>
+- <a href="https://github.com/iampawan/Flutter-Music-Player">Flutter-Music-Player</a>
 
 [Awesome README](https://github.com/matiassingers/awesome-readme)
 
