@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS music (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    artist TEXT,
+    genre TEXT,
+    album TEXT,
+    duration TEXT,
+    path TEXT,
+    year TEXT,
+    isFavorite BOOLEAN
+);
