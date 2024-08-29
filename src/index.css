@@ -1,0 +1,415 @@
+html {
+  background:#2a2929;
+  overflow: hidden;
+}
+a {
+  text-decoration: none;
+  color: var( --color-white);
+}
+a:hover {
+  color: var(--color-pink);
+}
+a:active {
+  color: var(--color-darkturquoise-li);
+}
+input, textarea {
+  font-family: var(--font-poppins);
+  color: var(--color-white);
+}
+img {
+  width: 100%;
+  height: 100%;
+}
+li {
+  list-style: none;
+}
+/* Groups Style */
+
+/** ! 
+Section Navigation Bars
+! **/
+/* Logo - Brand */
+#logo-branding:hover {
+  background-color: var(--color-darkturquoise-222);
+  border: 2px var(--color-darkturquoise--222) solid;
+  border-radius: var(--br-31xl);
+  cursor: pointer;
+}
+/* Menu Bar */
+#menu-bar-container:hover {
+  background-color: var(--color-darkslategray-2000);
+}
+/* Sections Toggle */
+.hover-bg:hover {
+  background-color: var(--color-darkslategray-2000);
+}
+/* Hide Image When Hovering */
+.hover-section-toggle-none:hover {
+
+}
+/* Extended Section Toggles */
+.extended-hover-bg:hover {
+  background-color: var(--color-darkslategray-2000);
+}
+/* Search Bar */
+.hover-search-bg:hover {
+  background-color: var(--color-darkslategray-2000);
+}
+/* Main Window Control Frames */
+.hover-main-bg:hover {
+  background-color: var(--color-darkslategray-2000);
+}
+.hover-main-bg-sep:hover {
+  background-color: var(--color-reddish-red);/* for close Window */
+}
+/** !
+From Home Section Music News Tabs
+List Tabs
+! **/
+
+#music-news-tabs {
+  cursor: pointer;
+}
+#music-news-tabs:hover {
+ color: var(--color-darkturquoise-222);
+}
+/*Music News Heading */
+#main-news-heading:hover {
+  color: #c0b9b9;
+}
+/* Music News Title */
+#music-news-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 340px;
+}
+#hover-profile-agency-names:hover {
+  color: var(--color-darkturquoise-222);
+}
+#music-indus-agency-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 390px;
+}
+/* End */
+/** !
+From Home Agency Industry news
+Popup selections
+! **/
+
+/* Popup Selections */
+#selection-country-holder{
+}
+#agency-select-country:hover{
+  position: relative;
+  cursor: pointer;
+  border-radius: 3px;
+  background: #c4c0c058;
+  width: 100%;
+  max-width: 161px;
+}
+/** ! 
+Section Contents | Switcher
+! **/
+
+/* For Playground Sections */
+/* For contents music tabs*/
+.hover-music-categ-bg:hover {
+  color: var(--color-darkturquoise-222);
+}
+.active-tab .tracks-category-list-tx3 {
+  text-decoration: underline;
+  text-decoration-color: var(--color-darkturquoise);
+}
+/* Playground Switch Online */
+.switch-online-toggle-tx3:hover {
+  color: var(--color-darkturquoise-222);
+}
+/* Music Tracks Category */
+/*.hover-tracks-bg:hover {
+  width: 100%;
+  background: #b6b4b492;
+}*/
+/* Cover Tracks Transition */
+.cover-transition:hover {
+  transform: perspective(10px);
+}
+/* Hover the Number List order*/
+.hover-number-list:hover::after {
+  position: fixed;
+  content: '1';
+  color: var(--color-gray-1300:);
+  width: 30px;
+  height: 30px;
+  max-width: 100%;
+  max-height: 100%;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-poppins);
+  left: 30px;
+  border-radius: 50px;
+  /*background: var(--color-darkturquoise-222);*/
+  margin: auto;
+  text-align: -webkit-center;
+  display: center;
+  justify-content: center;
+  justify-self: center;
+}
+/* Hover The Track Music Card Outline*/
+.tracks-outline-initial:hover {
+  background-color: var(--color-pink-122);
+}
+/* Hover The Album Music Card Outline */
+.albums-track-initial-outline:hover {
+  background-color: var(--color-pink-122);
+}
+/* Hover The Track Music Card Outline */
+.playlist-music-ground-con27:hover {
+  background-color: var(--color-pink-122);
+}
+/* Local Music Div */
+.local-music-contents-con49:hover {
+  background-color: var(--color-pink-122);
+}
+.local-music-contents-con62:hover {
+  background-color: var(--color-pink-122);
+}
+/* Album Songlist Container */
+.album-total-songs-con-icon24:hover {
+  border-radius: 20px;
+  background-color: #6968683f;
+}
+/* Playground Favorites Toggle */
+/*.favorites-toggle-hover*/.fav-icon-hover:hover {
+  background-color: var(--color-gray-trans);
+  border-radius: 3px;
+}
+/* Seek bar of Theather */
+.hover-color-seeker:hover {
+  background-color: var(--color-darkturquoise-222);
+}
+/* Playground Video Fetch Title */
+.video-title-minimize {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 124px;
+}
+/* Playground Playlist Description */
+.lorem-ipsum-is20 {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 268px;
+}
+/* Section Search Result Title */
+.search-title-result {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 80px;
+}
+/* Local Music Text Elements */
+.artist-name-tx49 {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 268px;
+}
+/* In Local Mini Playback | Music Cover */
+.local-music-cover17 .local-music-cover-img-icon15:hover {
+  border-radius: 50%;
+}
+/* Popup */
+.alphabet-a-z-view-con4:hover {
+  background-color: var(--color-pink-122);
+}
+/* Online Music Section */
+.genre-toggle {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 50px;
+  text-align: center;
+}
+.genre-toggle:hover {
+  background-color: var( --color-darkslategray-2000);
+  border-radius: 50px;
+  text-align: center;
+}
+.title-minimize-vid-online {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 240px;
+}
+.descript-minimize-vid-online {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Minimize Artist Name from Navigation online */
+.artist-profile-name-minimze {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 127px;
+}
+/* Artist  description online */
+.taylor-alison-swift6 {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: preserve;
+  width: 380px;
+  height: 70px;
+}
+/** ! 
+BlackMusic Main Footer 
+!**/
+/* Music Quotes & Bible Verse */
+#quotes-author:hover {
+  color: var(--color-darkturquoise-222);
+  cursor: pointer;
+}
+#bible-verse-tag:hover {
+  color: var(--color-darkturquoise-222);
+  cursor: pointer;
+}
+/* Feedback */
+#feedback-redirect:hover {
+  cursor: pointer;
+  color: var(--color-darkturquoise-222);
+}
+/** !
+From Home Profile News Article
+News Article List
+! **/
+.story-news-content-items2::-webkit-scrollbar {
+  width: 4px;
+  opacity: 0; /* Initially hide the scrollbar */
+  transition: opacity 0.3s ease; /* Smooth transition for visibility */
+}
+.story-news-content-items2::-webkit-scrollbar-track {
+  background: #6f6f6ea9;        /* color of the tracking area */
+}
+
+.story-news-content-items2::-webkit-scrollbar-thumb {
+  background-color: #606062ba;    /* color of the scroll thumb */
+  border-radius: 10px;       /* roundness of the scroll thumb */
+  border: 3px solid #5c5b5aa7;  /* creates padding around scroll thumb */
+}
+/* end */
+
+/** !
+From Home Music News Agency Article
+News Agency Article List
+! **/
+.music-profile-industry-news-co2::-webkit-scrollbar {
+  width: 4px;
+  opacity: 0; /* Initially hide the scrollbar */
+  transition: opacity 0.3s ease; /* Smooth transition for visibility */
+}
+.music-profile-industry-news-co2::-webkit-scrollbar-track {
+  background: #6f6f6ea9;        /* color of the tracking area */
+}
+
+.music-profile-industry-news-co2::-webkit-scrollbar-thumb {
+  background-color: #606062ba;    /* color of the scroll thumb */
+  border-radius: 10px;       /* roundness of the scroll thumb */
+  border: 3px solid #5c5b5aa7;  /* creates padding around scroll thumb */
+}
+/* end */
+/** !
+For Playground Tracks 
+! **/
+.scroll-bar-style::-webkit-scrollbar {
+  width: 4px;
+  opacity: 0; /* Initially hide the scrollbar */
+  transition: opacity 0.3s ease; /* Smooth transition for visibility */
+}
+.scroll-bar-style::-webkit-scrollbar-track {
+  background: var(--color-#00ced100-222);        /* color of the tracking area | #6f6f6eff */
+}
+
+.scroll-bar-style::-webkit-scrollbar-thumb {
+  background-color: #60606200;    /* color of the scroll thumb */
+  border-radius: 10px;       /* roundness of the scroll thumb */
+  border: 3px solid #5c5b5a00;  /* creates padding around scroll thumb */
+}
+/* For Playground Albums */
+.albums-collection-ground-list-3::-webkit-scrollbar {
+  width: 4px;
+  opacity: 0; /* Initially hide the scrollbar */
+  transition: opacity 0.3s ease; /* Smooth transition for visibility */
+}
+.albums-collection-ground-list-3::-webkit-scrollbar-track {
+  background: var(--color-#00ced100-222);        /* color of the tracking area | #6f6f6eff */
+}
+
+.albums-collection-ground-list-3::-webkit-scrollbar-thumb {
+  background-color: #60606200;    /* color of the scroll thumb */
+  border-radius: 10px;       /* roundness of the scroll thumb */
+  border: 3px solid #5c5b5a00;  /* creates padding around scroll thumb */
+}
+/* For Playground Genre */
+.genre-music-ground-list-conten3::-webkit-scrollbar {
+  width: 4px;
+  opacity: 0; /* Initially hide the scrollbar */
+  transition: opacity 0.3s ease; /* Smooth transition for visibility */
+}
+.genre-music-ground-list-conten3::-webkit-scrollbar-track {
+  background: var(--color-#00ced100-222);        /* color of the tracking area | #6f6f6eff */
+}
+
+.genre-music-ground-list-conten3::-webkit-scrollbar-thumb {
+  background-color: #60606200;    /* color of the scroll thumb */
+  border-radius: 10px;       /* roundness of the scroll thumb */
+  border: 3px solid #5c5b5a00;  /* creates padding around scroll thumb */
+}
+/* For Playground Playlist */
+.playlist-music-ground-list-con3::-webkit-scrollbar {
+  width: 4px;
+  opacity: 0; /* Initially hide the scrollbar */
+  transition: opacity 0.3s ease; /* Smooth transition for visibility */
+}
+.playlist-music-ground-list-con3::-webkit-scrollbar-track {
+  background: var(--color-#00ced100-222);        /* color of the tracking area | #6f6f6eff */
+}
+
+.playlist-music-ground-list-con3::-webkit-scrollbar-thumb {
+  background-color: #60606200;    /* color of the scroll thumb */
+  border-radius: 10px;       /* roundness of the scroll thumb */
+  border: 3px solid #5c5b5a00;  /* creates padding around scroll thumb */
+}
+/* All of Templates */
+.playground-all-in-one-music-gr5::-webkit-scrollbar {
+  width: 4px;
+  opacity: 0; /* Initially hide the scrollbar */
+  transition: opacity 0.3s ease; /* Smooth transition for visibility */
+}
+.playground-all-in-one-music-gr5::-webkit-scrollbar-track {
+  background: var(--color-#00ced1ff-222);        /* color of the tracking area | #6f6f6eff */
+}
+
+.playground-all-in-one-music-gr5::-webkit-scrollbar-thumb {
+  background-color: #606062ff;    /* color of the scroll thumb */
+  border-radius: 10px;       /* roundness of the scroll thumb */
+  border: 3px solid #5c5b5aff;  /* creates padding around scroll thumb */
+}
+.online-music-theme-songlist-co-icon48:hover {
+  background-color: var(--color-gray-trans);
+  filter: blur(1px);
+}
+/* Hide Temporary the Playground-sections */
