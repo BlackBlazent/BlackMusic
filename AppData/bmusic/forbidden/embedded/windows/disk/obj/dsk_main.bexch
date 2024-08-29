@@ -1,0 +1,19 @@
+[GENERATED OBJECT FILE]
+b__dsk_main.o
+[PROJECT FILES]
+D:\Projects\WebsiteDevelopment\My Projects\LoneStampProjectWebsite\Random\BlackVividos\BlackVivido.V1.1.01.0001\BlackVivido\AppData\Vvdo\KENDRAH\embedded\disk\disk_dvd.gpr
+20240331032944 73bffc4d8ce4261d59b9f09e5482773a
+[BOUND OBJECT FILES]
+D:\Projects\WebsiteDevelopment\My Projects\LoneStampProjectWebsite\Random\BlackVividos\BlackVivido.V1.1.01.0001\BlackVivido\AppData\Vvdo\KENDRAH\embedded\disk\obj\dsk_main.o
+[GENERATED SOURCE FILES]
+b__dsk_main.ads
+b__dsk_main.adb
+b__dsk_main.ali
+[RESULTING OPTIONS]
+-LD:\Projects\WebsiteDevelopment\My Projects\LoneStampProjectWebsite\Random\BlackVividos\BlackVivido.V1.1.01.0001\BlackVivido\AppData\Vvdo\KENDRAH\embedded\disk\obj\
+-LD:\Projects\WebsiteDevelopment\My Projects\LoneStampProjectWebsite\Random\BlackVividos\BlackVivido.V1.1.01.0001\BlackVivido\AppData\Vvdo\KENDRAH\embedded\disk\obj\
+-LC:/gnat/2021/lib/gcc/x86_64-w64-mingw32/10.3.1/adalib/
+-static
+-static-libgcc
+C:/gnat/2021/lib/gcc/x86_64-w64-mingw32/10.3.1/adalib/libgnat.a
+-Wl,--stack=0x2000000

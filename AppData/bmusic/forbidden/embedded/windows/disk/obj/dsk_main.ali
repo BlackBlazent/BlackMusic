@@ -1,0 +1,19 @@
+V "GNAT Lib v2021"
+M P W=b
+A -gnatA
+A -mtune=generic
+A -march=x86-64
+P ZX
+
+RN
+RV NO_IMPLEMENTATION_PRAGMAS
+
+U dsk_main%b		dsk_main.adb		4f26ae61 NE OO SU
+
+D dsk_main.adb		20240331032944 4f26ae61 dsk_main%b
+D system.ads		20210520051136 2ffa5114 system%s
+G a e
+G c Z b b [dsk_main standard 1 11 none]
+X 1 dsk_main.adb
+1U11*Dsk_Main 1b11 6l5 6t13
+
