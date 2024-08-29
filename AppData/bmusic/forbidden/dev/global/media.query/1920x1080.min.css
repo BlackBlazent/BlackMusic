@@ -1,0 +1,101 @@
+@media only screen and (min-width:1920px) {
+
+    /* For Home Group */
+    .story-news-content-contents {
+        height: 100%;
+    }
+    .story-news-content-items2 {
+        height: 100%;
+    }
+    .music-entertainment-industry-p5 {
+        height: 900px;
+    }
+    .music-profile-industry-contine2 {
+        height: 100%;
+    }
+    .music-profile-industry-news-co2 {
+        height: 100%;
+    }
+    /*** 
+
+    From Playground Section Group
+    ****/
+    .bmusic-music-playground-appsid7, .appside-playground-con {
+        height: 950px;
+    }
+    .bmusic-playground-section-con3 { /* Background bg of All Playground Section */
+        background-color: #0000;
+}
+.appside-playground-con {
+    background: #0000;
+}
+/* Background Entire */
+.blackmusic1 {
+    height: 1080px;
+}
+.bmusic-theater-main3, .bmusic-home-section-contents2, .bmusic-theater-main-con3 { /* The Aside bar from Playground theater */
+    height: 1080px;
+}
+/* Audio Thumbnail Container */
+.musics-theater-main-player-aud16, .musics-theater-main-player-aud-icon8 {
+    height: 670px;
+}
+.tracks-musics-ground-lists3{ /* The height of Tracks Musics */
+    height: 900px;
+}
+.albums-collection-ground-lists3 { /* The Height of Albums */
+    height: 900px;
+}
+.albums-collection-ground-list-3 { /* The Container of Albums */
+    height: 900px;
+}
+.genre-music-ground-lists3 { /* The Container height of Genre */
+    height: 900px;
+}
+.genre-music-ground-list-conten3 { /* The Container hieght og genre */
+    height: 900px;
+}
+.music-time-duration-display8 { /* Time Duration */
+    top: 690px;
+}
+.bmusic-playbacks-content8 { /* The playback Controls of Playground */
+    top: 680px;
+}
+.video-preview-contents-showaft8 { /* video mode list */
+    top: 850px;
+}
+/* The Width of Video Conatainer Lists */
+.legacy-url-extracted-items {
+    width: 1310px;
+}
+/* From Local Music Section */
+.default-view-listing3 {
+    height: 750px;
+}
+.cover-view-listing3 {
+    height: 900px;
+}
+/* From Online Section*/
+.online-music-appsider-section-3 {
+    background-color: #0000;
+}
+.bmusic-online-section-con3 {
+    background-color: #0000;
+}
+.music-online-video-playlist-co14 {
+    height: 520px;
+}
+.online-artist-top-songs-g3{
+    height: 500px;
+}
+.online-artist-subsection-conte3 {
+    height: 760px;
+}
+/* Anime Online */
+.online-music-anime-themes-cont3{
+    height: 600px;
+}
+.online-music-anime-themes3{
+    height: 600px;
+}
+}

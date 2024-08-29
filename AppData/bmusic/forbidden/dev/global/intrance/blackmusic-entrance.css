@@ -1,0 +1,191 @@
+.blackmusic-entrance-nav-con {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: var(--color-gray-300);
+}
+.blackmusic-entrance-logo-img-icon {
+  border-radius: var(--br-31xl);
+}
+.blackmusic-entrance-logo,
+.blackmusic-entrance-logo-img-icon,
+.blackmusic-entrance-nav-conten {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40px;
+  height: 40px;
+}
+.blackmusic-entrance-nav-conten {
+  top: 10px;
+  left: 15px;
+}
+.blackmusic-entrance-nav {
+  margin: 0;
+  position: absolute;
+  height: 12.35%;
+  width: 100%;
+  top: 0;
+  right: 0;
+  bottom: 87.65%;
+  left: 0;
+}
+.blackmusic-entrance-bg-img-icon {
+  max-width: 100%;
+  overflow: hidden;
+}
+.blackmusic-entrance-bg,
+.blackmusic-entrance-bg-cover-w,
+.blackmusic-entrance-bg-img-icon {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 394px;
+}
+.blackmusic-entrance-bg-cover-w {
+  backdrop-filter: blur(4px);
+  background-color: rgba(23, 19, 19, 0.73);
+}
+.welcome-to {
+  font-weight: 500;
+}
+.blackmusic-entrnace-header-tx {
+  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: inherit;
+  font-family: inherit;
+}
+.blackmusic-entrance-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 391px;
+  height: 48px;
+}
+.blackmusic-entrance-slideshow-icon {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  right: 0;
+  left: 0;
+  border-radius: var(--br-10xs);
+  max-width: 100%;
+  overflow: hidden;
+  height: 277px;
+  object-fit: cover;
+}
+.blackmusic-entrance-slideshow {
+  position: absolute;
+  width: 100%;
+  top: 69px;
+  right: 0;
+  left: 0;
+  height: 277px;
+}
+.blackmusic-entrance-package-lo {
+  position: absolute;
+  top: 24px;
+  left: 15px;
+  width: 391px;
+  height: 346px;
+}
+.blackmusic-entrance-package-lo3 {
+  margin: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: inherit;
+  font-family: inherit;
+}
+.blackmusic-entrance-package-lo2 {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 299px;
+  height: 23px;
+}
+.loader-span1,
+.loader-span2 {
+  position: absolute;
+  top: 0;
+  /*right: 0;*/
+  font-weight: 300;
+}
+.loader-span2 {
+  top: 32px;
+}
+.loader-span3,
+.loader-span4,
+.loader-span5 {
+  position: absolute;
+  top: 64px;
+  /*right: 0;*/
+  font-weight: 300;
+}
+.loader-span4,
+.loader-span5 {
+  top: 96px;
+}
+.loader-span5 {
+  top: 128px;
+}
+.loader-span {
+  position: absolute;
+  top: 84px;
+  right: 61px;
+  width: 238px;
+  height: 148px;
+  font-size: var(--font-size-smi);
+}
+.blackmusic-entrance-package-lo1 {
+  position: absolute;
+  top: 116px;
+  right: 104px;
+  width: 299px;
+  height: 232px;
+  font-size: var(--font-size-mini);
+}
+.blackmusic-entrance-contents {
+  position: absolute;
+  width: 100%;
+  top: 60px;
+  right: 0;
+  left: 0;
+  height: 394px;
+  text-align: left;
+  font-size: var(--font-size-13xl);
+  color: var(--color-white);
+  font-family: var(--font-poppins);
+}
+.blackmusic-entrance-footer-con {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  right: 0;
+  left: 0;
+  background-color: var(--color-gray-300);
+  height: 32px;
+}
+.blackmusic-entrance-footer {
+  position: absolute;
+  width: 100%;
+  top: 454px;
+  right: 0;
+  left: 0;
+  height: 32px;
+}
+.blackmusic-entrance {
+  width: 100%;
+  position: relative;
+  background-color: var(--color-gray-1500);
+  height: 486px;
+  overflow: hidden;
+}

@@ -1,0 +1,16 @@
+{
+  "name": "soggy-paint-hope-cktbd",
+  "productName": "soggy-paint-hope-cktbd",
+  "description": "My Electron application description",
+  "keywords": [],
+  "main": "./main.js",
+  "version": "1.0.0",
+  "author": "Vilma E. Agripo",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "28.2.0"
+  }
+}
