@@ -1,0 +1,25 @@
+Sitemap: https://www.blackmusic.com/
+Sitemap: https://www.blackmusic.com/home
+Sitemap: https://www.blackmusic.com/playground
+Sitemap: https://www.blackmusic.com/local
+Sitemap: https://www.blackmusic.com/online
+Sitemap: https://www.blackmusic.com/library
+Sitemap: https://www.blackmusic.com/toolkits
+
+
+User-agent: *
+Allow: /
+Disallow: Disallow: /admin
+
+Disallow: Disallow: /private
+
+Disallow: Disallow: /temp
+
+Disallow: Disallow: /cgi-bin/
+
+Disallow: Disallow: /backup.html
+
+Disallow:
+
+User-agent: *
+Allow: /

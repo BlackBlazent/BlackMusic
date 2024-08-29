@@ -1,0 +1,25 @@
+version: '3'
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+
+  database:
+    image: sqlite
+    volumes:
+      - db-data:/app/db
+    environment:
+      - DATABASE_FILE=/app/db/database.db
+
+volumes:
+  db-data:

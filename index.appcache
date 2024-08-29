@@ -1,0 +1,8 @@
+CACHE MANIFEST
+# Version 1.0
+
+CACHE:
+  /index.html
+  /main.js
+  /images/logo.png
+  /styles.css

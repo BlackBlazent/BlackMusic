@@ -1,0 +1,14 @@
+# .replit
+
+# The command to run the application
+run = "node index.js"
+
+# The language used in the project
+language = "nodejs", "python", "vue", "typescript", "react", "csharp"
+
+# Environment variables
+[env]
+PORT = "3000"
+
+# Optional: Defines the entry point file
+entry = "index.js"
