@@ -40,7 +40,6 @@ Source code (Alpha release preview only)
 23. [Appendix](#appendix)
 
 ### Preface
-Here’s a preface description for your BlackMusic app:
 
 **Welcome to BlackMusic, your ultimate music companion.**
 
