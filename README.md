@@ -7,21 +7,6 @@ Source code (Alpha release preview only)
 ### Description
 🎯 A music player designed to deliver an unparalleled audio experience. BlackMusic integrates a vast catalog of music with superior playback capabilities. 
 
-### Date created
-
-
-### Completion date
-[000000] at
-
-### Date published
-[000000] at
-
-### Developer/Authors by
-- []()
-
-### Copyright
-© 2024 BlackMusic
-
 ### Badges
 
 Add badges from somewhere like: [shields.io](https://shields.io/)
@@ -246,3 +231,6 @@ To learn more about how we collect, store, and use user data, please read our Pr
 ### References
 
 ### Appendix
+
+### Copyright
+© 2024 BlackMusic
