@@ -40,10 +40,24 @@ Source code (Alpha release preview only)
 23. [Appendix](#appendix)
 
 ### Preface
+Here’s a preface description for your BlackMusic app:
 
-### Demo
+**Welcome to BlackMusic, your ultimate music companion.**
 
-Insert gif or link to demo
+BlackMusic is designed to provide a seamless and enriched music experience across various environments. The app is divided into key sections to cater to your diverse musical needs:
+
+- **Home**: Stay updated with the latest in music news, trends, and charts. This section keeps you connected to the pulse of the music world.
+
+- **Playground**: Explore a legacy playback environment that offers a nostalgic experience, bringing back the feel of classic music players with modern enhancements.
+
+- **Local**: Your common playback environment where you can easily access and enjoy your offline music collection. This section is optimized for smooth navigation and playback.
+
+- **Online**: Dive into the world of online music playback. Stream your favorite tracks, discover new artists, and create your playlists, all within this dedicated online environment.
+
+- **Library**: Organize your tracks with precision. The Library section is your personal music archive, allowing you to sort, categorize, and manage your music collection with ease.
+
+- **Toolkits**: Empower your music journey with a range of tools. From downloading tracks to converting formats, the Toolkits section offers practical utilities that enhance your overall music experience.
+
 
 ### Galleries
 
@@ -66,23 +80,11 @@ Insert gif or link to demo
 | **Database:**       | MySQL, NoSQL (MongoDB), SqlLite                                      |
 | **Cloud Services:** | Firebase (for real-time database, authentication, hosting)        |
 
-### Roadmap
-
-- Additional browser support
-- Add more integrations
 
 ### Documentation
 
 [Documentation](https://linktodocumentation)
 
-### Installation
-
-Install my-project with npm
-
-```bash
-  npm install my-project
-  cd my-project
-```
     
 ### Environment Variables
 
@@ -119,19 +121,22 @@ Install my-project with npm
 
 ### Features
 
-- Light/dark mode toggle
-- Live previews
-- Fullscreen mode
+- Music news
+- Extensions and Add-ons
+- Legacy playback
+- Common playback
+- Online stream using Spotify api
+- Integrated search
 - Cross platform
 
-### Optimizations
+<!--### Optimizations
 
 What optimizations did you make in your code? E.g. refactors, performance improvements, accessibility
 
 ### Lessons Learned
 
 What did you learn while building this project? What challenges did you face and how did you overcome them?
-
+-->
 ### Downloads
 Available on:
 
@@ -140,9 +145,9 @@ Available on:
 
 | Platforms| Mirrors 1 | Mirror 2|
 |-------|-------|------|
-| [![linux](https://github.com/LoneStamp99/Vvdo/assets/93658802/aaad78d0-6e4f-4dec-9586-207b86a4a6ff)](https://your-download-link-for-linux)|[Download]()| [Download]()| 
-| [![windows-logo](https://github.com/LoneStamp99/Vvdo/assets/93658802/16780aaa-10e5-4b63-87ac-0edfe30c0053)](https://your-download-link-for-windows)|[Download]()| [Download]()| 
-|[![mac](https://github.com/LoneStamp99/Vvdo/assets/93658802/2c26d1c7-b2dc-4e42-a3d7-f2ab25e88b45)](https://your-download-link-for-mac) |[Download]()| [Download]()|
+| <img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/aaad78d0-6e4f-4dec-9586-207b86a4a6ff" width="16px" height="16px"/>(https://your-download-link-for-linux)|[Download]()| [Download]()| 
+| <img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/16780aaa-10e5-4b63-87ac-0edfe30c0053" width="16px" height="16px"/>(https://your-download-link-for-windows)|[Download]()| [Download]()| 
+|<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/2c26d1c7-b2dc-4e42-a3d7-f2ab25e88b45" width="16px" height="16px"/>(https://your-download-link-for-mac) |[Download]()| [Download]()|
 
 ### Mobile
 ---
