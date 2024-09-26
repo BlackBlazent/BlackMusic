@@ -5,7 +5,7 @@ Source code (Alpha release preview only)
  *BlackMusic* **1.1.01.001.0001**
 
 ### Description
-🎯 A music player designed to deliver an unparalleled audio experience. BlackMusic integrates a vast catalog of music with superior playback capabilities. 
+🎯 A simple music player that combines a vast music catalog with high-quality playback capabilities, designed for an effortless and enjoyable audio experience.
 
 ### Badges
 
