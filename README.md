@@ -17,7 +17,7 @@ Source code (Alpha release preview only)
 ### Table of Contents
 1. [Preface](#preface)
 3. [Galleries](#galleries)
-4. <a href="#codeOfEthics">Code of Ethics</a>
+4. [Code of Ethics](#code-of-ethics)
 5. [Roadmap](#roadmap)
 6. [Documentation](#documentation)
 7. [Installation](#installation)
