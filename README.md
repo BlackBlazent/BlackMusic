@@ -1,4 +1,4 @@
-![Logo](https://github.com/LoneStamp/BlackMusic/blob/main/.github/public_assets/bmusic-banner.png) 
+<!--![Logo](https://github.com/LoneStamp/BlackMusic/blob/main/.github/public_assets/bmusic-banner.png) 
 <br/>
 Source code (Alpha release preview only)
 # Appname and Version
