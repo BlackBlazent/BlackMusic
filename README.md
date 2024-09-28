@@ -17,7 +17,7 @@ Source code (Alpha release preview only)
 ### Table of Contents
 1. [Preface](#preface)
 3. [Galleries](#galleries)
-4. [Code of Ethics](#codeofethics)
+4. <a href="#codeOfEthics">Code of Ethics</a>
 5. [Roadmap](#roadmap)
 6. [Documentation](#documentation)
 7. [Installation](#installation)
@@ -61,11 +61,15 @@ BlackMusic is designed to provide a seamless and enriched music experience acros
 
 ##### Photos
 
-| ![BlackMusic Home](https://github.com/LoneStamp/BlackMusic/blob/main/public/photos/blackmusic-home.png?raw=true) | ![BlackMusic Local](https://github.com/LoneStamp/BlackMusic/blob/main/public/photos/blackmusic-local.png) | ![Image 3](https://example.com/image3.png "Image 3 Title") | ![Image 4](https://example.com/image4.png "Image 4 Title") |
-|:--:|:--:|:--:|:--:|
+| ![BlackMusic Home](https://github.com/LoneStamp/BlackMusic/blob/main/public/photos/blackmusic-home.png?raw=true) |
+|:--:|
+| ![BlackMusic Local](https://github.com/LoneStamp/BlackMusic/blob/main/public/photos/blackmusic-local.png) |
+| ![Image 3](https://example.com/image3.png "Image 3 Title") |
+| ![Image 4](https://example.com/image4.png "Image 4 Title") |
 
 
-### **Code of Ethics**
+
+### **Code of Ethics** <section id="codeOfEthics"></section>
 
 #### **Development Perspective**
 
