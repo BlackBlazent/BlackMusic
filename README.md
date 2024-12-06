@@ -6,10 +6,15 @@
 
 
 ### Table of Contents
-1. [Preface](#preface)
-3. [Galleries](#galleries)
-4. [Code of Ethics](#code-of-ethics)
-5. [Roadmap](#roadmap)
+1. [Galleries](#galleries)
+3. [Downloads](#downloads)
+4. [Related Projects](#realted-projects)
+5. [License](#license)
+6. [Contributing](#cotributing)
+7. [Acknowledgement](#acknowledgement)
+8. [Privacy & Policy](#privacy-policy)
+9. [References](#references)
+10. [Appendix](#appendix)
 
 ### Galleries
 
@@ -50,8 +55,6 @@ Available on:
 ### License
 Badge
   <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/"><a property="dct:title" rel="cc:attributionURL" href="https://github.com/LoneStamp/BlackMusic.git">BlackMusic</a> by <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://github.com/LoneStamp">Jednaz Lonestamp</a> is licensed under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/?ref=chooser-v1" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-NC-ND 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/nc.svg?ref=chooser-v1" alt=""><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/nd.svg?ref=chooser-v1" alt=""></a></p> 
-
- BlackMusic © 2024 by Jednaz Lonestamp is licensed under CC BY-NC-ND 4.0 
 
 ### Contributing
 
