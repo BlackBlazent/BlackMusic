@@ -21,11 +21,11 @@ Available on:
 
 | Platforms| Mirrors 1 | Mirror 2|
 |-------|-------|------|
-| <img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/aaad78d0-6e4f-4dec-9586-207b86a4a6ff" width="16px" height="16px"/>(https://your-download-link-for-linux)|[Download]()| [Download]()| 
-| <img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/16780aaa-10e5-4b63-87ac-0edfe30c0053" width="16px" height="16px"/>(https://your-download-link-for-windows)|[Download]()| [Download]()| 
-|<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/2c26d1c7-b2dc-4e42-a3d7-f2ab25e88b45" width="16px" height="16px"/>(https://your-download-link-for-mac) |[Download]()| [Download]()|
-|<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/4bda63de-cd31-4d34-8afc-00f445fe66b6)](https://your-download-link-for-android" width="16px" height="16px"/> |[Download]()| [Download]()|
-|<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/a7cbc065-4ef7-4bf7-a633-1e8e631717ff)](https://your-download-link-for-ios" width="16px" height="16px"/> |[Download]()| [Download]()|
+|<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/16780aaa-10e5-4b63-87ac-0edfe30c0053" width="16px" height="16px"/>[Windows](https://not-available.com)|[Download]()| [Download]()| 
+|<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/2c26d1c7-b2dc-4e42-a3d7-f2ab25e88b45" width="16px" height="16px"/>[MacOS](https://not-available.com)|[Download]()| [Download]()| 
+|<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/aaad78d0-6e4f-4dec-9586-207b86a4a6ff" width="16px" height="16px"/>[Linux](https://not-available.com) |[Download]()| [Download]()|
+|<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/4bda63de-cd31-4d34-8afc-00f445fe66b6" width="16px" height="16px"/>[Android](https://not-available.com) |[Download]()| [Download]()|
+|<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/a7cbc065-4ef7-4bf7-a633-1e8e631717ff)](https://your-download-link-for-ios" width="16px" height="16px"/>[IOS](https://not-available)|[Download]()| [Download]()|
 
 ### Related Projects
 
