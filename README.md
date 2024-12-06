@@ -19,9 +19,9 @@
 ### Galleries
 
 ### Downloads
-Available on:
+Download BlackMusic provided below source only. Else, do not download.
 
-### Desktop
+Available on:
 ---
 
 | Platforms| Mirrors 1 | Mirror 2|
@@ -31,6 +31,9 @@ Available on:
 |<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/aaad78d0-6e4f-4dec-9586-207b86a4a6ff" width="16px" height="16px"/>[Linux](https://not-available.com) |[Download]()| [Download]()|
 |<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/4bda63de-cd31-4d34-8afc-00f445fe66b6" width="16px" height="16px"/>[Android](https://not-available.com) |[Download]()| [Download]()|
 |<img src="https://github.com/LoneStamp99/Vvdo/assets/93658802/a7cbc065-4ef7-4bf7-a633-1e8e631717ff)](https://your-download-link-for-ios" width="16px" height="16px"/>[IOS](https://not-available)|[Download]()| [Download]()|
+
+Alternative Source:
+---
 
 ### Related Projects
 
