@@ -71,10 +71,6 @@ Please adhere to this project's `code of conduct`.
 
 ### Acknowledgements
 
-- [Awesome Readme Templates](https://awesomeopensource.com/project/elangosundar/awesome-README-templates)
-- [Awesome README](https://github.com/matiassingers/awesome-readme)
-- [How to write a Good readme](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
-
 ### Privacy Policy and Terms of Service
 To learn more about how we collect, store, and use user data, please read our Privacy Policy at [Link to Privacy Policy]. Our Terms of Service govern the use of BlackVivido or Vvdo and can be found at [Link to Terms of Service]. By using our app, you agree to these terms.
 
