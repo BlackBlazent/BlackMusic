@@ -19,7 +19,7 @@
 ### Galleries
 
 ### Downloads
-Download BlackMusic provided below source only. Else, do not download.
+Download <strong><em>BlackMusic</em></strong> from the source provided below only. Otherwise, do not download.
 
 Available on:
 ---
