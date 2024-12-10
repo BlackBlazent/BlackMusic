@@ -54,6 +54,7 @@ Alternative Source:
 - <a href="https://github.com/harjot-oberai/MusicDNA">MusicDNA</a>
 - <a href="https://github.com/MarshallOfSound/Google-Play-Music-Desktop-Player-UNOFFICIAL-">Google-Play-Music-Desktop-Player-UNOFFICIAL</a>
 - <a href="https://github.com/iampawan/Flutter-Music-Player">Flutter-Music-Player</a>
+- <a href="https://github.com/digimezzo/dopamine.git">Dopamine</a>
 
 ### License
 Badge
