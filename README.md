@@ -1,5 +1,5 @@
 # Appname and Version
- *BlackMusic* **1.1.01.001.0001**
+ *BLΛƆKMUSIƆ* **1.1.01.001.0001**
 
 ### Description
 🎯 My very own music player.
