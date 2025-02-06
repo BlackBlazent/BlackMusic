@@ -68,6 +68,8 @@ This project is licensed under the [CC BY-NC-ND 4.0 License](https://creativecom
 Contributions are always welcome!  
 See `contributing.md` for ways to get started.  
 Please adhere to this project's [Code of Conduct](#).
+See other cloud-hosted:
+- `git clone https://LoneStamp99@bitbucket.org/lonestamp/blackmusic.git`
 
 ## 🙌 Acknowledgements  
 Special thanks to the following:  
