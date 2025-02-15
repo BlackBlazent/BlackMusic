@@ -2,7 +2,7 @@
 🎶 *BLΛƆKMUSIƆ* **1.1.01.001.0001**  
 
 ### Description  
-🎯 **BlackMusic** is my very own music player, designed to provide an enjoyable and seamless music listening experience.  
+🎯 **BlackMusic** ᜁᜐ᜔ ᜋ᜔ᜌ᜔ ᜊ᜔ᜁᜇ᜔ᜌ᜔ ᜂᜏ᜔ᜈ᜔ ᜋᜓᜐᜒᜃ᜔ ᜉ᜔ᜎᜌᜒᜇ᜔, ᜇᜒᜐᜒᜄ᜔ᜈᜒᜇ᜔ ᜆᜓ ᜉ᜔ᜇᜓᜊ᜔ᜁᜇᜒ ᜀᜈ᜔ ᜁᜈ᜔ᜑ᜔ᜂᜌᜊ᜔ᜎᜒ ᜀᜈ᜔ᜇ᜔ ᜐᜒᜀᜋ᜔ᜎᜒᜐ᜔ᜐ᜔ ᜋᜓᜐᜒᜃ᜔ ᜎᜒᜐ᜔ᜆᜒᜈᜒᜅ᜔ ᜁᜐ᜔ᜉᜒᜇᜒᜁᜈ᜔ᜃ᜔ᜁ.  
 
 ## 📑 Table of Contents  
 1. [🎨 Galleries](#galleries)  
