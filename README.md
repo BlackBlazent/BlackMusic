@@ -5,21 +5,21 @@
 🎯 **BlackMusic** ᜁᜐ᜔ ᜋ᜔ᜌ᜔ ᜊ᜔ᜁᜇ᜔ᜌ᜔ ᜂᜏ᜔ᜈ᜔ ᜋᜓᜐᜒᜃ᜔ ᜉ᜔ᜎᜌᜒᜇ᜔, ᜇᜒᜐᜒᜄ᜔ᜈᜒᜇ᜔ ᜆᜓ ᜉ᜔ᜇᜓᜊ᜔ᜁᜇᜒ ᜀᜈ᜔ ᜁᜈ᜔ᜑ᜔ᜂᜌᜊ᜔ᜎᜒ ᜀᜈ᜔ᜇ᜔ ᜐᜒᜀᜋ᜔ᜎᜒᜐ᜔ᜐ᜔ ᜋᜓᜐᜒᜃ᜔ ᜎᜒᜐ᜔ᜆᜒᜈᜒᜅ᜔ ᜁᜐ᜔ᜉᜒᜇᜒᜁᜈ᜔ᜃ᜔ᜁ.  
 
 ## 📑 Table of Contents  
-1. [🎨 Galleries](#galleries)  
-2. [📥 Downloads](#downloads)  
-3. [🔗 Related Projects](#related-projects)  
-4. [📜 License](#license)  
-5. [🤝 Contributing](#contributing)  
-6. [🙌 Acknowledgements](#acknowledgements)  
-7. [🔒 Privacy & Policy](#privacy-policy)  
-8. [📚 References](#references)  
-9. [🗂️ Appendix](#appendix)  
+1. [🎨 Галереи](#galleries)  
+2. [📥 Загрузки](#downloads)  
+3. [🔗 Связанные проекты](#related-projects)  
+4. [📜 Лицензия](#license)  
+5. [🤝 Содействие](#contributing)  
+6. [🙌 Благодарности](#acknowledgements)  
+7. [🔒 Конфиденциальность и политика](#privacy-policy)  
+8. [📚 Ссылки](#references)  
+9. [🗂️ Приложение](#appendix)  
 
 ## 🎨 Galleries  
 *(Add relevant images or descriptions here)*  
 
 ## 📥 Downloads  
-Download **BlackMusic** from the source provided below only. For your safety, avoid downloading from untrusted websites.
+Download **BlackMusic** только из источника, представленного ниже. В целях вашей безопасности избегайте загрузки с ненадежных веб-сайтов.
 
 Available on:  
 ---
@@ -36,7 +36,7 @@ Available on:
 (Provide additional sources or links if available)
 
 ## 🔗 Related Projects  
-Check out these related open-source projects that you might find interesting:  
+Ознакомьтесь с этими связанными проектами с открытым исходным кодом, которые могут показаться вам интересными.:  
 - [Tauon](https://github.com/Taiko2k/Tauon)  
 - [Spy Spotify](https://github.com/jwallet/spy-spotify)  
 - [Tidal Media Downloader](https://github.com/yaronzz/Tidal-Media-Downloader-PRO)  
@@ -50,7 +50,7 @@ Check out these related open-source projects that you might find interesting:
 - [Google Play Music Desktop Player](https://github.com/MarshallOfSound/Google-Play-Music-Desktop-Player-UNOFFICIAL)  
 
 ## 📜 License  
-This project is licensed under the [CC BY-NC-ND 4.0 License](https://creativecommons.org/licenses/by-nc-nd/4.0/).  
+Этот проект находится под лицензией [CC BY-NC-ND 4.0 License](https://creativecommons.org/licenses/by-nc-nd/4.0/).  
 <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/">
   <a property="dct:title" rel="cc:attributionURL" href="https://github.com/LoneStamp/BlackMusic.git">BlackMusic</a> by 
   <a rel="cc:attributionURL dct:creator" property="cc:attributionName" href="https://github.com/LoneStamp">Jednaz Lonestamp</a> 
@@ -65,18 +65,18 @@ This project is licensed under the [CC BY-NC-ND 4.0 License](https://creativecom
 </p>
 
 ## 🤝 Contributing  
-Contributions are always welcome!  
-See `contributing.md` for ways to get started.  
-Please adhere to this project's [Code of Conduct](#).
-See other cloud-hosted:
+Вклады всегда приветствуются!  
+Узнайте `contributing.md` как начать работу.  
+Пожалуйста, придерживайтесь этого проекта [Code of Conduct](#).
+Посмотрите другие облачные сервисы:
 - `git clone https://LoneStamp99@bitbucket.org/lonestamp/blackmusic.git`
 
 ## 🙌 Acknowledgements  
-Special thanks to the following:  
+Особая благодарность следующим лицам:  
 *(List individuals, libraries, or resources you are thankful for)*  
 
 ### 🔒 Privacy Policy and Terms of Service  
-To learn more about how we collect, store, and use user data, please read our [Privacy Policy](#).  
+Чтобы узнать больше о том, как мы собираем, храним и используем пользовательские данные, прочтите нашу [Privacy Policy](#).  
 Our [Terms of Service](#) govern the use of **BlackMusic**. By using our app, you agree to these terms.
 
 ## 📚 References  
@@ -86,4 +86,4 @@ Our [Terms of Service](#) govern the use of **BlackMusic**. By using our app, yo
 *(Include any additional information or appendices here)*  
 
 ## 📅 Copyright  
-© 2024 **BlackMusic**. All rights reserved.
+© 2024 **BlackMusic**. Все права защищены.
