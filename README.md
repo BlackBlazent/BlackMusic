@@ -33,23 +33,6 @@ Available on:
 | <img style="width: 70px; height: 70px;" src="https://github.com/LoneStamp99/Vvdo/assets/93658802/a7cbc065-4ef7-4bf7-a633-1e8e631717ff"/> | [Download](#) | [Download](#) |
 <!--https://github.com/LoneStamp99/Vvdo/assets/93658802/2c26d1c7-b2dc-4e42-a3d7-f2ab25e88b45-->
 
-### Alternative Source  
-(Provide additional sources or links if available)
-
-## 🔗 Related Projects  
-Ознакомьтесь с этими связанными проектами с открытым исходным кодом, которые могут показаться вам интересными.:  
-- [Tauon](https://github.com/Taiko2k/Tauon)  
-- [Spy Spotify](https://github.com/jwallet/spy-spotify)  
-- [Tidal Media Downloader](https://github.com/yaronzz/Tidal-Media-Downloader-PRO)  
-- [Spotify QT](https://github.com/kraxarn/spotify-qt)  
-- [Gwayun](https://github.com/jhelumcorp/gyawun)  
-- [feishin](https://github.com/jeffvli/feishin)  
-- [Spotify DL](https://github.com/SathyaBhat/spotify-dl)  
-- [Nuclear](https://github.com/nukeop/nuclear)  
-- [Museeks](https://github.com/martpie/museeks)  
-- [MusicDNA](https://github.com/harjot-oberai/MusicDNA)  
-- [Google Play Music Desktop Player](https://github.com/MarshallOfSound/Google-Play-Music-Desktop-Player-UNOFFICIAL)  
-
 ## 📜 License  
 Этот проект находится под лицензией [CC BY-NC-ND 4.0 License](https://creativecommons.org/licenses/by-nc-nd/4.0/).  
 <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/">
