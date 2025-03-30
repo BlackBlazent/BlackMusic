@@ -48,13 +48,6 @@ Available on:
   </a>
 </p>
 
-## 🤝 Contributing  
-Вклады всегда приветствуются!  
-Узнайте `contributing.md` как начать работу.  
-Пожалуйста, придерживайтесь этого проекта [Code of Conduct](#).
-Посмотрите другие облачные сервисы:
-- `git clone https://LoneStamp99@bitbucket.org/lonestamp/blackmusic.git`
-
 ## 🙌 Acknowledgements  
 Особая благодарность следующим лицам:  
 *(List individuals, libraries, or resources you are thankful for)*  
