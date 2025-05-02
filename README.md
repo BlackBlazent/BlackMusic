@@ -14,7 +14,7 @@
 *(Add relevant images or descriptions here)*  
 
 ## 📥 Download  
-Download **BlackMusic** только из источника, представленного ниже. В целях вашей безопасности избегайте загрузки с ненадежных веб-сайтов.
+Download **BlackMusic** only from the source provided below. For your safety, avoid downloading from untrusted websites.
 
 Available on:  
 ---
