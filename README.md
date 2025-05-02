@@ -2,18 +2,13 @@
 🎶 *BLΛƆKMUSIƆ* **1.1.01.001.0001**  
 
 ### Description  
-🎯 **BlackMusic** — мой собственный музыкальный проигрыватель, созданный для обеспечения приятного и беспрепятственного прослушивания музыки. 
+🎯 Music Ultra Superior Integrated Catalog. A music player designed to deliver an unparalleled audio experience. BlackMusic integrates a vast catalog of music with superior playback capabilities. 
 
 ## 📑 Table of Contents  
 1. [🎨 Галереи](#galleries)  
-2. [📥 Загрузки](#downloads)  
-3. [🔗 Связанные проекты](#related-projects)  
-4. [📜 Лицензия](#license)  
-5. [🤝 Содействие](#contributing)  
-6. [🙌 Благодарности](#acknowledgements)  
-7. [🔒 Конфиденциальность и политика](#privacy-policy)  
-8. [📚 Ссылки](#references)  
-9. [🗂️ Приложение](#appendix)  
+2. [📥 Загрузки](#downloads)   
+3. [📜 Лицензия](#license)    
+4. [🔒 Конфиденциальность и политика](#privacy-policy)  
 
 ## 🎨 Galleries  
 *(Add relevant images or descriptions here)*  
