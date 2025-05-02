@@ -5,10 +5,10 @@
 🎯 Music Ultra Superior Integrated Catalog. A music player designed to deliver an unparalleled audio experience. BlackMusic integrates a vast catalog of music with superior playback capabilities. 
 
 ## 📑 Table of Contents  
-1. [🎨 Галереи](#galleries)  
-2. [📥 Загрузки](#downloads)   
-3. [📜 Лицензия](#license)    
-4. [🔒 Конфиденциальность и политика](#privacy-policy)  
+1. [🎨 Gallery](#galleries)  
+2. [📥 Download](#downloads)   
+3. [📜 License](#license)    
+4. [🔒 Privacy Policy](#privacy-policy)  
 
 ## 🎨 Galleries  
 *(Add relevant images or descriptions here)*  
@@ -43,19 +43,9 @@ Available on:
   </a>
 </p>
 
-## 🙌 Acknowledgements  
-Особая благодарность следующим лицам:  
-*(List individuals, libraries, or resources you are thankful for)*  
-
 ### 🔒 Privacy Policy and Terms of Service  
-Чтобы узнать больше о том, как мы собираем, храним и используем пользовательские данные, прочтите нашу [Privacy Policy](#).  
+To learn more about how we collect, store and use user data, please read our [Privacy Policy](#).  
 Our [Terms of Service](#) govern the use of **BlackMusic**. By using our app, you agree to these terms.
 
-## 📚 References  
-*(Add relevant references, articles, or documents here)*  
-
-## 🗂️ Appendix  
-*(Include any additional information or appendices here)*  
-
 ## 📅 Copyright  
-© 2024 **BlackMusic**. Все права защищены.
+© 2024 **BlackMusic**. All rights reserved.
