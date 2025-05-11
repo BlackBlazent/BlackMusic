@@ -49,4 +49,4 @@ To learn more about how we collect, store and use user data, please read our [Pr
 Our [Terms of Service](#) govern the use of **BlackMusic**. By using our app, you agree to these terms.
 
 ## 📅 Copyright  
-© 2024 **BlackMusic**. All rights reserved.
+© **BlackMusic** <span id="copyright-year">2025</span> All rights reserved.
