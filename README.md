@@ -11,6 +11,9 @@
   <img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-instagram.svg"/>
   <img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-facebook.svg"/>
 </p>
+<div align="center">
+  <img width="300" height="auto" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/Dicover-More.svg"/>
+</div>
 
 ---
 ## 📑 Table of Contents  
