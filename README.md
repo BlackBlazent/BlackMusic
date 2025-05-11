@@ -11,8 +11,7 @@
 3. [📜 License](#license)    
 4. [🔒 Privacy Policy](#privacy-policy)  
 
-## 🎨 Galleries  
-*(Add relevant images or descriptions here)*  
+## 🎨 Galleries   
 
 ## 📥 Download  
 Download **BlackMusic** only from the source provided below. For your safety, avoid downloading from untrusted websites.
