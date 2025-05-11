@@ -1,7 +1,6 @@
-# Appname & Version  
-🎶 *BLΛƆKMUSIƆ* **1.1.01.001.0001**  
-
-### Description  
+**Appname:** *BLΛƆKMUSIƆ*  
+**Codename:** *RavenSYNTHA*  
+ 
 🎯 Music Ultra Superior Integrated Catalog. A music player designed to deliver an unparalleled audio experience. BlackMusic integrates a vast catalog of music with superior playback capabilities. 
 
 ## 📑 Table of Contents  
