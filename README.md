@@ -17,8 +17,9 @@
 
 ---
 ## 📑 Table of Contents  
-1. [🎨 Gallery](#galleries)  
-2. [📥 Download](#downloads)   
+1. [🎨 Gallery](#galleries)
+2. [⚡ Features](#features)  
+3. [📥 Download](#downloads)   
 4. [📜 License](#license)    
 5. [🔒 Privacy Policy](#privacy-policy)  
 
