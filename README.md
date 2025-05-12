@@ -19,8 +19,8 @@
 ## 📑 Table of Contents  
 1. [🎨 Gallery](#galleries)  
 2. [📥 Download](#downloads)   
-3. [📜 License](#license)    
-4. [🔒 Privacy Policy](#privacy-policy)  
+4. [📜 License](#license)    
+5. [🔒 Privacy Policy](#privacy-policy)  
 
 ## 🎨 Galleries   
 
