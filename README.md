@@ -39,7 +39,6 @@ Available on:
 | <img style="width: 70px; height: 70px;" src="https://github.com/LoneStamp99/Vvdo/assets/93658802/4bda63de-cd31-4d34-8afc-00f445fe66b6"/> | [Unavailable](#) | [Unavailable](#) |  
 | <img style="width: 70px; height: 70px;" src="https://github.com/LoneStamp99/Vvdo/assets/93658802/a7cbc065-4ef7-4bf7-a633-1e8e631717ff"/> | [Unavailable](#) | [Unavailable](#) |
 <!--https://github.com/LoneStamp99/Vvdo/assets/93658802/2c26d1c7-b2dc-4e42-a3d7-f2ab25e88b45-->
-
 ## 📜 License  
 <!--Этот проект находится под лицензией [CC BY-NC-ND 4.0 License](https://creativecommons.org/licenses/by-nc-nd/4.0/).-->  
 <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/">
