@@ -1,7 +1,7 @@
 <img alt="Banner" width="auto" height="auto" src="https://iili.io/3vgjx6u.png"/>
 
 # **Appname:** *BLΛƆKMUSIƆ*  
-# **Codename:** *RavenSYNTHA*  
+## **Codename:** *RavenSYNTHA*  
  
 🎯 <i>Music Ultra Superior Integrated Catalog. A music player designed to deliver an unparalleled audio experience. BlackMusic integrates a vast catalog of music with superior playback capabilities.</i> 
 ---
