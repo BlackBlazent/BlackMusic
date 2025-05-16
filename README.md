@@ -39,6 +39,14 @@ Available on:
 | <img style="width: 70px; height: 70px;" src="https://github.com/LoneStamp99/Vvdo/assets/93658802/4bda63de-cd31-4d34-8afc-00f445fe66b6"/> | [Unavailable](#) | [Unavailable](#) |  
 | <img style="width: 70px; height: 70px;" src="https://github.com/LoneStamp99/Vvdo/assets/93658802/a7cbc065-4ef7-4bf7-a633-1e8e631717ff"/> | [Unavailable](#) | [Unavailable](#) |
 <!--https://github.com/LoneStamp99/Vvdo/assets/93658802/2c26d1c7-b2dc-4e42-a3d7-f2ab25e88b45-->
+
+App Version History
+
+| 🧩 Icon | 🔢 Version       | ✨ Details on the Version Features Include                                                                                                                                                             | 🔗 Direct Link for Version Access                                           |
+| ------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| <img style="width:40px; height:40px;" src="https://iili.io/3rXF8LF.png" />      | v1.1.01.001.0001 | - Initial release <br>- Functional: | [Download v1.1.01.001.0001](https://example.com/downloads/v1.1.01.001.0001) |
+
+
 ## 📜 License  
 <!--Этот проект находится под лицензией [CC BY-NC-ND 4.0 License](https://creativecommons.org/licenses/by-nc-nd/4.0/).-->  
 <p xmlns:cc="http://creativecommons.org/ns#" xmlns:dct="http://purl.org/dc/terms/">
