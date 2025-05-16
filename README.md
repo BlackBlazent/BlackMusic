@@ -4,7 +4,7 @@
 ## **Codename:** *RavenSYNTHA*  
  
  <h5>🎯 <i>Music Ultra Superior Integrated Catalog. A music player designed to deliver an unparalleled audio experience. BlackMusic integrates a vast catalog of music with superior playback capabilities.</i></h5> 
----
+
 <p align="center">
   <img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-youtube.svg"/>
   <img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-tiktok.svg"/>
