@@ -44,7 +44,7 @@ App Version History
 
 | 🧩 Icon | 🔢 Version       | ✨ Details on the Version Features Include                                                                                                                                                             | 🔗 Direct Link for Version Access                                           |
 | ------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| <img style="width:40px; height:40px;" src="https://iili.io/3rXF8LF.png" />      | v1.1.01.001.0001 | - Initial release <br>- Functional: | [Download v1.1.01.001.0001](https://example.com/downloads/v1.1.01.001.0001) |
+| <img style="width:40px; height:40px;" src="https://iili.io/3rXF8LF.png" />      | v1.1.01.001.0001 | - Initial release <br>- Functional: | [v1.1.01.001.0001](https://example.com/downloads/v1.1.01.001.0001) |
 
 
 ## 📜 License  
