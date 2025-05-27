@@ -14,13 +14,13 @@
 ![Platform](https://img.shields.io/badge/Cross--Platform-Windows%20%7C%20Linux%20%7C%20Mac%20%7C%20iOS%20%7C%20Android-yellow?style=for-the-badge&logo=electron)
 
 <p align="center">
-<a href="https://www.youtube.com"><img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-youtube.svg"/></a>
-<a href="https://www.tiktok.com"><img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-tiktok.svg"/></a>
-<a href="https://www.instagram"><img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-instagram.svg"/></a>
-<a href="https://www.facebook.com"><img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-facebook.svg"/></a>
+<a target="_blank" href="https://www.youtube.com"><img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-youtube.svg"/></a>
+<a target="_blank" href="https://www.tiktok.com"><img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-tiktok.svg"/></a>
+<a target="_blank" href="https://www.instagram"><img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-instagram.svg"/></a>
+<a target="_blank" href="https://www.facebook.com"><img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-facebook.svg"/></a>
 </p>
 <div align="center">
-  <a href="https://blackmusic-centric-site.onrender.com"><img width="300" height="auto" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/Dicover-More.svg"/></a>
+  <a target="_blank" href="https://blackmusic-centric-site.onrender.com"><img width="300" height="auto" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/Dicover-More.svg"/></a>
 </div>
 
 ---
