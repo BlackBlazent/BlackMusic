@@ -5,6 +5,13 @@
  
  <h5>🎯 <i>Music Ultra Superior Integrated Catalog. A music player designed to deliver an unparalleled audio experience. BlackMusic integrates a vast catalog of music with superior playback capabilities.</i></h5> 
 
+![AppName](https://img.shields.io/badge/App-BlackMusic-blue?style=for-the-badge&logo=appveyor)
+![Version](https://img.shields.io/badge/Version-v1.1.01.001.0001-green?style=for-the-badge&logo=vercel)
+![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge&logo=law)
+![Codename](https://img.shields.io/badge/Codename-ravenSYNTHA-purple?style=for-the-badge&logo=music)
+![Category](https://img.shields.io/badge/Category-Music_App-orange?style=for-the-badge&logo=spotify)
+![Platform](https://img.shields.io/badge/Cross--Platform-Windows%20%7C%20Linux%20%7C%20Mac-yellow?style=for-the-badge&logo=electron)
+
 <p align="center">
   <img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-youtube.svg"/>
   <img width="149" height="109" src="https://github.com/BlackBlazent/BlackMusic/blob/main/public/presentations/watch-tiktok.svg"/>
