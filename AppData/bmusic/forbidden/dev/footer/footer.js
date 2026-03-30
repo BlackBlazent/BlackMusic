@@ -1,2 +1,0 @@
-// Copyright Properties
-// Feedback
