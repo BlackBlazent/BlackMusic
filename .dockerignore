@@ -1,9 +1,0 @@
-.git/
-.vscode/
-.vs/
-screenshot/
-tests/
-*.txt
-!/requirements.txt
-venv/
-
