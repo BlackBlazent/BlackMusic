@@ -1,0 +1,68 @@
+.tooltip {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip__bubble {
+  position: absolute;
+  z-index: 200;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text);
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.tooltip:hover .tooltip__bubble,
+.tooltip:focus-within .tooltip__bubble {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 350ms;
+}
+
+.tooltip[data-side="bottom"] .tooltip__bubble {
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translate(-50%, 2px);
+}
+
+.tooltip[data-side="bottom"]:hover .tooltip__bubble {
+  transform: translate(-50%, 0);
+}
+
+.tooltip[data-side="top"] .tooltip__bubble {
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translate(-50%, -2px);
+}
+
+.tooltip[data-side="top"]:hover .tooltip__bubble {
+  transform: translate(-50%, 0);
+}
+
+.tooltip[data-side="right"] .tooltip__bubble {
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translate(2px, -50%);
+}
+
+.tooltip[data-side="right"]:hover .tooltip__bubble {
+  transform: translate(0, -50%);
+}
+
+.tooltip[data-side="left"] .tooltip__bubble {
+  right: calc(100% + 8px);
+  top: 50%;
+  transform: translate(-2px, -50%);
+}
+
+.tooltip[data-side="left"]:hover .tooltip__bubble {
+  transform: translate(0, -50%);
+}

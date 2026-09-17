@@ -1,0 +1,60 @@
+.seek-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.seek-bar__time {
+  font-size: 11px;
+  color: var(--color-text-faint);
+  font-variant-numeric: tabular-nums;
+  width: 34px;
+  flex-shrink: 0;
+}
+
+.seek-bar__time:last-child {
+  text-align: right;
+}
+
+.seek-bar__track {
+  position: relative;
+  flex: 1;
+}
+
+.seek-bar__track input[type="range"] {
+  width: 100%;
+  margin: 0;
+  background: linear-gradient(
+    to right,
+    var(--color-accent) var(--seek-progress, 0%),
+    var(--color-surface-raised) var(--seek-progress, 0%)
+  );
+  border-radius: 999px;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.seek-bar__track input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  cursor: pointer;
+}
+
+.seek-bar__preview {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  padding: 3px 7px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-strong);
+  font-size: 11px;
+  color: var(--color-text);
+  pointer-events: none;
+  white-space: nowrap;
+}

@@ -1,0 +1,76 @@
+.app-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 32px;
+  padding: 0 var(--space-4);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-sunken);
+  font-size: 11px;
+  color: var(--color-text-faint);
+  flex-shrink: 0;
+}
+
+.app-footer__status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-footer__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-text-faint);
+}
+
+.app-footer__dot[data-ok="true"] {
+  background: #2ecc71;
+}
+
+.app-footer__actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.app-footer__reload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-faint);
+}
+
+.app-footer__reload:hover {
+  color: var(--color-text);
+  background: var(--color-hover);
+}
+
+.app-footer__reload svg {
+  width: 14px;
+  height: 14px;
+}
+
+.app-footer__reload[data-spinning="true"] svg {
+  animation: footer-spin 0.8s linear infinite;
+}
+
+@keyframes footer-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app-footer__feedback:hover {
+  color: var(--color-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-footer__reload[data-spinning="true"] svg {
+    animation: none;
+  }
+}

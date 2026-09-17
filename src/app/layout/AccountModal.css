@@ -1,0 +1,155 @@
+.account-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.account-modal {
+  width: 340px;
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+}
+
+.account-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.account-modal__header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.account-modal__header button {
+  color: var(--color-text-faint);
+}
+
+.account-modal__notice {
+  font-size: 12px;
+  color: var(--color-text-faint);
+  background: var(--color-surface-raised);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-4);
+}
+
+.account-modal__notice code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+.account-modal__tabs {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  margin-bottom: var(--space-4);
+}
+
+.account-modal__tabs button {
+  flex: 1;
+  padding: 7px 0;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.account-modal__tabs button[data-active="true"] {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.account-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.account-modal__form input {
+  height: 36px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 13px;
+}
+
+.account-modal__form input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.account-modal__error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-accent);
+}
+
+.account-modal__submit {
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.account-modal__submit:hover:not(:disabled) {
+  background: var(--color-accent-strong);
+}
+
+.account-modal__submit:disabled {
+  opacity: 0.5;
+}
+
+.account-modal__divider {
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-text-faint);
+  margin: var(--space-4) 0;
+}
+
+.account-modal__providers {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.account-modal__providers button {
+  flex: 1;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.account-modal__providers button:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-hover);
+}
+
+.account-modal__providers button:disabled {
+  opacity: 0.4;
+}
+
+.account-modal__signed-in {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.account-modal__signed-in p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}

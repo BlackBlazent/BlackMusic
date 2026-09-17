@@ -1,0 +1,81 @@
+/*
+  BlackMusic design tokens.
+
+  The legacy app had ~40 hand-named grays (--color-gray-1300, --color-darkslategray-2100, …)
+  most of which resolved to a handful of surfaces. This collapses that down to a small,
+  purposeful scale while keeping the original identity: near-black surfaces, a single
+  hard red accent (#ff0030), Poppins.
+
+  Every token is redefined per theme under [data-theme], so components never branch
+  on theme — they just reference the token.
+*/
+
+:root {
+  --font-sans: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 14px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --sidebar-width-expanded: 232px;
+  --sidebar-width-collapsed: 72px;
+  --topbar-height: 56px;
+  --playbar-height: 88px;
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+
+  /* Brand accent stays constant across themes. */
+  --color-accent: #ff0030;
+  --color-accent-strong: #d40027;
+  --color-accent-wash: rgba(255, 0, 48, 0.14);
+}
+
+[data-theme="dark"] {
+  --color-bg: #121212;
+  --color-surface: #181818;
+  --color-surface-raised: #202020;
+  --color-surface-sunken: #0d0d0d;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+
+  --color-text: #ffffff;
+  --color-text-muted: #9a9a9a;
+  --color-text-faint: #6b6b6b;
+
+  --color-hover: rgba(255, 255, 255, 0.06);
+  --color-active: rgba(255, 255, 255, 0.1);
+  --color-scrollbar-track: rgba(0, 0, 0, 0.33);
+  --color-scrollbar-thumb: rgba(217, 217, 223, 0.68);
+
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --color-bg: #f4f4f5;
+  --color-surface: #ffffff;
+  --color-surface-raised: #fbfbfb;
+  --color-surface-sunken: #ebebec;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-strong: rgba(0, 0, 0, 0.14);
+
+  --color-text: #171717;
+  --color-text-muted: #63636b;
+  --color-text-faint: #9797a1;
+
+  --color-hover: rgba(0, 0, 0, 0.045);
+  --color-active: rgba(0, 0, 0, 0.08);
+  --color-scrollbar-track: rgba(0, 0, 0, 0.06);
+  --color-scrollbar-thumb: rgba(0, 0, 0, 0.28);
+
+  color-scheme: light;
+}

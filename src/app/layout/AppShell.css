@@ -1,0 +1,26 @@
+.app-shell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.app-shell__main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.app-shell__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-5) var(--space-6);
+}
+
+@media (max-width: 900px) {
+  .app-shell__content {
+    padding: var(--space-4);
+  }
+}

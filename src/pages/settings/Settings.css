@@ -1,0 +1,126 @@
+.settings {
+  max-width: 560px;
+}
+
+.settings h1 {
+  margin: 0 0 var(--space-6);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.settings__section {
+  padding: var(--space-5) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.settings__section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.settings__section h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.settings__section p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.settings__section--pending {
+  opacity: 0.6;
+}
+
+.settings__theme-options {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.settings__theme-option {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.settings__theme-option[data-active="true"] {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+  background: var(--color-accent-wash);
+}
+
+.settings__integrations {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+}
+
+.settings__integration-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+}
+
+.settings__integration-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings__integration-name {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.settings__integration-desc {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.settings__update-btn {
+  margin-top: var(--space-2);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.settings__update-btn:hover:not(:disabled) {
+  background: var(--color-accent-strong);
+}
+
+.settings__update-btn:disabled {
+  opacity: 0.5;
+}
+
+.settings__update-available {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-wash);
+}
+
+.settings__update-available p {
+  margin: 0 0 var(--space-2);
+  font-size: 13px;
+}
+
+.settings__update-error {
+  margin: var(--space-2) 0 0;
+  font-size: 12px;
+  color: var(--color-accent);
+}

@@ -1,0 +1,67 @@
+# Node
+node_modules/
+dist/
+~/.tauri/
+__docs__/
+__tests__/
+resources/
+task/
+native/
+temp/
+dist-ssr/
+*.local
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+
+# Env
+.env
+.env.local
+
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+
+# OS generated files
+.DS_Store # macOS folder settings
+Thumbs.db # Windows image file cache
+Desktop.ini # Windows desktop icon settings
+
+# Editor directories and files
+.vscode/   # Visual Studio Code settings
+.idea/   # IntelliJ IDEA settings
+*.swp   # Vim swap files
+*.swo   # Vim swap files
+*.swn   # Vim swap files
+
+# Temporary or cache files
+*.tmp   # Temporary files
+*.temp  # Temporary files
+*.cache   # Cache files
+*.bak   # Backup files
+
+# Others
+*.log   # Log files
+
+# Sensitive Google OAuth credentials
+**/google.user.identity.service.js
+**/google.user.identity.service.json
+
+# Sensitive Google OAuth credentials
+**/google.user.identity.service.js
+**/google.user.identity.service.json

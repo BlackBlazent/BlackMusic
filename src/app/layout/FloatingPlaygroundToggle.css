@@ -1,0 +1,39 @@
+.floating-playground-toggle {
+  position: fixed;
+  right: var(--space-6);
+  bottom: calc(var(--playbar-height) + var(--space-4));
+  z-index: 90;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.floating-playground-toggle:hover {
+  background: var(--color-accent-strong);
+}
+
+.floating-playground-toggle[data-spinning="true"] svg {
+  animation: floating-toggle-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes floating-toggle-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-playground-toggle[data-spinning="true"] svg {
+    animation: none;
+  }
+}
