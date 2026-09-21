@@ -126,6 +126,34 @@ deep link is caught by the OS itself and handed to whichever running instance of
 registered the scheme, so it works the same way regardless of how the app was launched. Register
 the exact URI in each provider's dashboard.
 
+### Supabase-backed logins (GitHub, Google, Facebook) specifically
+
+These go through Supabase Auth, not a direct provider-to-app OAuth flow like Spotify's, so there
+are **two different callback URLs involved** -- easy to mix up:
+
+1. **The provider's OAuth app settings** (e.g. GitHub -> Settings -> Developer settings -> OAuth
+   Apps -> your app -> "Authorization callback URL") get Supabase's own fixed endpoint:
+   `https://<your-project-ref>.supabase.co/auth/v1/callback`. Yes -- that Supabase URL, not
+   `blackmusic://...`. GitHub redirects to Supabase first; Supabase does the token exchange with
+   GitHub (using the client secret configured in the Supabase dashboard, not in this codebase),
+   then redirects again, this time to us.
+2. **Supabase's own "Redirect URLs" allowlist** (Supabase Dashboard -> Authentication -> URL
+   Configuration) needs `blackmusic://auth/callback` added -- this is the second hop, Supabase
+   handing control back to the actual app. Without this, Supabase has nowhere it's allowed to send
+   the browser back to, and the sign-in silently fails to return to the app even though the GitHub
+   side succeeded.
+3. In the app itself, `AuthContext.tsx` calls `signInWithOAuth` with
+   `redirectTo: "blackmusic://auth/callback"` and `skipBrowserRedirect: true` (opens the URL in the
+   system browser ourselves, same pattern as Spotify), then a deep-link listener catches that
+   callback and calls `exchangeCodeForSession` -- PKCE flow, set explicitly in
+   `supabaseClient.ts`, since there's no browser location bar in a desktop app for Supabase's
+   normal automatic detect-it-from-the-URL behavior to work against.
+
+If GitHub login still doesn't return control to the app after both callback URLs above are set
+correctly, the next thing to check is that the GitHub provider is actually toggled on in Supabase
+Dashboard -> Authentication -> Providers, with the client ID/secret filled in there (not in this
+app's `.env`).
+
 ## Building for desktop
 
 `pnpm tauri:build` produces a platform-native installer for whatever OS you run it on -- Tauri
@@ -248,9 +276,33 @@ Settings -> Updates in the app will find it.
 Rebuilt from an Electron + plain-HTML app onto Tauri 2 + React across several passes. Recent,
 concrete bug fixes worth knowing about if something seems off:
 
+- **The production build was failing to compile.** Four files (`AccountModal.tsx`, `Sidebar.tsx`,
+  `Library.tsx`, `SeekBar.tsx`) referenced the `React` namespace (`React.FormEvent`,
+  `React.MouseEvent`) without importing it -- only named imports like `{ useState }` were present.
+  `pnpm build` runs `tsc -b` before `vite build`; this failed that step every time, which is very
+  likely why a "production" build kept trying to load `http://localhost:1420` (a stale or partial
+  `dist/` from a build that never actually completed) instead of the bundled app. Confirmed with an
+  actual TypeScript pass, not guessed -- and fixed, by importing the specific types needed
+  (aliased where a name would've collided with the DOM's own `MouseEvent`).
+- **`tsconfig.json` was missing `esModuleInterop`.** `main.tsx`'s `import React from "react"` is
+  exactly the pattern that requires it against `@types/react`'s declarations; without it, that's
+  also a `tsc -b`-failing error. Added, along with `allowSyntheticDefaultImports`.
+- **The updater config shipped with `"active": true` and a placeholder (invalid) `pubkey`.** That's
+  a real risk of its own — set to `"active": false"` until a real signing key is generated (see
+  "Auto-updates" above); flip it once that's done.
+- **Embedded album art could be huge and was stored at full resolution** as a base64 data URL, per
+  track, kept in memory for the app's lifetime. On a library of a few hundred tracks with
+  large/uncompressed embedded art, that's a real way to run a webview out of memory. Now downscaled
+  to a ~320px thumbnail via canvas before it's ever turned into a data URL.
+- **GitHub/Google/Facebook sign-in via Supabase had no `redirectTo`**, so Supabase fell back to its
+  default site URL (commonly `http://localhost:3000`) instead of anything that could hand control
+  back to the app -- the sign-in would complete with the provider but never return. Fixed: routes
+  through the system browser with an explicit `blackmusic://auth/callback` redirect, PKCE flow, and
+  a deep-link listener that finishes the exchange. See "Supabase-backed logins" above for the two
+  *different* callback URLs this needs configured (provider dashboard vs. Supabase dashboard).
 - **Preferences weren't persisting.** `preferencesStore.ts` called `store.set()` without the
-  follow-up `store.save()` the Tauri store plugin needs to actually write to disk. Fixed -- this is
-  almost certainly why folders used to rescan on every launch, and probably contributed to general
+  follow-up `store.save()` the Tauri store plugin needs to actually write to disk. This is very
+  likely why folders used to rescan on every launch, and probably contributed to general
   instability too.
 - **Playback could get "stuck" switching between sources** (e.g. an Audius track, then a Local
   one) -- `playTrack` read the play queue from React state in the same tick it had just replaced
