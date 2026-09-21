@@ -3,7 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; media-src 'self' file: https:; style-src 'self' 'unsafe-inline'; connect-src 'self' https:;" />
+    <link rel="icon" href="data:," />
+    <!--
+      No CSP meta tag here — src-tauri/tauri.conf.json already sets
+      "csp": null as the single, intentional source of truth for this.
+      A meta tag would enforce ON TOP OF that, independently, regardless of
+      what tauri.conf.json says — which is exactly what happened before this
+      was removed: this tag's media-src ("self" file: https:) had no "blob:"
+      or "asset:" in it, silently blocking every local track's <audio> source
+      no matter what the Rust-side config allowed, and its connect-src
+      ("self" https:) blocked Tauri's own IPC channel (http://ipc.localhost),
+      degrading every store/plugin call to a slower fallback the whole time.
+      Keeping CSP policy in exactly one place avoids this class of bug.
+    -->
     <title>BlackMusic</title>
   </head>
   <body>
