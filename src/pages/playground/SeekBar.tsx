@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { formatDuration } from "@/lib/formatDuration";
 import "./SeekBar.css";
 
@@ -17,7 +17,7 @@ export function SeekBar({
   const [hoverX, setHoverX] = useState<number | null>(null);
   const [hoverTime, setHoverTime] = useState(0);
 
-  const onMove = (event: React.MouseEvent<HTMLDivElement>) => {
+  const onMove = (event: ReactMouseEvent<HTMLDivElement>) => {
     if (!trackRef.current || !duration) return;
     const rect = trackRef.current.getBoundingClientRect();
     const ratio = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
