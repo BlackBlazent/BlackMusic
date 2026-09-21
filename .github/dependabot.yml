@@ -1,35 +1,51 @@
 version: 2
+
 updates:
-  # Enable version updates for npm
+  # JavaScript / TypeScript dependencies
+  # package.json + pnpm-lock.yaml
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+
     open-pull-requests-limit: 10
-    ignore:
-      # Ignore some packages if needed
-      # - dependency-name: "example-package"
-      #   versions: ["4.x"]
+
     labels:
       - "dependencies"
-      - "npm"
+      - "pnpm"
 
-  # Enable version updates for Rust (Cargo)
+    commit-message:
+      prefix: "deps"
+
+  # Rust / Tauri dependencies
   - package-ecosystem: "cargo"
     directory: "/src-tauri"
     schedule:
       interval: "weekly"
+      day: "monday"
+
     open-pull-requests-limit: 10
+
     labels:
       - "dependencies"
       - "rust"
 
-  # Enable version updates for GitHub Actions
+    commit-message:
+      prefix: "deps"
+
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+
     open-pull-requests-limit: 5
+
     labels:
       - "dependencies"
       - "github-actions"
+
+    commit-message:
+      prefix: "deps"
