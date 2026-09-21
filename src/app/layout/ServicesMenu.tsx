@@ -100,7 +100,7 @@ export function ServicesMenu() {
                 <ServiceBadge id={service.id} name={service.name} size={22} />
                 <span className="services-menu__item-name">{service.name}</span>
                 {isConnected && <span className="services-menu__item-dot" title="Connected" />}
-                {!service.available && <span className="services-menu__item-soon">Not yet</span>}
+                {!service.available && <span className="services-menu__item-soon">Not available</span>}
                 {service.available && !enabledInSettings && (
                   <span className="services-menu__item-soon">Off</span>
                 )}
