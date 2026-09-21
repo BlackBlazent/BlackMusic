@@ -7,6 +7,7 @@ import { Tooltip } from "@/app/components/Tooltip";
 import { MoonIcon, RedoArrowIcon, SearchIcon, SunIcon, UndoArrowIcon } from "./icons";
 import { NotificationsPopover } from "./NotificationsPopover";
 import { AccountModal } from "./AccountModal";
+import { AccountPopover } from "./AccountPopover";
 import "./TopBar.css";
 
 export function TopBar() {
@@ -60,18 +61,21 @@ export function TopBar() {
         <NotificationsPopover />
 
         <Tooltip label={user ? user.email ?? "Account" : "Log in / Sign up"} side="bottom">
-          <button
-            type="button"
-            className="topbar__account"
-            aria-label="Account"
-            onClick={() => setAccountOpen(true)}
-          >
-            <span className="topbar__account-avatar" data-signed-in={Boolean(user)} aria-hidden="true" />
-          </button>
+          <div className="topbar__account-wrapper">
+            <button
+              type="button"
+              className="topbar__account"
+              aria-label="Account"
+              onClick={() => setAccountOpen((v) => !v)}
+            >
+              <span className="topbar__account-avatar" data-signed-in={Boolean(user)} aria-hidden="true" />
+            </button>
+            {accountOpen && user && <AccountPopover onClose={() => setAccountOpen(false)} />}
+          </div>
         </Tooltip>
       </div>
 
-      {accountOpen && <AccountModal onClose={() => setAccountOpen(false)} />}
+      {accountOpen && !user && <AccountModal onClose={() => setAccountOpen(false)} />}
     </header>
   );
 }
