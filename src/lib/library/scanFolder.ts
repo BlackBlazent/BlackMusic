@@ -33,14 +33,39 @@ function mimeTypeFor(extension: string): string {
   }
 }
 
-/** Chunked to avoid blowing the call stack that `String.fromCharCode(...bytes)` hits on large embedded art. */
-function bytesToBase64(bytes: Uint8Array): string {
-  const CHUNK_SIZE = 8192;
-  let binary = "";
-  for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK_SIZE));
+const ARTWORK_MAX_DIMENSION = 320;
+
+/**
+ * Embedded art can be enormous — a 3000x3000 uncompressed PNG isn't rare in a
+ * ripped FLAC. Storing that verbatim as a base64 data URL, times a few hundred
+ * tracks, times keeping every one of them in memory for the lifetime of the
+ * app, is a real way to run a webview out of memory. Downscaling to a sane
+ * thumbnail size before it ever becomes a data URL keeps the per-track cost
+ * to a few KB instead of potentially several MB.
+ */
+async function shrinkArtwork(bytes: Uint8Array, mimeType: string): Promise<string | undefined> {
+  try {
+    const blob = new Blob([bytes as BlobPart], { type: mimeType });
+    const bitmap = await createImageBitmap(blob);
+    const scale = Math.min(1, ARTWORK_MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    const width = Math.max(1, Math.round(bitmap.width * scale));
+    const height = Math.max(1, Math.round(bitmap.height * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return undefined;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+
+    return canvas.toDataURL("image/jpeg", 0.82);
+  } catch {
+    // Some embedded art is in a format the canvas/image decoder chokes on
+    // (rare, but happens) — better to just skip the thumbnail than to fall
+    // back to embedding the original, unbounded-size image.
+    return undefined;
   }
-  return btoa(binary);
 }
 
 // Loaded once and reused — repeated `await import(...)` of the same specifier is
@@ -73,7 +98,7 @@ async function readTrack(path: string, name: string): Promise<Track> {
     const parsed = await parseBuffer(bytes, { mimeType: mimeTypeFor(extension), size: bytes.byteLength });
 
     const picture = parsed.common.picture?.[0];
-    const artworkUrl = picture ? `data:${picture.format};base64,${bytesToBase64(picture.data)}` : undefined;
+    const artworkUrl = picture ? await shrinkArtwork(picture.data, picture.format) : undefined;
 
     return {
       ...base,
