@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, type MouseEvent as ReactMouseEvent } from "react";
 import { NavLink } from "react-router-dom";
 import {
   ChevronsLeftIcon,
@@ -30,7 +30,7 @@ export function Sidebar() {
   const dragState = useRef<{ startX: number; startWidth: number } | null>(null);
 
   const onResizeStart = useCallback(
-    (event: React.MouseEvent) => {
+    (event: ReactMouseEvent) => {
       if (collapsed) return;
       dragState.current = { startX: event.clientX, startWidth: width };
 
