@@ -1,10 +1,7 @@
 # Node
 node_modules/
 dist/
-~/.tauri/
 __docs__/
-__tests__/
-resources/
 task/
 native/
 temp/
@@ -57,11 +54,3 @@ Desktop.ini # Windows desktop icon settings
 
 # Others
 *.log   # Log files
-
-# Sensitive Google OAuth credentials
-**/google.user.identity.service.js
-**/google.user.identity.service.json
-
-# Sensitive Google OAuth credentials
-**/google.user.identity.service.js
-**/google.user.identity.service.json
