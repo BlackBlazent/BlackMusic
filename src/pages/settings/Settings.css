@@ -85,6 +85,7 @@
 }
 
 .settings__integration-desc {
+  display: none;
   font-size: 11px;
   color: var(--color-text-faint);
 }
