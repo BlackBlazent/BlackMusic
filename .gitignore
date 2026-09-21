@@ -5,6 +5,7 @@ __docs__/
 task/
 native/
 temp/
+~/.tauri/
 dist-ssr/
 *.local
 *.tsbuildinfo
@@ -54,3 +55,5 @@ Desktop.ini # Windows desktop icon settings
 
 # Others
 *.log   # Log files
+
+.tauri/
