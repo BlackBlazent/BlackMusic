@@ -26,4 +26,9 @@ export const router = createHashRouter([
       { path: "settings", element: <Settings /> },
     ],
   },
-]);
+], {
+  future: {
+    // @ts-ignore
+    v7_startTransition: true,
+  },
+});
