@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { CloseIcon } from "./icons";
 import "./AccountModal.css";
@@ -10,7 +10,7 @@ export function AccountModal({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const onSubmit = (event: React.FormEvent) => {
+  const onSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (mode === "login") void signInWithEmail(email, password);
     else void signUpWithEmail(email, password);
