@@ -39,7 +39,7 @@ export function Footer() {
         </Tooltip>
         <a
           className="app-footer__feedback"
-          href="mailto:feedback@blackmusic.app?subject=BlackMusic%20feedback"
+          href="mailto:blackblazent.customer.service@gmail.com?subject=BlackMusic%20feedback"
         >
           Give feedback
         </a>
