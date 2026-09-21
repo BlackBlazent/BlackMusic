@@ -1,0 +1,178 @@
+/* Global foundation — brand tokens + base elements + nav/footer chrome
+   used across every page in this project. */
+
+:root {
+  --bm-bg: #07070a;
+  --bm-bg-soft: #0c0c10;
+  --bm-surface: #131317;
+  --bm-line: rgba(255,255,255,.09);
+  --bm-line-strong: rgba(255,255,255,.16);
+  --bm-text: #f2f1ee;
+  --bm-text-mid: #a6a5ac;
+  --bm-text-dim: #6c6b73;
+  --bm-pink: #ff2f5e;
+  --bm-pink-soft: #ff7d9c;
+  --bm-violet: #a97bf0;
+  --bm-cyan: #43d8cf;
+
+  font-family: 'Archivo', system-ui, -apple-system, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: var(--bm-text);
+  background-color: var(--bm-bg);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: var(--bm-bg);
+  color: var(--bm-text);
+}
+
+img { max-width: 100%; display: block; }
+
+a {
+  font-weight: 500;
+  color: var(--bm-pink-soft);
+  text-decoration: inherit;
+}
+a:hover { color: var(--bm-pink); }
+
+h1 { font-size: 3.2em; line-height: 1.1; }
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--bm-surface);
+  color: var(--bm-text);
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover { border-color: var(--bm-pink); }
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--bm-pink);
+  outline-offset: 3px;
+}
+
+/* ===== Global nav ===== */
+.navigation {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 200;
+  background: rgba(7,7,10,.7);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--bm-line);
+}
+.nav-content {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.appLogoInsite { display: flex; align-items: center; }
+.appLogoInsite img.site-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  flex: 1;
+  justify-content: center;
+}
+.nav-links a {
+  font-size: 14.5px;
+  font-weight: 500;
+  color: var(--bm-text-mid);
+  text-decoration: none;
+  transition: color .2s ease;
+}
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--bm-text);
+}
+.download-action-tag-button a {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  padding: 9px 18px;
+  border-radius: 7px;
+  background: var(--bm-text);
+  color: var(--bm-bg);
+  text-decoration: none;
+  transition: transform .15s ease, opacity .15s ease;
+}
+.download-action-tag-button a:hover {
+  transform: translateY(-1px);
+  opacity: .92;
+  color: var(--bm-bg);
+}
+@media (max-width: 820px) {
+  .nav-links { display: none; }
+}
+
+/* ===== Global footer ===== */
+.footer-app {
+  position: relative;
+  border-top: 1px solid var(--bm-line);
+  background: var(--bm-bg);
+  padding: 22px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.footer-content-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--bm-text-mid);
+}
+.footer-content-left .version-number {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 12.5px;
+  color: var(--bm-text-dim);
+}
+.footer-content-right p {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--bm-text-dim);
+}
+.footer-content-right a {
+  color: var(--bm-text-dim);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.footer-content-right a:hover { color: var(--bm-text-mid); }
