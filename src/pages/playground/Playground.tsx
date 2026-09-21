@@ -317,8 +317,8 @@ export function Playground() {
 
           {openPanel === "download" && (
             <p className="playground__panel-note">
-              Not implemented — see <code>downloadService.ts</code> for why (YouTube ToS) and what's
-              needed to add it.
+              Not implemented{/*— see <code>downloadService.ts</code> for why (YouTube ToS) and what's
+              needed to add it.*/}
             </p>
           )}
         </div>
