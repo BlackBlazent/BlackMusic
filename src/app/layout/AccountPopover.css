@@ -1,0 +1,107 @@
+.account-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 150;
+  width: 240px;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.account-popover__profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.account-popover__avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.account-popover__profile > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.account-popover__email {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.account-popover__id {
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.account-popover__signout {
+  width: 100%;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font-size: 12px;
+  margin-bottom: var(--space-2);
+}
+
+.account-popover__signout:hover {
+  background: var(--color-hover);
+}
+
+.account-popover__delete {
+  width: 100%;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-size: 12px;
+}
+
+.account-popover__delete:hover {
+  background: var(--color-accent-wash);
+}
+
+.account-popover__confirm p {
+  margin: 0 0 var(--space-2);
+  font-size: 11px;
+  color: var(--color-text-faint);
+}
+
+.account-popover__confirm > div {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.account-popover__confirm > div button {
+  flex: 1;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  background: var(--color-surface-raised);
+}
+
+.account-popover__confirm > div button:hover {
+  background: var(--color-hover);
+}
+
+.account-popover__delete-note {
+  margin: var(--space-2) 0 0;
+  font-size: 11px;
+  color: var(--color-text-faint);
+  line-height: 1.5;
+}
