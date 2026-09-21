@@ -11,6 +11,8 @@ import {
 import type { LoopSection, RepeatMode, Track } from "@/lib/types";
 import { usePlaybackHistory } from "./PlaybackHistoryContext";
 import { useActionHistory } from "./ActionHistoryContext";
+import { useNotifications } from "./NotificationsContext";
+import { createLocalBlobUrl } from "@/lib/library/localAudioSource";
 import {
   ensureSpotifyPlayer,
   isSpotifyTrackId,
@@ -59,6 +61,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 
   const { recordPlay } = usePlaybackHistory();
   const { pushAction } = useActionHistory();
+  const { push: pushNotification } = useNotifications();
 
   const [queue, setQueue] = useState<Track[]>([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
@@ -82,6 +85,14 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const currentTrack = currentIndex >= 0 ? queue[currentIndex] ?? null : null;
   const currentTrackRef = useRef<Track | null>(currentTrack);
   currentTrackRef.current = currentTrack;
+
+  // Tracks the blob: URL currently assigned to the <audio> element (local
+  // files only — see loadTrackAt) so it can be revoked on the next track
+  // change or unmount instead of leaking memory.
+  const currentBlobUrlRef = useRef<string | null>(null);
+  // Guards against a slow blob read finishing after the user has already
+  // moved on to a different track (e.g. rapid skips) and clobbering it.
+  const loadRequestIdRef = useRef(0);
 
   // --- Spotify bridge ----------------------------------------------------------
   //
@@ -121,6 +132,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       const audio = audioRef.current;
       if (!track) return;
 
+      const requestId = ++loadRequestIdRef.current;
       setCurrentIndex(index);
       // Reset immediately so the UI doesn't show the previous track's
       // duration/position for the moment before the new source loads.
@@ -129,6 +141,10 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 
       if (isSpotifyTrackId(track.id)) {
         audio?.pause(); // make sure the local element isn't also making sound
+        if (audio?.src) {
+          audio.removeAttribute("src");
+          audio.load();
+        }
         if (autoplay) {
           recordPlay(track.id);
           void ensureSpotifyPlayer(handleSpotifyState).then(async () => {
@@ -141,14 +157,50 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 
       void spotifyPause(); // make sure a previous Spotify track isn't still playing underneath
       if (!audio) return;
-      audio.src = track.sourceUrl;
-      audio.currentTime = 0;
-      if (autoplay) {
-        void audio.play();
-        recordPlay(track.id);
+
+      const assignAndMaybePlay = (src: string) => {
+        if (loadRequestIdRef.current !== requestId) return; // superseded by a newer load
+        audio.src = src;
+        if (autoplay) {
+          void audio.play().catch((err) => {
+            pushNotification("Couldn't play track", `${track.title}: ${err instanceof Error ? err.message : String(err)}`);
+          });
+          recordPlay(track.id);
+        }
+      };
+
+      // Local files: read through the same fs call scanning already proves
+      // works, and hand the <audio> element a plain blob: URL — see
+      // localAudioSource.ts for why this is preferred over the asset:// URL.
+      // Anything else (Audius, or any future remote source) already has a
+      // normal http(s) stream URL that <audio> can use directly.
+      if (track.path) {
+        if (currentBlobUrlRef.current) {
+          URL.revokeObjectURL(currentBlobUrlRef.current);
+          currentBlobUrlRef.current = null;
+        }
+        createLocalBlobUrl(track.path)
+          .then((blobUrl) => {
+            if (loadRequestIdRef.current !== requestId) {
+              URL.revokeObjectURL(blobUrl); // superseded before it even loaded
+              return;
+            }
+            currentBlobUrlRef.current = blobUrl;
+            assignAndMaybePlay(blobUrl);
+          })
+          .catch((err) => {
+            if (loadRequestIdRef.current !== requestId) return;
+            pushNotification(
+              "Couldn't read file",
+              `${track.title}: ${err instanceof Error ? err.message : String(err)}`,
+            );
+          });
+        return;
       }
+
+      assignAndMaybePlay(track.sourceUrl);
     },
-    [recordPlay, handleSpotifyState],
+    [recordPlay, handleSpotifyState, pushNotification],
   );
 
   const resolveNextIndex = useCallback(
@@ -203,23 +255,45 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         audio.currentTime = loop.start;
       }
     };
-    const onLoadedMetadata = () => setDuration(audio.duration || 0);
+    // Some files (particularly certain MP3 encodes without an accurate VBR
+    // header) report `duration` as NaN/Infinity right when `loadedmetadata`
+    // fires, with the real value only arriving later via `durationchange` —
+    // without this listener those tracks would show a stuck 0:00 forever.
+    const onDurationChange = () => {
+      setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
+    };
     const onEnded = () => advanceRef.current("auto");
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
+    const onError = () => {
+      const track = currentTrackRef.current;
+      setIsPlaying(false);
+      // A failed load previously left the UI silently stuck showing "playing"
+      // with no sound and no duration — surfacing it, even generically, beats
+      // pretending nothing happened.
+      pushNotification(
+        "Playback error",
+        track ? `Couldn't play "${track.title}" (code ${audio.error?.code ?? "unknown"}).` : "Couldn't play the current track.",
+      );
+    };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
-    audio.addEventListener("loadedmetadata", onLoadedMetadata);
+    audio.addEventListener("loadedmetadata", onDurationChange);
+    audio.addEventListener("durationchange", onDurationChange);
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
+    audio.addEventListener("error", onError);
 
     return () => {
       audio.removeEventListener("timeupdate", onTimeUpdate);
-      audio.removeEventListener("loadedmetadata", onLoadedMetadata);
+      audio.removeEventListener("loadedmetadata", onDurationChange);
+      audio.removeEventListener("durationchange", onDurationChange);
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("error", onError);
+      if (currentBlobUrlRef.current) URL.revokeObjectURL(currentBlobUrlRef.current);
     };
     // Bound once — loop section and advance logic are read from refs above,
     // so this never needs to tear down and re-bind the <audio> listeners.
