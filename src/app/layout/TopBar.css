@@ -84,9 +84,13 @@
   margin-left: var(--space-1);
 }
 
+.topbar__account-wrapper {
+  position: relative;
+}
+
 .topbar__account-avatar {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: var(--color-surface-sunken);
   border: 1px solid var(--color-border-strong);
