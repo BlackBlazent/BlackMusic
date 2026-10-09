@@ -1,0 +1,6 @@
+.profile-card { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.profile-card__avatar { border-radius: 50%; object-fit: cover; flex: none; background: var(--color-surface-sunken); border: 2px solid var(--color-accent); }
+.profile-card__text { display: flex; flex-direction: column; min-width: 0; }
+.profile-card__name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.profile-card__email { font-size: 12px; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.profile-card__provider { font-size: 10px; color: var(--color-text-faint); margin-top: 2px; }
