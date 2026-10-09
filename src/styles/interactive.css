@@ -1,0 +1,34 @@
+/*
+  2.1.0: interactive toggles turn PINK when active instead of staying white/grey
+  (or red). One token, applied to every toolbar / transport / select toggle.
+  Prefixed with :root so it wins regardless of CSS load order.
+*/
+:root {
+  --color-interactive: #ff5fa8;
+  --color-interactive-wash: rgba(255, 95, 168, 0.16);
+}
+
+:root .local-page__toolbar > button[data-active="true"],
+:root .local-page__toolbar-btn[data-active="true"],
+:root .playground__secondary-row button[data-active="true"],
+:root .folder-page__icon-btn[data-active="true"],
+:root .library-page__toolbar-btn[data-active="true"],
+:root .row-toggle[data-active="true"] {
+  color: var(--color-interactive);
+  background: var(--color-interactive-wash);
+}
+
+:root .playground__transport > button[data-active="true"],
+:root .global-bar__transport button[data-active="true"],
+:root .global-bar__right button[data-active="true"]:not(.global-bar__play) {
+  color: var(--color-interactive);
+}
+
+:root .local-page__row--head button[data-active="true"],
+:root .local-page__pin[data-active="true"] {
+  color: var(--color-interactive);
+}
+
+:root .local-page__row[data-selected="true"] {
+  background: var(--color-interactive-wash);
+}
