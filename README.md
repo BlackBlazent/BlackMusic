@@ -7,8 +7,6 @@
 [![Project](https://img.shields.io/badge/Project-BlackMusic-B13BFF?labelColor=090040)](https://github.com/BlackBlazent/BlackMusic)
 [![License](https://img.shields.io/github/license/BlackBlazent/BlackMusic?label=License\&labelColor=090040\&color=B13BFF)](https://github.com/BlackBlazent/BlackMusic)
 
-**Current version:** `2.0.0`
-
 ## Downloads
 
 Get BlackMusic from the following distribution channels:
@@ -22,10 +20,11 @@ Get BlackMusic from the following distribution channels:
 [![Microsoft Store](https://img.shields.io/badge/Microsoft%20Store-Not%20Available-B13BFF?logo=microsoft\&logoColor=white\&labelColor=090040)](#)
 [![Uptodown](https://img.shields.io/badge/Uptodown-Not%20Available-B13BFF?labelColor=090040)](#)
 [![Softonic](https://img.shields.io/badge/Softonic-Not%20Available-B13BFF?labelColor=090040)](#)
+[![Snap Store](https://img.shields.io/badge/Snap%20Store-Not%20Available-B13BFF?logo=microsoft\&logoColor=white\&labelColor=090040)](#)
 
 GitHub Releases remain the primary release source for BlackMusic during development and distribution.
 
-## Screenshots
+
 
 <div align="center">
 
@@ -76,23 +75,6 @@ Once it's set up, **Settings → Updates** will check GitHub Releases for new ve
 * **Video Mode and downloading from YouTube aren't implemented.** Downloading video off YouTube outside their official API sits in a legal gray area around their Terms of Service, so rather than quietly build it in, it's left as an open question for you to decide on — see **DEVELOPMENT.md**.
 
 * **Third-party services are opt-in.** Nothing about how you use BlackMusic is sent to third-party services unless you explicitly connect or enable a supported integration.
-
-## Project
-
-BlackMusic is developed by **BlackBlazent**.
-
-The project focuses on providing a local-first desktop music experience while allowing users to connect supported online music services when they choose.
-
-## Distribution Status
-
-| Platform        | Status        |
-| --------------- | ------------- |
-| GitHub Releases | Available     |
-| itch.io         | Available     |
-| SourceForge     | Available     |
-| Microsoft Store | Not Available |
-| Uptodown        | Not Available |
-| Softonic        | Not Available |
 
 ## License
 
