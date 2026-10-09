@@ -1,10 +1,17 @@
-import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { Fragment, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import { usePlayback } from "@/app/context/PlaybackContext";
 import { usePlaylists, PLAYLIST_MOODS, type Playlist, type PlaylistMood } from "@/app/context/PlaylistsContext";
 import { formatDuration } from "@/lib/formatDuration";
-import { HeartIcon, LibraryIcon, PinIcon } from "@/app/layout/icons";
+import { EditIcon, EyeOffIcon, HeartIcon, ImageIcon, LibraryIcon, PinIcon, TrashIcon } from "@/app/layout/icons";
+import { TrackMenu } from "@/app/components/TrackMenu";
+import { EditMetadataModal } from "@/app/components/EditMetadataModal";
+import { PromotionRow, PromotionTile } from "@/app/components/Promotion";
+import { useApiPromotions, useManualPromotions, promotionSlots } from "@/app/context/PromotionsContext";
+import { usePersistentState } from "@/lib/usePersistentState";
+import { useNotifications } from "@/app/context/NotificationsContext";
+import type { Promotion } from "@/lib/promotions/types";
 import { SkeletonRows } from "@/app/components/Skeleton";
 import type { Track } from "@/lib/types";
 import "./Library.css";
@@ -28,9 +35,12 @@ export function Library() {
   const { tracks, scanning, ready } = useLibrary();
   const { favoriteIds } = useFavorites();
   const { playTrack } = usePlayback();
-  const { playlists, createPlaylist, deletePlaylist, togglePin, updatePlaylistDetails } = usePlaylists();
-  const [view, setView] = useState<View>("all");
-  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const { playlists, createPlaylist, deletePlaylist, togglePin, updatePlaylistDetails, setCover, removeTrack } = usePlaylists();
+  const [view, setView] = usePersistentState<View>("library.view", "all");
+  const [openGroup, setOpenGroup] = usePersistentState<string | null>("library.openGroup", null);
+  const albumPromos = useManualPromotions("library-albums");
+  const artistPromos = useManualPromotions("library-artists");
+  const playlistPromos = useManualPromotions("library-playlists");
   const [newPlaylistName, setNewPlaylistName] = useState("");
   const [newPlaylistMood, setNewPlaylistMood] = useState<PlaylistMood | null>(null);
 
@@ -124,11 +134,15 @@ export function Library() {
               setOpenGroup(null);
             }}
             onTogglePin={() => togglePin(playlist.id)}
+            onSetCover={(url) => setCover(playlist.id, url)}
+            onRemoveTrack={(trackId) => removeTrack(playlist.id, trackId)}
           />
         );
       }
     }
-    setOpenGroup(null); // stale key (e.g. the group was deleted) — fall through to the grid
+    // Stale key (e.g. the group was deleted) — but only clear it once the library has loaded,
+    // otherwise a restored "open album" would be wiped before its tracks arrive.
+    if (ready && !scanning) setOpenGroup(null);
   }
 
   return (
@@ -149,10 +163,9 @@ export function Library() {
       ) : (
         <>
           {view === "all" && (
-            <TrackList
+            <AllMusicList
               tracks={tracks}
               onPlay={(track) => playTrack(track, tracks)}
-              empty="Nothing here yet — add a watched folder in Folders."
             />
           )}
 
@@ -169,15 +182,18 @@ export function Library() {
               <p className="library-page__empty-text">No albums found yet.</p>
             ) : (
               <div className="library-page__grid">
-                {albums.map((album) => (
-                  <Tile
-                    key={album.key}
-                    art={album.tracks[0]?.artworkUrl}
-                    title={album.name}
-                    subtitle={album.artist}
-                    onClick={() => setOpenGroup(album.key)}
-                  />
-                ))}
+                {withPromotions(
+                  albums.map((album) => (
+                    <Tile
+                      key={album.key}
+                      art={album.tracks[0]?.artworkUrl}
+                      title={album.name}
+                      subtitle={album.artist}
+                      onClick={() => setOpenGroup(album.key)}
+                    />
+                  )),
+                  albumPromos,
+                )}
               </div>
             ))}
 
@@ -186,15 +202,19 @@ export function Library() {
               <p className="library-page__empty-text">No artists found yet.</p>
             ) : (
               <div className="library-page__grid">
-                {artists.map((artist) => (
-                  <Tile
-                    key={artist.key}
-                    round
-                    title={artist.name}
-                    subtitle={`${artist.tracks.length} tracks`}
-                    onClick={() => setOpenGroup(artist.key)}
-                  />
-                ))}
+                {withPromotions(
+                  artists.map((artist) => (
+                    <Tile
+                      key={artist.key}
+                      round
+                      art={artist.tracks.find((t) => t.artworkUrl)?.artworkUrl}
+                      title={artist.name}
+                      subtitle={`${artist.tracks.length} tracks`}
+                      onClick={() => setOpenGroup(artist.key)}
+                    />
+                  )),
+                  artistPromos,
+                )}
               </div>
             ))}
 
@@ -226,15 +246,19 @@ export function Library() {
                 <p className="library-page__empty-text">No playlists yet — create one above.</p>
               ) : (
                 <div className="library-page__grid">
-                  {sortedPlaylists.map((playlist) => (
-                    <Tile
-                      key={playlist.id}
-                      title={playlist.name}
-                      subtitle={playlist.mood ?? `${playlist.trackIds.length} tracks`}
-                      pinned={playlist.pinned}
-                      onClick={() => setOpenGroup(`playlist::${playlist.id}`)}
-                    />
-                  ))}
+                  {withPromotions(
+                    sortedPlaylists.map((playlist) => (
+                      <Tile
+                        key={playlist.id}
+                        art={playlist.coverUrl ?? trackById.get(playlist.trackIds[0])?.artworkUrl}
+                        title={playlist.name}
+                        subtitle={`${playlist.trackIds.length} track${playlist.trackIds.length === 1 ? "" : "s"}${playlist.mood ? ` · ${playlist.mood}` : ""}`}
+                        pinned={playlist.pinned}
+                        onClick={() => setOpenGroup(`playlist::${playlist.id}`)}
+                      />
+                    )),
+                    playlistPromos,
+                  )}
                 </div>
               )}
             </div>
@@ -243,6 +267,15 @@ export function Library() {
       )}
     </div>
   );
+}
+
+/** One manual promotion tile, tucked in a few cards down — never filling the grid. */
+function withPromotions(tiles: ReactNode[], promos: Promotion[]): ReactNode[] {
+  if (promos.length === 0) return tiles;
+  const out = [...tiles];
+  const at = Math.min(3, out.length);
+  out.splice(at, 0, <PromotionTile key={`promo-${promos[0].id}`} promotion={promos[0]} />);
+  return out;
 }
 
 function Tile({
@@ -314,6 +347,8 @@ function PlaylistDetail({
   onSaveDetails,
   onDelete,
   onTogglePin,
+  onSetCover,
+  onRemoveTrack,
 }: {
   playlist: Playlist;
   tracks: Track[];
@@ -322,7 +357,11 @@ function PlaylistDetail({
   onSaveDetails: (description: string, mood: PlaylistMood | null) => void;
   onDelete: () => void;
   onTogglePin: () => void;
+  onSetCover: (url: string | undefined) => void;
+  onRemoveTrack: (trackId: string) => void;
 }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const { push } = useNotifications();
   const [description, setDescription] = useState(playlist.description);
   const [mood, setMood] = useState<PlaylistMood | null>(playlist.mood);
   const dirty = description !== playlist.description || mood !== playlist.mood;
@@ -333,8 +372,27 @@ function PlaylistDetail({
         ← Back
       </button>
       <div className="group-detail__header">
-        <span className="group-detail__art">
-          <LibraryIcon />
+        <span className="group-detail__art group-detail__art--cover">
+          {playlist.coverUrl ?? tracks[0]?.artworkUrl ? <img src={playlist.coverUrl ?? tracks[0]?.artworkUrl} alt="" /> : <LibraryIcon />}
+          <button type="button" className="group-detail__cover-btn" onClick={() => fileRef.current?.click()} title="Upload cover art">
+            <ImageIcon />
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              const url = await fileToCover(file);
+              if (url) {
+                onSetCover(url);
+                push("Playlist cover updated", `New cover saved for “${playlist.name}”.`);
+              }
+            }}
+          />
         </span>
         <div className="group-detail__playlist-meta">
           <h1>{playlist.name}</h1>
@@ -366,14 +424,78 @@ function PlaylistDetail({
             <button type="button" data-active={playlist.pinned} onClick={onTogglePin}>
               <PinIcon /> {playlist.pinned ? "Pinned" : "Pin"}
             </button>
+            {playlist.coverUrl && (
+              <button type="button" onClick={() => onSetCover(undefined)}>
+                Remove cover
+              </button>
+            )}
             <button type="button" onClick={onDelete}>
               Delete playlist
             </button>
           </div>
         </div>
       </div>
-      <TrackList tracks={tracks} onPlay={onPlay} empty="No tracks in this playlist yet." />
+      <TrackList tracks={tracks} onPlay={onPlay} empty="No tracks in this playlist yet." onRemove={(t) => onRemoveTrack(t.id)} />
     </div>
+  );
+}
+
+/** Downscales an uploaded image to a small JPEG data URL so it's cheap to keep in localStorage/the store. */
+async function fileToCover(file: File): Promise<string | undefined> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const size = 400;
+    const scale = Math.min(1, size / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    return canvas.toDataURL("image/jpeg", 0.85);
+  } catch {
+    return undefined;
+  }
+}
+
+/** Library → All Music: three-dots menu per track + API promotions (never in Albums/Artists/Playlists). */
+function AllMusicList({ tracks, onPlay }: { tracks: Track[]; onPlay: (track: Track) => void }) {
+  const promos = useApiPromotions("library-all-music");
+  const { hideTrack, removeFromLibrary } = useLibrary();
+  const { push } = useNotifications();
+  const [editing, setEditing] = useState<Track | null>(null);
+  const slots = promotionSlots(tracks.length, promos.length, 5, 15);
+
+  if (tracks.length === 0) return <p className="library-page__empty-text">Nothing here yet — add a watched folder in Folders.</p>;
+
+  return (
+    <>
+      <TrackList
+        tracks={tracks}
+        onPlay={onPlay}
+        menuFor={(track) => [
+          { label: "Edit metadata", icon: <EditIcon />, onSelect: () => setEditing(track) },
+          {
+            label: "Hide from library",
+            icon: <EyeOffIcon />,
+            onSelect: () => {
+              hideTrack(track.id);
+              push("Hidden from library", `“${track.title}” is hidden. Unhide it from Settings.`);
+            },
+          },
+          {
+            label: "Remove from library",
+            icon: <TrashIcon />,
+            danger: true,
+            onSelect: () => {
+              removeFromLibrary(track.id);
+              push("Removed from library", `“${track.title}” was removed (the file is untouched).`);
+            },
+          },
+        ]}
+        renderBefore={(_, index) => (slots.includes(index) ? <PromotionRow promotion={promos[slots.indexOf(index)]} variant="library-all-music" /> : null)}
+      />
+      {editing && <EditMetadataModal track={editing} onClose={() => setEditing(null)} />}
+    </>
   );
 }
 
@@ -381,10 +503,16 @@ function TrackList({
   tracks,
   onPlay,
   empty,
+  onRemove,
+  menuFor,
+  renderBefore,
 }: {
   tracks: Track[];
   onPlay: (track: Track) => void;
   empty?: string;
+  onRemove?: (track: Track) => void;
+  menuFor?: (track: Track) => import("@/app/components/TrackMenu").TrackMenuItem[];
+  renderBefore?: (track: Track, index: number) => ReactNode;
 }) {
   const { isFavorite, toggleFavorite } = useFavorites();
 
@@ -393,23 +521,32 @@ function TrackList({
   }
 
   return (
-    <div className="library-page__tracklist">
-      {tracks.map((track) => (
-        <div key={track.id} className="library-page__track" onDoubleClick={() => onPlay(track)}>
-          <button type="button" onClick={() => onPlay(track)} className="library-page__track-title">
-            {track.title}
-          </button>
-          <span>{track.artist}</span>
-          <span>{formatDuration(track.duration)}</span>
-          <button
-            type="button"
-            data-active={isFavorite(track.id)}
-            onClick={() => toggleFavorite(track.id)}
-            aria-label="Toggle favorite"
-          >
-            <HeartIcon />
-          </button>
-        </div>
+    <div className="library-page__tracklist" data-extra={Boolean(onRemove || menuFor)}>
+      {tracks.map((track, index) => (
+        <Fragment key={track.id}>
+          {renderBefore?.(track, index)}
+          <div className="library-page__track" onDoubleClick={() => onPlay(track)}>
+            <button type="button" onClick={() => onPlay(track)} className="library-page__track-title">
+              {track.title}
+            </button>
+            <span>{track.artist}</span>
+            <span>{formatDuration(track.duration)}</span>
+            <button
+              type="button"
+              data-active={isFavorite(track.id)}
+              onClick={() => toggleFavorite(track.id)}
+              aria-label="Toggle favorite"
+            >
+              <HeartIcon />
+            </button>
+            {menuFor && <TrackMenu items={menuFor(track)} label={`More for ${track.title}`} />}
+            {onRemove && (
+              <button type="button" className="library-page__remove" onClick={() => onRemove(track)} aria-label={`Remove ${track.title} from playlist`} title="Remove from playlist">
+                <TrashIcon />
+              </button>
+            )}
+          </div>
+        </Fragment>
       ))}
     </div>
   );
