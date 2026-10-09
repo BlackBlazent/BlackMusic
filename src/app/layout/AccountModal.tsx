@@ -1,10 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { CloseIcon } from "./icons";
+import { SERVICE_AUTH_SCOPES } from "@/lib/services/serviceRegistry";
+import { ProfileCard } from "./ProfileCard";
 import "./AccountModal.css";
 
+const SPOTIFY_SCOPES = SERVICE_AUTH_SCOPES.spotify;
+
 export function AccountModal({ onClose }: { onClose: () => void }) {
-  const { user, configured, loading, error, signInWithEmail, signUpWithEmail, signInWithProvider, signOut } =
+  const { user, configured, loading, error, notice, signInWithEmail, signUpWithEmail, signInWithProvider, signOut } =
     useAuth();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
@@ -35,9 +39,9 @@ export function AccountModal({ onClose }: { onClose: () => void }) {
 
         {user ? (
           <div className="account-modal__signed-in">
-            <p>Signed in as {user.email ?? user.id}</p>
-            <button type="button" className="account-modal__submit" onClick={() => void signOut()}>
-              Sign out
+            <ProfileCard user={user} />
+            <button type="button" className="account-modal__submit" onClick={() => { void signOut(); onClose(); }}>
+              Log out
             </button>
           </div>
         ) : (
@@ -67,6 +71,7 @@ export function AccountModal({ onClose }: { onClose: () => void }) {
                 required
               />
               {error && <p className="account-modal__error">{error}</p>}
+              {notice && <p className="account-modal__notice">{notice}</p>}
               <button type="submit" className="account-modal__submit" disabled={!configured || loading}>
                 {loading ? "Working…" : mode === "login" ? "Log in" : "Create account"}
               </button>
@@ -83,6 +88,9 @@ export function AccountModal({ onClose }: { onClose: () => void }) {
               </button>
               <button type="button" disabled={!configured} onClick={() => void signInWithProvider("facebook")}>
                 Facebook
+              </button>
+              <button type="button" disabled={!configured} onClick={() => void signInWithProvider("spotify", { scopes: SPOTIFY_SCOPES })}>
+                Spotify
               </button>
             </div>
           </>
