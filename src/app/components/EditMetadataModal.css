@@ -1,0 +1,79 @@
+.edit-meta__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  overflow: scroll;
+}
+.edit-meta {
+  width: min(420px, 92vw);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.edit-meta__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.edit-meta__header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+.edit-meta__path {
+  margin: 0;
+  font-size: 11px;
+  color: var(--color-text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.edit-meta label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.edit-meta input {
+  height: 34px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: 13px;
+}
+.edit-meta input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+.edit-meta__error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-accent);
+}
+.edit-meta__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+.edit-meta__actions button {
+  padding: 7px 14px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+.edit-meta__actions .edit-meta__save {
+  background: var(--color-accent);
+  color: #fff;
+}
+.edit-meta__actions .edit-meta__save:disabled {
+  opacity: 0.6;
+}
