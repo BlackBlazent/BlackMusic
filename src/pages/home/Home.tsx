@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { usePlaybackHistory } from "@/app/context/PlaybackHistoryContext";
@@ -7,12 +7,18 @@ import { formatDuration } from "@/lib/formatDuration";
 import { SkeletonRows } from "@/app/components/Skeleton";
 import { mostPlayed, neverPlayed, playedInLastNDays, recentlyPlayed } from "./homeStats";
 import type { Track } from "@/lib/types";
+import type { Promotion } from "@/lib/promotions/types";
+import { useManualPromotions } from "@/app/context/PromotionsContext";
+import { PromotionRailItem } from "@/app/components/Promotion";
 import "./Home.css";
 
 export function Home() {
   const { tracks, scanning, ready } = useLibrary();
   const { events } = usePlaybackHistory();
   const { playTrack } = usePlayback();
+  const homePromos = useManualPromotions("home");
+  // One promotion per rail at most, at a different position each time (spec §6) — never every slot.
+  const promoFor = (railIndex: number): Promotion | undefined => (homePromos.length ? homePromos[railIndex % homePromos.length] : undefined);
 
   const stats = useMemo(
     () => ({
@@ -65,17 +71,21 @@ export function Home() {
         </div>
       </div>
 
-      <TrackRail title="Last played" tracks={stats.recent} onPlay={(t) => playTrack(t, tracks)} />
+      <TrackRail title="Last played" tracks={stats.recent} onPlay={(t) => playTrack(t, tracks)} promotion={promoFor(0)} promotionAt={2} />
       <TrackRail
         title="Most played"
         tracks={stats.top.map((e) => e.track)}
         subtitles={stats.top.map((e) => `${e.count} plays`)}
         onPlay={(t) => playTrack(t, tracks)}
+        promotion={promoFor(1)}
+        promotionAt={1}
       />
       <TrackRail
         title="Haven't played yet"
         tracks={stats.unplayed}
         onPlay={(t) => playTrack(t, tracks)}
+        promotion={promoFor(2)}
+        promotionAt={0}
       />
     </div>
   );
@@ -86,11 +96,15 @@ function TrackRail({
   tracks,
   subtitles,
   onPlay,
+  promotion,
+  promotionAt = 0,
 }: {
   title: string;
   tracks: Track[];
   subtitles?: string[];
   onPlay: (track: Track) => void;
+  promotion?: Promotion;
+  promotionAt?: number;
 }) {
   if (tracks.length === 0) return null;
   return (
@@ -98,14 +112,18 @@ function TrackRail({
       <h2>{title}</h2>
       <div className="home-page__rail-items">
         {tracks.map((track, i) => (
-          <button type="button" key={track.id} className="rail-item" onClick={() => onPlay(track)}>
-            <span className="rail-item__art">
-              {track.artworkUrl ? <img src={track.artworkUrl} alt="" /> : null}
-            </span>
-            <span className="rail-item__title">{track.title}</span>
-            <span className="rail-item__subtitle">{subtitles?.[i] ?? formatDuration(track.duration)}</span>
-          </button>
+          <Fragment key={track.id}>
+            {promotion && i === Math.min(promotionAt, tracks.length) && <PromotionRailItem promotion={promotion} />}
+            <button type="button" className="rail-item" onClick={() => onPlay(track)}>
+              <span className="rail-item__art">
+                {track.artworkUrl ? <img src={track.artworkUrl} alt="" /> : null}
+              </span>
+              <span className="rail-item__title">{track.title}</span>
+              <span className="rail-item__subtitle">{subtitles?.[i] ?? formatDuration(track.duration)}</span>
+            </button>
+          </Fragment>
         ))}
+        {promotion && promotionAt >= tracks.length && <PromotionRailItem promotion={promotion} />}
       </div>
     </section>
   );
