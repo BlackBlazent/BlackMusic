@@ -18,7 +18,7 @@
     "promotions-server": "node server/promotions-server.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.4",
+    "@supabase/supabase-js": "^2.117.2",
     "@tauri-apps/api": "^2.12.1",
     "@tauri-apps/plugin-deep-link": "^2.0.1",
     "@tauri-apps/plugin-dialog": "^2.0.1",
