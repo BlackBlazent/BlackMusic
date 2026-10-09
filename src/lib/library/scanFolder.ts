@@ -43,7 +43,7 @@ const ARTWORK_MAX_DIMENSION = 320;
  * thumbnail size before it ever becomes a data URL keeps the per-track cost
  * to a few KB instead of potentially several MB.
  */
-async function shrinkArtwork(bytes: Uint8Array, mimeType: string): Promise<string | undefined> {
+export async function shrinkArtwork(bytes: Uint8Array, mimeType: string): Promise<string | undefined> {
   try {
     const blob = new Blob([bytes as BlobPart], { type: mimeType });
     const bitmap = await createImageBitmap(blob);
