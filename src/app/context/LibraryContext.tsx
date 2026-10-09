@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Track } from "@/lib/types";
 import { scanFolder } from "@/lib/library/scanFolder";
+import { fastScanFolders, loadCoversByAlbum } from "@/lib/library/fastImport";
 import { fetchAlbumArtwork } from "@/lib/services/lastfmClient";
 import { useFolders } from "./FoldersContext";
 import { useNotifications } from "./NotificationsContext";
@@ -9,14 +10,26 @@ import { isTauri } from "@/lib/platform";
 import { getPreference, setPreference } from "@/lib/preferencesStore";
 
 const CACHE_KEY = "blackmusic:tracksByFolder";
+const HIDDEN_KEY = "blackmusic:hiddenTrackIds";
+const REMOVED_KEY = "blackmusic:removedTrackIds";
 
 interface LibraryContextValue {
+  /** Visible library: excludes hidden and removed tracks. */
   tracks: Track[];
+  hiddenIds: Set<string>;
+  hiddenCount: number;
+  hideTrack: (id: string) => void;
+  unhideAll: () => void;
+  /** Removes from the library (files stay on disk); a rescan won't bring it back. */
+  removeFromLibrary: (id: string) => void;
+  updateTrack: (id: string, patch: Partial<Pick<Track, "title" | "artist" | "album">>) => void;
   /** False only until the persisted cache has been read once, right at launch. */
   ready: boolean;
   scanning: boolean;
   /** Running count of files scanned so far during the current scan (unknown total — see Folder page). */
   scanProgress: number;
+  /** Total files discovered for the current scan (0 until discovery finishes). */
+  scanTotal: number;
   lastScanError: string | null;
   /** Full refresh of every watched folder. Adding/removing a folder alone does NOT
    * trigger this — only the newly added or removed folder is touched, see below. */
@@ -37,12 +50,29 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   const { folders, hydrated: foldersHydrated } = useFolders();
   const { push } = useNotifications();
   const { isEnabled } = useAppSettings();
-  const [tracks, setTracks] = useState<Track[]>([]);
+  const [allTracks, setTracks] = useState<Track[]>([]);
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+  const removedRef = useRef(removedIds);
+  removedRef.current = removedIds;
   const [scanning, setScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
+  const [scanTotal, setScanTotal] = useState(0);
+  const allRef = useRef<Track[]>([]);
+  allRef.current = allTracks;
   const [lastScanError, setLastScanError] = useState<string | null>(null);
 
   const scanRunId = useRef(0);
+
+  useEffect(() => {
+    getPreference<string[]>(HIDDEN_KEY, []).then((ids) => setHiddenIds(new Set(ids)));
+    getPreference<string[]>(REMOVED_KEY, []).then((ids) => setRemovedIds(new Set(ids)));
+  }, []);
+
+  const tracks = useMemo(
+    () => allTracks.filter((t) => !hiddenIds.has(t.id) && !removedIds.has(t.id)),
+    [allTracks, hiddenIds, removedIds],
+  );
   const [cacheReady, setCacheReady] = useState(false);
   // Folders we already have cached tracks for — a folder only gets (re)scanned
   // when it's not in this set (newly added) or via an explicit full rescan.
@@ -136,10 +166,70 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
         setTracks((prev) => [...prev, ...toAdd]);
       };
       const queueTrack = (track: Track) => {
+        if (removedRef.current.has(track.id)) return; // user removed it from the library
         batch.push(track);
         if (!flushTimer) flushTimer = setTimeout(() => { flushTimer = null; flushBatch(); }, 120);
       };
 
+      // ---- FAST PATH (2.1.0): discover -> parallel native metadata -> one batched write -> ONE UI update ----
+      try {
+        const known = allRef.current.filter((t) => foldersToScan.some((f) => t.path.startsWith(f)));
+        const fast = await fastScanFolders(
+          foldersToScan,
+          known,
+          (p) => {
+            if (scanRunId.current !== runId) return;
+            setScanProgress(p.done);
+            setScanTotal(p.total);
+          },
+          () => scanRunId.current !== runId,
+        );
+        if (fast) {
+          if (scanRunId.current !== runId) return;
+          const visible = fast.tracks.filter((t) => !removedRef.current.has(t.id));
+          // The single UI update for the whole import: swap in the scanned folders' tracks in one go.
+          setTracks((prev) => {
+            const kept = prev.filter((t) => !foldersToScan.some((f) => t.path.startsWith(f)));
+            const next = [...kept, ...visible];
+            schedulePersist(next); // single batched write of the whole library
+            return next;
+          });
+          foldersToScan.forEach((f) => knownFolders.current.add(f));
+          setScanProgress(visible.length);
+          setScanning(false);
+          push(
+            "Library import complete",
+            `${visible.length.toLocaleString()} track${visible.length === 1 ? "" : "s"} ready in ${(fast.elapsedMs / 1000).toFixed(1)}s` +
+              (fast.reused > 0 ? ` (${fast.reread.toLocaleString()} new or changed, ${fast.reused.toLocaleString()} unchanged).` : "."),
+          );
+          // Album art arrives afterwards, a few batched updates in total.
+          void loadCoversByAlbum(
+            visible,
+            fast.coverPaths,
+            (artByAlbum) => {
+              if (scanRunId.current !== runId) return;
+              setTracks((prev) => {
+                const next = prev.map((t) => {
+                  const art = artByAlbum.get(`${t.artist}::${t.album}`);
+                  return art && !t.artworkUrl ? { ...t, artworkUrl: art } : t;
+                });
+                schedulePersist(next);
+                return next;
+              });
+            },
+            () => scanRunId.current !== runId,
+          ).then(() => enrichMissingArtwork(runId, visible.filter((t) => !t.artworkUrl)));
+          return;
+        }
+      } catch (error) {
+        if (scanRunId.current === runId) {
+          setLastScanError(error instanceof Error ? error.message : String(error));
+          setScanning(false);
+        }
+        return;
+      }
+
+      // ---- FALLBACK: the original JS scanner (only when the native importer isn't available) ----
       // Clear any existing entries for these folders up front (covers both a
       // full rescan of everything and the rare case of scanning a folder that
       // already had some cached tracks) so the progressive re-additions below
@@ -226,6 +316,46 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- runs off `folders`; helpers are stable via useCallback
   }, [folders, foldersHydrated, cacheReady]);
 
+  const hideTrack = useCallback((id: string) => {
+    setHiddenIds((prev) => {
+      const next = new Set(prev).add(id);
+      void setPreference(HIDDEN_KEY, [...next]);
+      return next;
+    });
+  }, []);
+
+  const unhideAll = useCallback(() => {
+    setHiddenIds(new Set());
+    void setPreference(HIDDEN_KEY, []);
+  }, []);
+
+  const removeFromLibrary = useCallback(
+    (id: string) => {
+      setRemovedIds((prev) => {
+        const next = new Set(prev).add(id);
+        void setPreference(REMOVED_KEY, [...next]);
+        return next;
+      });
+      setTracks((prev) => {
+        const next = prev.filter((t) => t.id !== id);
+        schedulePersist(next);
+        return next;
+      });
+    },
+    [schedulePersist],
+  );
+
+  const updateTrack = useCallback(
+    (id: string, patch: Partial<Pick<Track, "title" | "artist" | "album">>) => {
+      setTracks((prev) => {
+        const next = prev.map((t) => (t.id === id ? { ...t, ...patch } : t));
+        schedulePersist(next);
+        return next;
+      });
+    },
+    [schedulePersist],
+  );
+
   const rescan = useCallback(async () => {
     if (folders.length === 0) {
       knownFolders.current = new Set();
@@ -237,7 +367,23 @@ export function LibraryProvider({ children }: { children: ReactNode }) {
   }, [folders, scanFolders]);
 
   return (
-    <LibraryContext.Provider value={{ tracks, ready: cacheReady, scanning, scanProgress, lastScanError, rescan }}>
+    <LibraryContext.Provider
+      value={{
+        tracks,
+        hiddenIds,
+        hiddenCount: hiddenIds.size,
+        hideTrack,
+        unhideAll,
+        removeFromLibrary,
+        updateTrack,
+        ready: cacheReady,
+        scanning,
+        scanProgress,
+        scanTotal,
+        lastScanError,
+        rescan,
+      }}
+    >
       {children}
     </LibraryContext.Provider>
   );
