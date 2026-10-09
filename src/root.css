@@ -1,5 +1,9 @@
 /* Global foundation — brand tokens + base elements + nav/footer chrome
    used across every page in this project. */
+img {
+    width: 100%;
+    height: 100%;
+}
 
 :root {
   --bm-bg: #07070a;
@@ -14,6 +18,7 @@
   --bm-pink-soft: #ff7d9c;
   --bm-violet: #a97bf0;
   --bm-cyan: #43d8cf;
+  --temp-color: #00000000;
 
   font-family: 'Archivo', system-ui, -apple-system, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
