@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { usePlayback } from "@/app/context/PlaybackContext";
@@ -75,6 +76,89 @@ export function SearchResults() {
               </button>
             </div>
           ))}
+          {/* Promotions */}
+          <div
+          className="search-results__track"
+          role="link"
+          tabIndex={0}
+          onClick={() => {
+            console.log("PROMOTION CLICKED");
+            openUrl("https://invl.us/clo2glg");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              openUrl("https://invl.us/clo2glg");
+            }
+          }}
+        >
+          <img
+            src="https://img.involve.asia/ia_logo/5003_VnJg2MpW.jpg"
+            alt="promotion"
+          />
+        
+          <span className="search-results__track-title">
+            LightPDF - AI-Powered PDF
+          </span>
+        
+          <span>Simplify Every Step of Your Document Workflow</span>
+        
+          <span>Sponsored</span>
+          <span></span>
+        
+          <button
+            type="button"
+            aria-label="Toggle favorite"
+            onClick={(e) => {
+              e.stopPropagation();
+              // favorite logic
+            }}
+          >
+            <HeartIcon />
+          </button>
+        </div>
+
+        <div
+          className="search-results__track"
+          role="link"
+          tabIndex={0}
+          onClick={() => {
+            console.log("PROMOTION CLICKED");
+            openUrl("https://invl.me/clo2q6n");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              openUrl("https://invl.me/clo2q6n");
+            }
+          }}
+        >
+          <img
+            src="https://img.involve.asia/ia_logo/4440_NYReR4XZ.png"
+            alt="promotion"
+          />
+        
+          <span className="search-results__track-title">
+            Proton VPN - Take control of your data with end-to-end encryption.
+          </span>
+        
+          <span>A better internet starts with privacy and freedom</span>
+        
+          <span>Sponsored</span>
+          <span></span>
+        
+          <button
+            type="button"
+            aria-label="Toggle favorite"
+            onClick={(e) => {
+              e.stopPropagation();
+              // favorite logic
+            }}
+          >
+            <HeartIcon />
+          </button>
+        </div>
+            
         </div>
       )}
 
