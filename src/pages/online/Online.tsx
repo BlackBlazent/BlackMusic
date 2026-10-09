@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useServices } from "@/app/context/ServicesContext";
 import { SERVICE_DIRECTORY } from "@/lib/services/serviceDirectory";
+import { useCustomApis } from "@/lib/services/useCustomApis";
+import { CUSTOM_SERVICE_PREFIX } from "@/lib/services/customApis";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { usePlayback } from "@/app/context/PlaybackContext";
 import { fetchSpotify } from "@/lib/services/spotifyClient";
 import { isSpotifyTrackId } from "@/lib/services/spotifyPlayerBridge";
-import { fetchAudiusTrending, audiusStreamUrl, type AudiusTrack } from "@/lib/services/audiusClient";
+import { fetchServiceTracks } from "@/lib/services/serviceRegistry";
+import { useApiPromotions, promotionSlots } from "@/app/context/PromotionsContext";
+import { PromotionRow } from "@/app/components/Promotion";
 import { formatDuration } from "@/lib/formatDuration";
 import { SkeletonRows } from "@/app/components/Skeleton";
-import { PlayIcon } from "@/app/layout/icons";
+import { PlaygroundIcon } from "@/app/layout/icons";
 import type { Track } from "@/lib/types";
 import "./Online.css";
 
@@ -18,7 +22,12 @@ interface SpotifySavedTracksResponse {
 
 export function Online() {
   const { activeServiceId, connectedIds } = useServices();
-  const service = SERVICE_DIRECTORY.find((s) => s.id === activeServiceId);
+  const { apis: customApis } = useCustomApis();
+  const service =
+    SERVICE_DIRECTORY.find((s) => s.id === activeServiceId) ??
+    (activeServiceId.startsWith(CUSTOM_SERVICE_PREFIX)
+      ? { id: activeServiceId, name: customApis.find((a) => `${CUSTOM_SERVICE_PREFIX}${a.id}` === activeServiceId)?.name ?? "Custom API", available: true }
+      : undefined);
   const isConnected = connectedIds.has(activeServiceId);
 
   const { tracks: localTracks } = useLibrary();
@@ -27,6 +36,8 @@ export function Online() {
   const [remoteTracks, setRemoteTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsKey, setNeedsKey] = useState(false);
+  const promos = useApiPromotions("online");
 
   useEffect(() => {
     if (!isConnected) return;
@@ -35,6 +46,7 @@ export function Online() {
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setNeedsKey(false);
 
     (async () => {
       try {
@@ -61,22 +73,13 @@ export function Online() {
               addedAt: Date.now(),
             })),
           );
-        } else if (activeServiceId === "audius") {
-          const trending = await fetchAudiusTrending();
+        } else {
+          // Every other service (Audius, Last.fm, Deezer, Apple, SoundCloud, Tidal, Amazon,
+          // Pandora, Yandex, YouTube, and user-defined APIs) goes through the registry.
+          const result = await fetchServiceTracks(activeServiceId, 50);
           if (cancelled) return;
-          setRemoteTracks(
-            trending.map((t: AudiusTrack) => ({
-              id: `audius:${t.id}`,
-              path: "",
-              title: t.title,
-              artist: t.user.name,
-              album: t.genre ?? "",
-              duration: t.duration,
-              sourceUrl: audiusStreamUrl(t.id),
-              artworkUrl: t.artwork?.["480x480"] ?? t.artwork?.["150x150"],
-              addedAt: Date.now(),
-            })),
-          );
+          setNeedsKey(result.needsKey);
+          setRemoteTracks(result.tracks);
         }
       } catch {
         if (!cancelled) setError(`Couldn't reach ${service?.name ?? "this service"} — check your connection.`);
@@ -118,6 +121,13 @@ export function Online() {
         </p>
       )}
 
+      {needsKey && (
+        <p className="online-page__notice">
+          {service?.name} is ready to go — it just needs its API key. Add it to <code>.env</code> or paste it in{" "}
+          Settings → Service API keys.
+        </p>
+      )}
+
       {loading && <SkeletonRows count={6} />}
       {error && <p className="online-page__error">{error}</p>}
 
@@ -130,18 +140,28 @@ export function Online() {
             <span>Album</span>
             <span>Duration</span>
           </div>
-          {tracks.slice(0, 50).map((track) => {
+          {tracks.slice(0, 50).map((track, index) => {
             const playable = Boolean(track.sourceUrl) || isSpotifyTrackId(track.id);
+            const slots = promotionSlots(Math.min(tracks.length, 50), promos.length, 4, 12);
             return (
-              <div key={track.id} className="online-page__row" onDoubleClick={() => playable && playTrack(track, tracks)}>
-                <button type="button" disabled={!playable} onClick={() => playable && playTrack(track, tracks)}>
-                  <PlayIcon />
-                </button>
-                <span>{track.title}</span>
-                <span>{track.artist}</span>
-                <span>{track.album}</span>
-                <span>{formatDuration(track.duration)}</span>
-              </div>
+              <Fragment key={track.id}>
+                {slots.includes(index) && <PromotionRow promotion={promos[slots.indexOf(index)]} variant="online" />}
+                <div className="online-page__row" onDoubleClick={() => playable && playTrack(track, tracks)}>
+                  <button
+                    type="button"
+                    className="online-page__art"
+                    disabled={!playable}
+                    onClick={() => playable && playTrack(track, tracks)}
+                    aria-label={`Play ${track.title}`}
+                  >
+                    {track.artworkUrl ? <img src={track.artworkUrl} alt="" loading="lazy" /> : <PlaygroundIcon />}
+                  </button>
+                  <span className="online-page__title">{track.title}</span>
+                  <span>{track.artist}</span>
+                  <span>{track.album}</span>
+                  <span>{formatDuration(track.duration)}</span>
+                </div>
+              </Fragment>
             );
           })}
           {tracks.length === 0 && <p className="online-page__empty">Nothing to show from {service?.name} yet.</p>}
