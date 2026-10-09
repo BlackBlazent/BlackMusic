@@ -43,7 +43,7 @@
     "@typescript-eslint/parser": "^7.18.0",
     "@vitejs/plugin-react": "^4.3.3",
     "eslint": "^8.57.1",
-    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "exiftool-vendored": "^38.3.0",
     "exiftool-vendored.exe": "^13.59.3",
     "exiftool-vendored.pl": "^13.59.3",
