@@ -13,6 +13,8 @@ import { usePlaybackHistory } from "./PlaybackHistoryContext";
 import { useActionHistory } from "./ActionHistoryContext";
 import { useNotifications } from "./NotificationsContext";
 import { createLocalBlobUrl } from "@/lib/library/localAudioSource";
+import { useLibrary } from "./LibraryContext";
+import { getPreference, setPreference } from "@/lib/preferencesStore";
 import {
   ensureSpotifyPlayer,
   isSpotifyTrackId,
@@ -47,6 +49,32 @@ interface PlaybackContextValue {
   cycleRepeatMode: () => void;
   setPlaybackRate: (rate: number) => void;
   setLoopSection: (section: LoopSection) => void;
+  /** Mutes the local audio engine (still runs as the clock) — used when Video Mode supplies the sound. */
+  setAudioMuted: (muted: boolean) => void;
+  /** Sleep timer: stops once whole tracks totalling `minutes` have played. */
+  sleepTimer: SleepTimerState | null;
+  startSleepTimer: (minutes: number) => void;
+  cancelSleepTimer: () => void;
+  /** Replaces the play queue without changing what's playing (strip reorder/remove). */
+  reorderQueue: (next: Track[]) => void;
+}
+
+export interface SleepTimerState {
+  minutes: number;
+  /** Seconds of music still to play before stopping (counted in whole tracks). */
+  remainingSeconds: number;
+}
+
+const SESSION_KEY = "blackmusic:playbackSession";
+interface SavedSession {
+  /** Local tracks are stored by id only (the library is the source of truth); remote tracks in full. */
+  items: ({ id: string } | { track: Track })[];
+  index: number;
+  position: number;
+  volume: number;
+  shuffle: boolean;
+  repeatMode: RepeatMode;
+  playbackRate: number;
 }
 
 const PlaybackContext = createContext<PlaybackContextValue | null>(null);
@@ -62,6 +90,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const { recordPlay } = usePlaybackHistory();
   const { pushAction } = useActionHistory();
   const { push: pushNotification } = useNotifications();
+  const { tracks: libraryTracks, ready: libraryReady } = useLibrary();
 
   const [queue, setQueue] = useState<Track[]>([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
@@ -73,6 +102,11 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const [repeatMode, setRepeatMode] = useState<RepeatMode>("off");
   const [playbackRate, setPlaybackRateState] = useState(1);
   const [loopSection, setLoopSectionState] = useState<LoopSection>(DEFAULT_LOOP_SECTION);
+  const [sleepTimer, setSleepTimer] = useState<SleepTimerState | null>(null);
+  const sleepRef = useRef<SleepTimerState | null>(null);
+  sleepRef.current = sleepTimer;
+  const pendingSeekRef = useRef<number | null>(null);
+  const sessionReadyRef = useRef(false);
 
   // Kept alongside their state counterparts so callbacks that are only ever
   // (re)created once — the <audio> listeners, the Spotify state-change handler —
@@ -134,6 +168,11 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 
       const requestId = ++loadRequestIdRef.current;
       setCurrentIndex(index);
+      // Sleep timer counts WHOLE tracks: a track that has started will finish.
+      if (autoplay && sleepRef.current) {
+        const left = sleepRef.current.remainingSeconds - (track.duration || 180);
+        setSleepTimer({ ...sleepRef.current, remainingSeconds: left });
+      }
       // Reset immediately so the UI doesn't show the previous track's
       // duration/position for the moment before the new source loads.
       setDuration(0);
@@ -224,6 +263,13 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   advanceRef.current = (cause: "auto" | "manual") => {
     const audio = audioRef.current;
     if (!audio) return;
+    // Sleep timer: the budget was spent when the current track started — stop at its end.
+    if (cause === "auto" && sleepRef.current && sleepRef.current.remainingSeconds <= 0) {
+      setIsPlaying(false);
+      setSleepTimer(null);
+      pushNotification("Sleep timer", "Playback stopped — sweet dreams.");
+      return;
+    }
     if (cause === "auto" && repeatMode === "track") {
       audio.currentTime = 0;
       void audio.play();
@@ -261,6 +307,11 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     // without this listener those tracks would show a stuck 0:00 forever.
     const onDurationChange = () => {
       setDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
+      if (pendingSeekRef.current !== null && Number.isFinite(audio.duration)) {
+        audio.currentTime = Math.min(pendingSeekRef.current, audio.duration);
+        setPosition(audio.currentTime);
+        pendingSeekRef.current = null;
+      }
     };
     const onEnded = () => advanceRef.current("auto");
     const onPlay = () => setIsPlaying(true);
@@ -402,6 +453,78 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     setPosition(seconds);
   }, []);
 
+  // --- saved state & resume ------------------------------------------------------
+  // Restores queue, current track, position and settings once the library has loaded,
+  // paused (browsers block autoplay anyway, and surprising sound on launch is rude).
+  useEffect(() => {
+    if (!libraryReady || sessionReadyRef.current) return;
+    sessionReadyRef.current = true;
+    getPreference<SavedSession | null>(SESSION_KEY, null).then((saved) => {
+      if (!saved || saved.items.length === 0) return;
+      const byId = new Map(libraryTracks.map((t) => [t.id, t]));
+      const restored: Track[] = [];
+      let restoredIndex = -1;
+      saved.items.forEach((item, i) => {
+        const track = "track" in item ? item.track : byId.get(item.id);
+        if (!track) return;
+        if (i === saved.index) restoredIndex = restored.length;
+        restored.push(track);
+      });
+      setVolumeState(saved.volume ?? 0.8);
+      setShuffle(Boolean(saved.shuffle));
+      setRepeatMode(saved.repeatMode ?? "off");
+      setPlaybackRateState(saved.playbackRate ?? 1);
+      if (restored.length === 0 || restoredIndex === -1) return;
+      setQueue(restored);
+      pendingSeekRef.current = saved.position > 1 ? saved.position : null;
+      loadTrackAt(restored, restoredIndex, false);
+      setPosition(saved.position ?? 0);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, when the library is ready
+  }, [libraryReady]);
+
+  const lastSavedAt = useRef(0);
+  useEffect(() => {
+    if (!sessionReadyRef.current) return;
+    const now = Date.now();
+    if (now - lastSavedAt.current < 3000) return; // throttle: position ticks several times a second
+    lastSavedAt.current = now;
+    const session: SavedSession = {
+      items: queue.map((t) => (t.path ? { id: t.id } : { track: t })),
+      index: currentIndex,
+      position,
+      volume,
+      shuffle,
+      repeatMode,
+      playbackRate,
+    };
+    void setPreference(SESSION_KEY, session);
+  }, [queue, currentIndex, position, volume, shuffle, repeatMode, playbackRate]);
+
+  const setAudioMuted = useCallback((muted: boolean) => {
+    if (audioRef.current) audioRef.current.muted = muted;
+  }, []);
+
+  const startSleepTimer = useCallback((minutes: number) => {
+    const track = currentTrackRef.current;
+    const audio = audioRef.current;
+    // Budget = target minus what's left of the track already playing (it will finish regardless).
+    const leftInCurrent = track ? Math.max(0, (audio?.duration || track.duration || 0) - (audio?.currentTime ?? 0)) : 0;
+    setSleepTimer({ minutes, remainingSeconds: minutes * 60 - leftInCurrent });
+    pushNotification("Sleep timer set", `Music will stop after about ${minutes >= 60 ? `${minutes / 60} hour` : `${minutes} minutes`} of whole tracks.`);
+  }, [pushNotification]);
+
+  const cancelSleepTimer = useCallback(() => setSleepTimer(null), []);
+
+  const reorderQueue = useCallback((nextQueue: Track[]) => {
+    const current = currentTrackRef.current;
+    setQueue(nextQueue);
+    if (current) {
+      const idx = nextQueue.findIndex((t) => t.id === current.id);
+      if (idx !== -1) setCurrentIndex(idx);
+    }
+  }, []);
+
   const value = useMemo<PlaybackContextValue>(
     () => ({
       queue,
@@ -426,6 +549,11 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         setRepeatMode((mode) => (mode === "off" ? "queue" : mode === "queue" ? "track" : "off")),
       setPlaybackRate: setPlaybackRateState,
       setLoopSection: setLoopSectionState,
+      setAudioMuted,
+      sleepTimer,
+      startSleepTimer,
+      cancelSleepTimer,
+      reorderQueue,
     }),
     [
       queue,
@@ -444,6 +572,11 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       next,
       previous,
       seek,
+      setAudioMuted,
+      sleepTimer,
+      startSleepTimer,
+      cancelSleepTimer,
+      reorderQueue,
     ],
   );
 
