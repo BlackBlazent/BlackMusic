@@ -3,7 +3,7 @@
   top: calc(100% + 8px);
   right: 0;
   z-index: 150;
-  width: 240px;
+  width: 280px;
   padding: var(--space-4);
   border-radius: var(--radius-md);
   background: var(--color-surface-sunken);
