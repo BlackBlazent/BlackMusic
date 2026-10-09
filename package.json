@@ -1,7 +1,7 @@
 {
   "name": "blackmusic",
   "productName": "BlackMusic",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "BlackMusic — a local-first music player that bridges your own library with the services you already use.",
   "license": "CC0-1.0",
   "type": "module",
@@ -13,14 +13,18 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "prepare:exiftool": "node tools/prepare-exiftool.mjs",
+    "promotions-server": "node server/promotions-server.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
-    "@tauri-apps/api": "^2.1.1",
+    "@tauri-apps/api": "^2.12.1",
     "@tauri-apps/plugin-deep-link": "^2.0.1",
     "@tauri-apps/plugin-dialog": "^2.0.1",
     "@tauri-apps/plugin-fs": "^2.0.2",
+    "@tauri-apps/plugin-http": "^2.8.0",
+    "@tauri-apps/plugin-opener": "^2.7.0",
     "@tauri-apps/plugin-process": "^2.0.1",
     "@tauri-apps/plugin-shell": "^2.0.1",
     "@tauri-apps/plugin-store": "^2.0.1",
@@ -40,7 +44,12 @@
     "@vitejs/plugin-react": "^4.3.3",
     "eslint": "^8.57.1",
     "eslint-plugin-react-hooks": "^4.6.2",
+    "exiftool-vendored": "^38.3.0",
+    "exiftool-vendored.exe": "^13.59.3",
+    "exiftool-vendored.pl": "^13.59.3",
+    "optional": "^0.1.4",
     "prettier": "^3.3.3",
+    "supabase": "^2.119.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.11"
   }
