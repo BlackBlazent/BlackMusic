@@ -333,3 +333,9 @@ concrete bug fixes worth knowing about if something seems off:
   drives Spotify tracks one URI at a time instead.
 - **Most of the 10 Folder view styles** from the original app -- Cover Art View and List View are
   real; the rest are listed (so the menu matches) but fall back to List View.
+
+## 2.1.0 notes
+- **Auth deep link**: `tauri-plugin-single-instance` (feature `deep-link`) must stay the FIRST plugin in `main.rs`, otherwise `blackmusic://auth/callback` opens a second app instance and sign-in never lands.
+- **Fast importer**: `src-tauri/src/importer.rs` + `src/lib/library/fastImport.ts`. The JS scanner (`scanFolder.ts`) is only a fallback when the native command is unavailable.
+- **Promotions**: manual and API ecosystems are separate (`src/lib/promotions/types.ts` holds the placement matrix; the renderer re-validates every promotion).
+- **Lyrics**: `src/app/features/lyrics/` — Genius identifies the song; text comes from LRCLIB (Genius has no lyrics endpoint and scraping is not used). Cached in `<appData>/lyrics/*.json|txt`.
