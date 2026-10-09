@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useClickOutside } from "@/lib/useClickOutside";
+import { ProfileCard } from "./ProfileCard";
 import "./AccountPopover.css";
 
 export function AccountPopover({ onClose }: { onClose: () => void }) {
@@ -12,8 +13,6 @@ export function AccountPopover({ onClose }: { onClose: () => void }) {
 
   if (!user) return null;
 
-  const initial = (user.email ?? "?")[0]?.toUpperCase();
-
   const onDelete = async () => {
     const result = await deleteAccount();
     setDeleteMessage(result.message);
@@ -23,15 +22,11 @@ export function AccountPopover({ onClose }: { onClose: () => void }) {
   return (
     <div className="account-popover" ref={ref}>
       <div className="account-popover__profile">
-        <span className="account-popover__avatar">{initial}</span>
-        <div>
-          <span className="account-popover__email">{user.email ?? "Signed in"}</span>
-          <span className="account-popover__id">ID: {user.id.slice(0, 8)}…</span>
-        </div>
+        <ProfileCard user={user} size={44} />
       </div>
 
       <button type="button" className="account-popover__signout" onClick={() => { void signOut(); onClose(); }}>
-        Sign out
+        Log out
       </button>
 
       {!confirmingDelete ? (
