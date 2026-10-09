@@ -1,52 +1,9 @@
-.link-modal__backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.link-modal {
-  width: min(720px, 90vw);
-  height: min(480px, 80vh);
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
-}
-
-.link-modal__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.link-modal__url {
-  font-size: 12px;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.link-modal__header button {
-  color: var(--color-text-faint);
-  flex-shrink: 0;
-}
-
-.link-modal__header button:hover {
-  color: var(--color-text);
-}
-
-.link-modal__frame {
-  flex: 1;
-  border: none;
-  background: #000;
-}
+.link-window { position: fixed; z-index: 140; width: min(560px, 80vw); border-radius: var(--radius-lg); background: var(--color-surface); border: 1px solid var(--color-border-strong); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); overflow: hidden; }
+.link-window[data-minimized="true"] { width: 220px; }
+.link-window[data-dragging="true"] { cursor: grabbing; }
+.link-window__header { display: flex; align-items: center; gap: 4px; padding: 6px 8px 6px 12px; cursor: grab; touch-action: none; user-select: none; }
+.link-window__url { flex: 1; min-width: 0; font-size: 11px; color: var(--color-text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.link-window__header button { width: 24px; height: 24px; display: grid; place-items: center; border-radius: var(--radius-sm); color: var(--color-text-muted); }
+.link-window__header button:hover { background: var(--color-hover); color: var(--color-text); }
+.link-window__frame { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; background: #000; }
+.link-window__frame[hidden] { display: none; }
