@@ -18,7 +18,7 @@ export function Footer() {
 
   return (
     <footer className="app-footer">
-      <span className="app-footer__copyright">© BlackMusic {new Date().getFullYear()}</span>
+      <span className="app-footer__copyright">© 2026 BlackBlazent (BlackMusic) {new Date().getFullYear()}</span>
 
       <span className="app-footer__status">
         <span className="app-footer__dot" data-ok={folders.length > 0} />
