@@ -17,7 +17,7 @@ tauri-plugin-store = "2"
 tauri-plugin-deep-link = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
-tauri-plugin-http = "2"
+tauri-plugin-http = "2.8"
 # Without the `deep-link` feature the OS hands the blackmusic:// callback to a NEW process
 # instead of the running app — the 2.0.0 "auth callback returns but nobody is logged in" bug.
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
