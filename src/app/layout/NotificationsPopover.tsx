@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNotifications } from "@/app/context/NotificationsContext";
 import { useClickOutside } from "@/lib/useClickOutside";
 import { BellIcon } from "./icons";
+import { ChangelogModal } from "@/app/components/ChangelogModal";
 import "./NotificationsPopover.css";
 
 function timeAgo(ts: number): string {
@@ -14,6 +15,7 @@ function timeAgo(ts: number): string {
 
 export function NotificationsPopover() {
   const [open, setOpen] = useState(false);
+  const [changelogOpen, setChangelogOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { notifications, unreadCount, markAllRead } = useNotifications();
   useClickOutside(ref, () => setOpen(false), open);
@@ -40,16 +42,29 @@ export function NotificationsPopover() {
           ) : (
             <div className="notifications-popover__list">
               {[...notifications].reverse().map((n) => (
-                <div key={n.id} className="notifications-popover__item">
+                <div
+                  key={n.id}
+                  className="notifications-popover__item"
+                  data-actionable={Boolean(n.action)}
+                  role={n.action ? "button" : undefined}
+                  tabIndex={n.action ? 0 : undefined}
+                  onClick={() => {
+                    if (n.action === "changelog") {
+                      setChangelogOpen(true);
+                      setOpen(false);
+                    }
+                  }}
+                >
                   <span className="notifications-popover__item-title">{n.title}</span>
                   {n.body && <span className="notifications-popover__item-body">{n.body}</span>}
-                  <span className="notifications-popover__item-time">{timeAgo(n.createdAt)}</span>
+                  <span className="notifications-popover__item-time">{timeAgo(n.createdAt)}{n.action ? " · View changes" : ""}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
       )}
+      {changelogOpen && <ChangelogModal onClose={() => setChangelogOpen(false)} />}
     </div>
   );
 }
