@@ -1,5 +1,5 @@
 .folder-page {
-  max-width: 720px;
+  max-width: 960px;
 }
 
 .folder-page__header {
@@ -256,3 +256,66 @@
 .folder-page__rescan:disabled {
   opacity: 0.5;
 }
+
+/* ---- 2.1.0: complete folder view styles ---- */
+.folder-card__thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+.folder-page__compact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--space-2); }
+.folder-compact { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--color-surface-raised); text-align: left; }
+.folder-compact:hover { background: var(--color-hover); }
+.folder-compact svg { width: 16px; height: 16px; flex: none; color: var(--color-text-faint); }
+.folder-compact__name { flex: 1; min-width: 0; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.folder-compact__count { font-size: 11px; color: var(--color-text-faint); }
+
+.folder-page__detailed { display: flex; flex-direction: column; gap: var(--space-3); }
+.folder-detail { padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-surface-raised); border: 1px solid var(--color-border); }
+.folder-detail header { display: flex; align-items: center; gap: var(--space-3); }
+.folder-detail header > svg { width: 28px; height: 28px; color: var(--color-text-faint); flex: none; }
+.folder-detail header > div:nth-child(2) { flex: 1; min-width: 0; }
+.folder-detail h3 { margin: 0; font-size: 15px; }
+.folder-detail p { margin: 2px 0 0; font-size: 11px; color: var(--color-text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.folder-detail__buttons { display: flex; gap: var(--space-1); }
+.folder-detail__buttons button { padding: 5px 10px; border-radius: var(--radius-sm); font-size: 12px; color: var(--color-text-muted); background: var(--color-surface); }
+.folder-detail__buttons button:hover:not(:disabled) { color: var(--color-text); }
+.folder-detail dl { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); margin: var(--space-3) 0 0; }
+.folder-detail dt { font-size: 10px; text-transform: uppercase; color: var(--color-text-faint); }
+.folder-detail dd { margin: 2px 0 0; font-size: 14px; }
+.folder-detail .folder-detail__artists { margin-top: var(--space-3); font-size: 12px; color: var(--color-text-muted); white-space: normal; }
+
+.folder-page__timeline { list-style: none; margin: 0; padding: 0 0 0 var(--space-4); border-left: 2px solid var(--color-border-strong); display: flex; flex-direction: column; gap: var(--space-4); }
+.folder-page__timeline h3 { margin: 0 0 var(--space-2); font-size: 12px; color: var(--color-text-faint); text-transform: uppercase; }
+.folder-timeline__item { display: flex; align-items: center; gap: var(--space-3); width: 100%; padding: 6px var(--space-2); border-radius: var(--radius-sm); text-align: left; position: relative; }
+.folder-timeline__item:hover { background: var(--color-hover); }
+.folder-timeline__dot { position: absolute; left: calc(-1 * var(--space-4) - 6px); width: 10px; height: 10px; border-radius: 50%; background: var(--color-accent); }
+.folder-timeline__name { flex: 1; font-size: 13px; }
+.folder-timeline__meta { font-size: 11px; color: var(--color-text-faint); }
+
+.folder-page__storyboard { display: flex; flex-direction: column; gap: var(--space-5); }
+.folder-page__storyboard h3 { margin: 0 0 var(--space-2); font-size: 14px; }
+.folder-page__storyboard h3 span { font-size: 11px; font-weight: 400; color: var(--color-text-faint); margin-left: var(--space-2); }
+.folder-storyboard__frames { display: flex; gap: var(--space-2); overflow-x: auto; padding-bottom: var(--space-1); }
+.folder-storyboard__frame { position: relative; flex: none; width: 120px; aspect-ratio: 16 / 10; border-radius: var(--radius-sm); overflow: hidden; border: 2px solid var(--color-border-strong); }
+.folder-storyboard__frame img { width: 100%; height: 100%; object-fit: cover; }
+.folder-storyboard__frame span { position: absolute; left: 4px; bottom: 2px; font-size: 10px; color: #fff; text-shadow: 0 1px 2px #000; }
+.folder-storyboard__empty { font-size: 12px; color: var(--color-text-faint); }
+
+.folder-page__tags { display: flex; flex-direction: column; gap: var(--space-4); }
+.folder-page__tags h3 { margin: 0 0 var(--space-2); font-size: 14px; }
+.folder-tags__cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+.folder-tag { padding: 4px 10px; border-radius: 999px; font-size: 11px; background: var(--color-surface-raised); color: var(--color-text-muted); }
+button.folder-tag:hover { background: var(--color-interactive-wash, var(--color-hover)); color: var(--color-interactive, var(--color-text)); }
+.folder-tag--folder { background: var(--color-accent-wash); color: var(--color-accent); }
+.folder-tag--format { border: 1px solid var(--color-border-strong); background: transparent; }
+
+.folder-page__moodboard { column-count: 4; column-gap: var(--space-2); }
+.folder-mood { position: relative; display: block; width: 100%; margin-bottom: var(--space-2); border-radius: var(--radius-md); overflow: hidden; break-inside: avoid; aspect-ratio: 1 / 1; }
+.folder-mood[data-tall="true"] { aspect-ratio: 3 / 4; }
+.folder-mood img { width: 100%; height: 100%; object-fit: cover; }
+.folder-mood span { position: absolute; inset: auto 0 0 0; padding: 18px 8px 6px; font-size: 11px; color: #fff; background: linear-gradient(transparent, rgba(0, 0, 0, 0.7)); opacity: 0; text-align: left; }
+.folder-mood:hover span { opacity: 1; }
+
+.folder-page__text { margin: 0; padding: var(--space-3); border-radius: var(--radius-md); background: var(--color-surface-sunken); font-family: ui-monospace, Consolas, monospace; font-size: 12px; line-height: 1.7; overflow-x: auto; }
+
+.folder-page__custom label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--color-text-faint); }
+.folder-page__custom input { height: 34px; padding: 0 var(--space-3); border-radius: var(--radius-sm); background: var(--color-surface-raised); border: 1px solid var(--color-border); color: var(--color-text); font-size: 13px; }
+.folder-page__custom ul { margin: var(--space-3) 0 0; padding-left: var(--space-4); font-size: 13px; line-height: 1.8; }
