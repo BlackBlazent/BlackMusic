@@ -1,0 +1,113 @@
+name: BlackMusic Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64
+            os: ubuntu-24.04
+            target: ""
+            args: ""
+          - name: macOS Intel
+            os: macos-latest
+            target: x86_64-apple-darwin
+            args: "--target x86_64-apple-darwin"
+          - name: macOS Apple Silicon
+            os: macos-latest
+            target: aarch64-apple-darwin
+            args: "--target aarch64-apple-darwin"
+          # Optional: build Windows here too so latest.json (auto-update) covers all three platforms.
+          # - name: Windows x64
+          #   os: windows-latest
+          #   target: ""
+          #   args: ""
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential curl wget file \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev libssl-dev libxdo-dev \
+            patchelf xdg-utils
+
+      # open_explorer is a Windows-only sidecar, but tauri.conf.json's externalBin makes Tauri demand a
+      # file for EVERY target triple. The app only calls it on Windows, so a no-op stand-in is enough.
+      - name: Create placeholder sidecar (non-Windows)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          TARGET="${{ matrix.target }}"
+          if [ -z "$TARGET" ]; then TARGET=$(rustc -vV | sed -n 's/host: //p'); fi
+          printf '#!/bin/sh\nexit 0\n' > "src-tauri/binaries/open_explorer-$TARGET"
+          chmod +x "src-tauri/binaries/open_explorer-$TARGET"
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and publish Tauri application
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Updater signing (must match the pubkey in tauri.conf.json)
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # Compiled INTO the app by Vite — only public-safe values belong here.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
+          VITE_PROMOTIONS_API_URL: ${{ secrets.VITE_PROMOTIONS_API_URL }}
+          VITE_YOUTUBE_API_KEY: ${{ secrets.VITE_YOUTUBE_API_KEY }}
+          VITE_GENIUS_ACCESS_TOKEN: ${{ secrets.VITE_GENIUS_ACCESS_TOKEN }}
+          VITE_LASTFM_API_KEY: ${{ secrets.VITE_LASTFM_API_KEY }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: "BlackMusic ${{ github.ref_name }}"
+          releaseBody: |
+            ## BlackMusic ${{ github.ref_name }}
+
+            Downloads: Linux (AppImage / deb), macOS Intel and Apple Silicon (dmg).
+          releaseDraft: true
+          prerelease: false
+          generateReleaseNotes: true
+          args: ${{ matrix.args }}
