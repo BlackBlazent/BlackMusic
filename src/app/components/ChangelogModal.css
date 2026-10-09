@@ -1,0 +1,4 @@
+.changelog { width: min(560px, 94vw); max-height: 80vh; }
+.changelog__body { overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-4); }
+.changelog h3 { margin: 0 0 var(--space-2); font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-accent); }
+.changelog ul { margin: 0; padding-left: var(--space-4); font-size: 13px; line-height: 1.6; color: var(--color-text-muted); }
