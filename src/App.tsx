@@ -12,6 +12,9 @@ import { PlaybackProvider } from "@/app/context/PlaybackContext";
 import { ServicesProvider } from "@/app/context/ServicesContext";
 import { NotificationsProvider } from "@/app/context/NotificationsContext";
 import { AuthProvider } from "@/app/context/AuthContext";
+import { PlayerUiProvider } from "@/app/context/PlayerUiContext";
+import { PromotionsProvider } from "@/app/context/PromotionsContext";
+import { LyricsProvider } from "@/app/features/lyrics/context/LyricsContext";
 import { router } from "@/app/router";
 
 export function App() {
@@ -29,7 +32,13 @@ export function App() {
                         <PlaylistsProvider>
                           <PlaybackHistoryProvider>
                             <PlaybackProvider>
-                              <RouterProvider router={router} />
+                              <LyricsProvider>
+                                <PromotionsProvider>
+                                  <PlayerUiProvider>
+                                    <RouterProvider router={router} />
+                                  </PlayerUiProvider>
+                                </PromotionsProvider>
+                              </LyricsProvider>
                             </PlaybackProvider>
                           </PlaybackHistoryProvider>
                         </PlaylistsProvider>
