@@ -3,6 +3,8 @@ import { useServices } from "@/app/context/ServicesContext";
 import { SERVICE_DIRECTORY } from "@/lib/services/serviceDirectory";
 import { useAppSettings, type IntegrationId } from "@/app/context/AppSettingsContext";
 import { useClickOutside } from "@/lib/useClickOutside";
+import { useCustomApis } from "@/lib/services/useCustomApis";
+import { CUSTOM_SERVICE_PREFIX } from "@/lib/services/customApis";
 import "./ServicesMenu.css";
 
 // Real brand marks, shipped in public/assets — falls back to a plain letter
@@ -23,6 +25,7 @@ const BADGE_COLOR: Record<string, string> = {
   pandora: "#005483",
   yandex: "#fc3f1d",
   youtube: "#ff0000",
+  lastfm: "#d51007",
 };
 
 function ServiceBadge({ id, name, size }: { id: string; name: string; size: number }) {
@@ -57,8 +60,13 @@ export function ServicesMenu() {
   const { isEnabled } = useAppSettings();
   useClickOutside(ref, () => setOpen(false), open);
 
-  const activeService = SERVICE_DIRECTORY.find((s) => s.id === activeServiceId);
-  const settingsControlledIds = new Set<IntegrationId>(["spotify", "audius", "tidal"]);
+  const { apis: customApis } = useCustomApis();
+  const allServices = [
+    ...SERVICE_DIRECTORY,
+    ...customApis.filter((a) => a.enabled).map((a) => ({ id: `${CUSTOM_SERVICE_PREFIX}${a.id}`, name: a.name, available: true })),
+  ];
+  const activeService = allServices.find((s) => s.id === activeServiceId);
+  const settingsControlledIds = new Set<IntegrationId>(["spotify","audius","tidal","amazon","apple","deezer","soundcloud","pandora","yandex","lastfm","youtube"]);
 
   return (
     <div className="services-menu" ref={ref}>
@@ -74,7 +82,7 @@ export function ServicesMenu() {
 
       {open && (
         <div className="services-menu__panel" role="menu">
-          {SERVICE_DIRECTORY.map((service) => {
+          {allServices.map((service) => {
             const isActive = service.id === activeServiceId;
             const isConnected = connectedIds.has(service.id);
             const enabledInSettings = settingsControlledIds.has(service.id as IntegrationId)
