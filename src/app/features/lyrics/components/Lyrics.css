@@ -1,0 +1,22 @@
+.lyrics-overlay { position: absolute; /*inset: auto 0 0 0; margin: 0 auto;*/ max-height: 70%; overflow-y: auto; border-radius: var(--radius-md); scrollbar-width: none; }
+.lyrics-overlay::-webkit-scrollbar { display: none; }
+.lyrics-overlay[data-alignment="left"] { text-align: left; }
+.lyrics-overlay[data-alignment="center"] { text-align: center; }
+.lyrics-overlay[data-alignment="right"] { text-align: right; }
+.lyrics-overlay[data-shadow="true"] .lyrics__line { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85); }
+.lyrics__line { margin: 0; opacity: 0.55; transition: opacity 0.25s; }
+.lyrics__line--current { opacity: 1; font-weight: 800; }
+.lyrics__line[data-animation="fade"].lyrics__line--current { animation: lyrics-fade 0.35s ease; }
+.lyrics__line[data-animation="slide"].lyrics__line--current { animation: lyrics-slide 0.35s ease; }
+@keyframes lyrics-fade { from { opacity: 0.2; } to { opacity: 1; } }
+@keyframes lyrics-slide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.lyrics__note { margin: 0; opacity: 0.8; font-size: 0.8em; }
+.lyrics__source { display: block; margin-top: 8px; font-size: 11px; opacity: 0.6; color: inherit; }
+.lyrics-settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: var(--space-3); font-size: 12px; color: var(--color-text-muted); }
+.lyrics-settings label { display: flex; flex-direction: column; gap: 4px; }
+.lyrics-settings select, .lyrics-settings input[type="color"] { height: 30px; background: var(--color-surface-raised); border: 1px solid var(--color-border); border-radius: var(--radius-sm); color: var(--color-text); }
+.lyrics-settings__row { display: flex; align-items: center; gap: var(--space-2); grid-column: 1 / -1; }
+.lyrics-settings__row button { padding: 4px 10px; border-radius: 999px; background: var(--color-surface-raised); text-transform: capitalize; }
+.lyrics-settings__row button[data-active="true"] { background: var(--color-interactive-wash, var(--color-accent-wash)); color: var(--color-interactive, var(--color-accent)); }
+.lyrics-settings__check { flex-direction: row !important; align-items: center; }
+.lyrics-settings__reset { grid-column: 1 / -1; justify-self: start; padding: 6px 12px; border-radius: var(--radius-sm); background: var(--color-surface-raised); }
