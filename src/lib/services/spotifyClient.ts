@@ -7,8 +7,25 @@ const TOKENS_KEY = "blackmusic:spotifyTokens";
 
 interface SpotifyTokens {
   accessToken: string;
+  /** Empty when the token came from Supabase and can't be refreshed client-side. */
   refreshToken: string;
   expiresAt: number;
+}
+
+/**
+ * 2.1.0: Spotify now signs in through the Supabase integration (Supabase's
+ * Spotify provider, redirect `blackmusic://auth/callback`) instead of the
+ * env-driven PKCE client. Supabase hands back the Spotify access token as the
+ * session's `provider_token`; this stores it where every Spotify call already
+ * looks. Refreshing needs the Spotify client *secret*, which only Supabase
+ * holds — so when this token expires (~1h) the user simply reconnects.
+ */
+export async function storeSpotifyProviderTokens(accessToken: string, refreshToken: string | null): Promise<void> {
+  await setPreference<SpotifyTokens>(TOKENS_KEY, {
+    accessToken,
+    refreshToken: refreshToken ?? "",
+    expiresAt: Date.now() + 55 * 60 * 1000,
+  });
 }
 
 /** Builds the authorize URL and stashes the PKCE verifier for the callback to pick up. */
@@ -65,7 +82,8 @@ export async function handleSpotifyCallback(url: string): Promise<boolean> {
 
 async function refreshSpotifyTokens(refreshToken: string): Promise<SpotifyTokens | null> {
   const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-  if (!clientId) return null;
+  // No client id (Supabase-managed Spotify) or no refresh token -> can't refresh here.
+  if (!clientId || !refreshToken) return null;
 
   const response = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
@@ -91,7 +109,8 @@ async function refreshSpotifyTokens(refreshToken: string): Promise<SpotifyTokens
 
 export async function isSpotifyConnected(): Promise<boolean> {
   const tokens = await getPreference<SpotifyTokens | null>(TOKENS_KEY, null);
-  return Boolean(tokens?.refreshToken);
+  if (!tokens) return false;
+  return Boolean(tokens.refreshToken) || Date.now() < tokens.expiresAt;
 }
 
 export async function disconnectSpotify(): Promise<void> {
