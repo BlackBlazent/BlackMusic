@@ -3,12 +3,29 @@ import { getPreference, setPreference } from "@/lib/preferencesStore";
 
 const STORAGE_KEY = "blackmusic:integrations";
 
-export type IntegrationId = "spotify" | "audius" | "tidal" | "lastfm" | "youtube";
+export type IntegrationId =
+  | "spotify"
+  | "audius"
+  | "tidal"
+  | "amazon"
+  | "apple"
+  | "deezer"
+  | "soundcloud"
+  | "pandora"
+  | "yandex"
+  | "lastfm"
+  | "youtube";
 
 export const INTEGRATIONS: { id: IntegrationId; name: string; description: string }[] = [
   { id: "spotify", name: "Spotify", description: "Connect your account from the sidebar logo, browse in Online." },
   { id: "audius", name: "Audius", description: "No login needed — trending tracks, fully playable." },
-  { id: "tidal", name: "Tidal", description: "Not wired up yet." },
+  { id: "tidal", name: "Tidal", description: "Needs VITE_TIDAL_ACCESS_TOKEN (or a key in Settings)." },
+  { id: "amazon", name: "Amazon Music", description: "Needs VITE_AMAZON_MUSIC_ACCESS_TOKEN (Web API alpha)." },
+  { id: "apple", name: "Apple Music", description: "Needs VITE_APPLE_MUSIC_DEVELOPER_TOKEN." },
+  { id: "deezer", name: "Deezer", description: "Public chart, 30-second previews — no key needed." },
+  { id: "soundcloud", name: "SoundCloud", description: "Needs VITE_SOUNDCLOUD_CLIENT_ID." },
+  { id: "pandora", name: "Pandora", description: "No public API — point VITE_PANDORA_API_URL at your own endpoint." },
+  { id: "yandex", name: "Yandex Music", description: "Needs VITE_YANDEX_MUSIC_TOKEN." },
   {
     id: "lastfm",
     name: "Last.fm",
@@ -25,6 +42,12 @@ const DEFAULTS: Record<IntegrationId, boolean> = {
   spotify: true,
   audius: true,
   tidal: true,
+  amazon: true,
+  apple: true,
+  deezer: true,
+  soundcloud: true,
+  pandora: true,
+  yandex: true,
   // These two reach out to a third party on their own (a scan finishing, a
   // page loading) rather than only when you click something — off by default.
   lastfm: false,
