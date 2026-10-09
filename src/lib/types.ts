@@ -11,6 +11,9 @@ export interface Track {
   /** Data URL from embedded tag art, if the file has any. */
   artworkUrl?: string;
   addedAt: number;
+  /** File size + mtime (seconds) at last scan — lets rescans skip unchanged files. */
+  size?: number;
+  mtime?: number;
 }
 
 export type RepeatMode = "off" | "track" | "queue";
