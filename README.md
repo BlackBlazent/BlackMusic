@@ -1,3 +1,5 @@
+![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2FBlackBlazent%2FBlackMusic&label=BlackMusic%20Visitors&labelColor=%23090040&countColor=%23B13BFF&style=flat&labelStyle=lower)
+
 # BlackMusic
 
 **BlackMusic** is a desktop music player for the music you already have, plus the services you already use — in one place, without giving up control of either.
