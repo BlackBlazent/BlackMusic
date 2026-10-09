@@ -4,11 +4,14 @@ import { TopBar } from "./TopBar";
 import { GlobalPlaybackBar } from "./GlobalPlaybackBar";
 import { FloatingPlaygroundToggle } from "./FloatingPlaygroundToggle";
 import { Footer } from "./Footer";
+import { PipHost } from "@/app/components/PipHost"; // import { PipPlayer } from "@/app/components/PipPlayer";
+import { RouteResume } from "./RouteResume";
 import "./AppShell.css";
 
 export function AppShell() {
   return (
     <div className="app-shell">
+      <RouteResume />
       <Sidebar />
       <div className="app-shell__main">
         <TopBar />
@@ -19,6 +22,7 @@ export function AppShell() {
         <Footer />
       </div>
       <FloatingPlaygroundToggle />
+      <PipHost /> {/*<PipPlayer />*/}
     </div>
   );
 }
