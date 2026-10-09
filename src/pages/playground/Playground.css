@@ -282,3 +282,39 @@
   outline: none;
   border-color: var(--color-accent);
 }
+
+/* ---- 2.1.0 ---- */
+.playground { position: relative; }
+.playground > *:not(.playground__ambient) { position: relative; z-index: 1; }
+.playground__stage-video { width: 100%; height: 100%; border: 0; background: #000; }
+.playground__stage-status { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--space-4); text-align: center; font-size: 13px; color: var(--color-text-muted); background: color-mix(in srgb, var(--color-surface-raised) 80%, transparent); }
+
+/* Ambient mode */
+.playground__ambient { position: absolute; inset: -40px; z-index: 0; background-size: cover; background-position: center; filter: blur(70px) saturate(1.7) brightness(0.8); opacity: 0.55; transform: scale(1.15); animation: ambient-drift 18s ease-in-out infinite alternate; pointer-events: none; }
+@keyframes ambient-drift { from { transform: scale(1.15) translate(-2%, -1%); } to { transform: scale(1.3) translate(2%, 1.5%); } }
+.playground[data-ambient="true"] .playground__stage-art { box-shadow: 0 0 80px rgba(255, 255, 255, 0.12); }
+
+/* Fullscreen with on-stage controls + crop */
+.playground__stage:fullscreen { background: #000; padding: 0; justify-content: center; gap: 0; }
+.playground__stage:fullscreen .playground__stage-mode, .playground__stage:fullscreen .playground__now-playing { display: none; }
+.playground__stage:fullscreen .playground__stage-art { max-width: none; width: 100%; height: 100%; flex: 1; aspect-ratio: auto; border-radius: 0; background: #000; }
+.playground__stage:fullscreen .playground__stage-art img, .playground__stage:fullscreen .playground__stage-video { object-fit: contain; }
+.playground__stage[data-fullscreen="true"][data-crop="1x1"] .playground__stage-art { width: min(100vh, 100vw); height: min(100vh, 100vw); flex: none; aspect-ratio: 1 / 1; }
+.playground__stage[data-fullscreen="true"][data-crop="4x3"] .playground__stage-art { height: min(100vh, 75vw); width: min(133.33vh, 100vw); flex: none; aspect-ratio: 4 / 3; }
+.playground__stage[data-fullscreen="true"][data-crop="16x9"] .playground__stage-art { width: min(100vw, 177.78vh); height: min(100vh, 56.25vw); flex: none; aspect-ratio: 16 / 9; }
+.playground__stage[data-fullscreen="true"][data-crop="1x1"] .playground__stage-art img, .playground__stage[data-fullscreen="true"][data-crop="4x3"] .playground__stage-art img, .playground__stage[data-fullscreen="true"][data-crop="16x9"] .playground__stage-art img { object-fit: cover; }
+.playground__fs-controls { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-4) var(--space-5); background: linear-gradient(transparent, rgba(0, 0, 0, 0.8)); color: #fff; opacity: 0; transition: opacity 0.2s; }
+.playground__stage:fullscreen:hover .playground__fs-controls, .playground__fs-controls:focus-within { opacity: 1; }
+.playground__fs-controls button { color: #fff; }
+.playground__fs-back { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); font-size: 13px; }
+.playground__fs-transport { display: flex; align-items: center; gap: var(--space-4); }
+.playground__fs-transport button { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; }
+.playground__fs-transport .playground__fs-play { width: 52px; height: 52px; background: var(--color-accent); }
+.playground__fs-crop { display: flex; gap: 4px; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.12); }
+.playground__fs-crop button { padding: 5px 12px; border-radius: 999px; font-size: 11px; }
+.playground__fs-crop button[data-active="true"] { background: var(--color-interactive, var(--color-accent)); }
+
+.playground__sleep, .playground__download { display: flex; flex-direction: column; gap: var(--space-2); }
+.playground__download-btn { align-self: flex-start; padding: 8px 16px; border-radius: var(--radius-md); background: var(--color-accent); color: #fff; font-size: 12px; }
+.playground__download-btn:disabled { opacity: 0.5; }
+.playground__panel-body { max-height: 38vh; overflow-y: auto; }
