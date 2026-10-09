@@ -1,7 +1,7 @@
 export interface ServiceDefinition {
   id: string;
   name: string;
-  /** Only BlackMusic, Spotify, Audius, and Tidal are actually wired up right now. */
+  /** 2.1.0: every service has a client function (serviceRegistry.ts); it just needs its key. */
   available: boolean;
 }
 
@@ -11,11 +11,12 @@ export const SERVICE_DIRECTORY: ServiceDefinition[] = [
   { id: "spotify", name: "Spotify", available: true },
   { id: "audius", name: "Audius", available: true },
   { id: "tidal", name: "Tidal", available: true },
-  { id: "amazon", name: "Amazon Music", available: false },
-  { id: "apple", name: "Apple Music", available: false },
-  { id: "deezer", name: "Deezer", available: false },
-  { id: "soundcloud", name: "SoundCloud", available: false },
-  { id: "pandora", name: "Pandora", available: false },
-  { id: "yandex", name: "Yandex Music", available: false },
-  { id: "youtube", name: "YouTube", available: false },
+  { id: "amazon", name: "Amazon Music", available: true },
+  { id: "apple", name: "Apple Music", available: true },
+  { id: "deezer", name: "Deezer", available: true },
+  { id: "soundcloud", name: "SoundCloud", available: true },
+  { id: "pandora", name: "Pandora", available: true },
+  { id: "yandex", name: "Yandex Music", available: true },
+  { id: "lastfm", name: "Last.fm", available: true },
+  { id: "youtube", name: "YouTube", available: true },
 ];
