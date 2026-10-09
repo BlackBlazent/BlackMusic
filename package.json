@@ -48,7 +48,7 @@
     "exiftool-vendored.exe": "^13.59.3",
     "exiftool-vendored.pl": "^13.59.3",
     "optional": "^0.1.4",
-    "prettier": "^3.3.3",
+    "prettier": "^3.9.9",
     "supabase": "^2.119.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.11"
