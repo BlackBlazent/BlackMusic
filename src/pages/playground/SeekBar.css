@@ -58,3 +58,10 @@
   pointer-events: none;
   white-space: nowrap;
 }
+
+/* ---- 2.1.0: editable start time ---- */
+.seek-bar__time--editable { cursor: text; border-radius: var(--radius-sm); padding: 2px 4px; color: inherit; font: inherit; font-size: 11px; }
+.seek-bar__time--editable:hover:not(:disabled) { background: var(--color-hover); color: var(--color-interactive, var(--color-accent)); }
+.seek-bar__time--input { width: 64px; padding: 2px 6px; text-align: center; background: var(--color-surface-raised); border: 1px solid var(--color-interactive, var(--color-accent)); border-radius: var(--radius-sm); color: var(--color-text); font: inherit; }
+.seek-bar__time--input[data-invalid="true"] { border-color: #ff3b3b; }
+.seek-bar__time--input:focus { outline: none; }
