@@ -1,6 +1,6 @@
 [package]
 name = "blackmusic"
-version = "2.0.0"
+version = "2.1.0"
 description = "BlackMusic — local-first music player"
 authors = ["BlackBlazent"]
 edition = "2021"
@@ -17,8 +17,14 @@ tauri-plugin-store = "2"
 tauri-plugin-deep-link = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
+tauri-plugin-http = "2"
+# Without the `deep-link` feature the OS hands the blackmusic:// callback to a NEW process
+# instead of the running app — the 2.0.0 "auth callback returns but nobody is logged in" bug.
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+lofty = "0.22"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tauri-plugin-opener = "2.7.0"
 
 [lib]
 name = "blackmusic_lib"
