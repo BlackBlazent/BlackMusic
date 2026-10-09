@@ -90,10 +90,12 @@
 
 .topbar__account-avatar {
   width: 26px;
-  height: 26px;
+  height: auto;
   border-radius: 50%;
   background: var(--color-surface-sunken);
   border: 1px solid var(--color-border-strong);
+  object-fit: cover;
+  display: block;
 }
 
 .topbar__account-avatar[data-signed-in="true"] {
