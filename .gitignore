@@ -4,12 +4,17 @@ dist/
 __docs__/
 task/
 native/
+release/
+bundle/
+temp.py
+src-tauri/resources/*
 temp/
 ~/.tauri/
 dist-ssr/
 *.local
 *.tsbuildinfo
 vite.config.js
+vite.config.js.timestamp-1791360954293-78970cec9dc6b8.mjs
 vite.config.d.ts
 
 # Env
