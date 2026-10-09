@@ -8,6 +8,7 @@ import { MoonIcon, RedoArrowIcon, SearchIcon, SunIcon, UndoArrowIcon } from "./i
 import { NotificationsPopover } from "./NotificationsPopover";
 import { AccountModal } from "./AccountModal";
 import { AccountPopover } from "./AccountPopover";
+import placeholderAvatar from "@/assets/profile-placeholder.svg";
 import "./TopBar.css";
 
 export function TopBar() {
@@ -60,7 +61,7 @@ export function TopBar() {
 
         <NotificationsPopover />
 
-        <Tooltip label={user ? user.email ?? "Account" : "Log in / Sign up"} side="bottom">
+        <Tooltip label={user ? user.fullName ?? user.email ?? "Account" : "Log in / Sign up"} side="bottom">
           <div className="topbar__account-wrapper">
             <button
               type="button"
@@ -68,7 +69,18 @@ export function TopBar() {
               aria-label="Account"
               onClick={() => setAccountOpen((v) => !v)}
             >
-              <span className="topbar__account-avatar" data-signed-in={Boolean(user)} aria-hidden="true" />
+              <img
+                className="topbar__account-avatar"
+                data-signed-in={Boolean(user)}
+                src={user?.avatarUrl ?? placeholderAvatar}
+                alt=""
+                aria-hidden="true"
+                referrerPolicy="no-referrer"
+                draggable={false}
+                onError={(e) => {
+                  e.currentTarget.src = placeholderAvatar;
+                }}
+              />
             </button>
             {accountOpen && user && <AccountPopover onClose={() => setAccountOpen(false)} />}
           </div>
