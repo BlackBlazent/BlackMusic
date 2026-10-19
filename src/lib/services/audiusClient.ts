@@ -25,6 +25,13 @@ export async function fetchAudiusTrending(genre?: string): Promise<AudiusTrack[]
   return (body.data ?? []) as AudiusTrack[];
 }
 
+export async function searchAudius(query: string, limit = 30): Promise<AudiusTrack[]> {
+  const params = new URLSearchParams({ app_name: APP_NAME, query, limit: String(limit) });
+  const response = await fetch(`${DISCOVERY_HOST}/v1/tracks/search?${params.toString()}`);
+  if (!response.ok) throw new Error(`Audius request failed: ${response.status}`);
+  return ((await response.json()).data ?? []) as AudiusTrack[];
+}
+
 export function audiusStreamUrl(trackId: string): string {
   const params = new URLSearchParams({ app_name: APP_NAME });
   const apiKey = import.meta.env.VITE_AUDIUS_API_KEY;
