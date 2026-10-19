@@ -1,0 +1,30 @@
+.search-overlay { position: fixed; inset: 0; }
+.search-overlay__backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); }
+.search-overlay__bar {
+  position: absolute;
+  top: calc(var(--safe-top, 0px) + 8px);
+  left: 8px;
+  right: 8px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 14px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-accent);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  animation: bm-pop-in var(--duration-base) var(--ease-standard);
+}
+.search-overlay__icon { color: var(--color-text-faint); flex-shrink: 0; }
+.search-overlay__bar input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 16px; /* 16px keeps iOS from zooming the page on focus */
+}
+.search-overlay__bar button { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: var(--color-text-muted); flex-shrink: 0; }
+.search-overlay__bar button:active { background: var(--color-hover); }
