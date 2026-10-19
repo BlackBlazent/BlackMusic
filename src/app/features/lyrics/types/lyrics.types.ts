@@ -47,6 +47,9 @@ export type LyricsOverlaySettings = {
   autoScroll: boolean;
   animation: "none" | "fade" | "slide";
   shadow: boolean;
+  /** Karaoke mode: the current line fills with colour word-by-word as it is sung. */
+  karaoke: boolean;
+  karaokeColor: string;
 };
 
 export const DEFAULT_LYRICS_SETTINGS: LyricsOverlaySettings = {
@@ -65,4 +68,6 @@ export const DEFAULT_LYRICS_SETTINGS: LyricsOverlaySettings = {
   autoScroll: true,
   animation: "fade",
   shadow: true,
+  karaoke: false,
+  karaokeColor: "#ff2d55",
 };
