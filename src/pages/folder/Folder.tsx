@@ -5,12 +5,15 @@ import { usePlayback } from "@/app/context/PlaybackContext";
 import { useClickOutside } from "@/lib/useClickOutside";
 import { openInFileExplorer } from "@/lib/openInFileExplorer";
 import { isTauri } from "@/lib/platform";
+import { isMobileOs } from "@/lib/useIsMobile";
+import { isInside } from "@/lib/library/pathUtils";
 import { usePersistentState } from "@/lib/usePersistentState";
 import { useManualPromotions } from "@/app/context/PromotionsContext";
 import { PromotionFolderCard } from "@/app/components/Promotion";
 import { Tooltip } from "@/app/components/Tooltip";
 import { FolderIcon, FolderOpenIcon, GridIcon, RefreshIcon } from "@/app/layout/icons";
 import type { Track } from "@/lib/types";
+import { SubfolderStrip } from "./SubfolderStrip";
 import "./Folder.css";
 
 const VIEW_STYLES = [
@@ -47,7 +50,7 @@ function nameOf(folder: string) {
 }
 
 function buildInfo(folder: string, all: Track[]): FolderInfo {
-  const tracks = all.filter((t) => t.path.startsWith(folder));
+  const tracks = all.filter((t) => isInside(t.path, folder));
   const byArtist = new Map<string, number>();
   const formats = new Set<string>();
   const art: string[] = [];
@@ -96,8 +99,10 @@ function renderTemplate(template: string, info: FolderInfo): string {
 }
 
 export function Folder() {
-  const { folders, addFolder, removeFolder } = useFolders();
-  const { tracks, scanning, scanProgress, lastScanError, rescan } = useLibrary();
+  const { folders, addFolder, removeFolder, discover, probe } = useFolders();
+  const { tracks, scanning, scanProgress, scanTotal, lastScanError, rescan, cancelScan, scanReports } = useLibrary();
+  const [addNote, setAddNote] = useState<string | null>(null);
+  const mobileOs = isTauri() && isMobileOs();
   const { playTrack } = usePlayback();
   const [viewStyle, setViewStyle] = usePersistentState<ViewStyle>("folder.viewStyle", "Cover Art View");
   const [template, setTemplate] = usePersistentState<string>("folder.template", DEFAULT_TEMPLATE);
@@ -107,7 +112,27 @@ export function Folder() {
   const promos = useManualPromotions("folder");
 
   const infos = useMemo(() => folders.map((f) => buildInfo(f, tracks)), [folders, tracks]);
-  const countLabel = (info: FolderInfo) => (scanning ? "Scanning…" : `${info.count} Audio`);
+  const countLabel = (info: FolderInfo) => {
+    if (scanning) return "Scanning…";
+    const status = scanReports[info.folder]?.status;
+    if (status === "inaccessible") return "Can't open";
+    return `${info.count} Audio`;
+  };
+  const onAdd = async () => {
+    setAddNote(null);
+    const result = await addFolder();
+    // Cancelling is not an error; every other outcome says what happened.
+    if (!result.ok && result.reason !== "cancelled") setAddNote(result.message);
+  };
+  const problems = folders.flatMap((f) => {
+    const r = scanReports[f];
+    return r && (r.status === "inaccessible" || r.status === "partial" || r.status === "empty") ? [r] : [];
+  });
+  const ignoredTotals = (() => {
+    const m = new Map<string, number>();
+    for (const f of folders) for (const i of scanReports[f]?.ignored ?? []) m.set(i.ext, (m.get(i.ext) ?? 0) + i.count);
+    return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+  })();
   const playFolder = (info: FolderInfo) => info.tracks[0] && playTrack(info.tracks[0], info.tracks);
 
   const renderBody = () => {
@@ -322,7 +347,7 @@ export function Folder() {
         <h1>Folders</h1>
         <div className="folder-page__actions">
           <Tooltip label="Add folder" side="bottom">
-            <button type="button" className="folder-page__icon-btn" onClick={addFolder}>
+            <button type="button" className="folder-page__icon-btn" onClick={() => void onAdd()} aria-label="Add folder">
               <FolderIcon />
             </button>
           </Tooltip>
@@ -336,8 +361,8 @@ export function Folder() {
               <FolderOpenIcon />
             </button>
           </Tooltip>
-          <Tooltip label={scanning ? "Scanning…" : "Rescan"} side="bottom">
-            <button type="button" className="folder-page__icon-btn" data-spinning={scanning} onClick={() => void rescan()}>
+          <Tooltip label={scanning ? "Scanning… (tap to cancel)" : "Rescan (new files are picked up)"} side="bottom">
+            <button type="button" className="folder-page__icon-btn" data-spinning={scanning} aria-label="Rescan" onClick={() => (scanning ? cancelScan() : void rescan())}>
               <RefreshIcon />
             </button>
           </Tooltip>
@@ -377,13 +402,41 @@ export function Folder() {
         </p>
       )}
 
+      {addNote && <p className="folder-page__error" role="alert">{addNote}</p>}
       {lastScanError && <p className="folder-page__error">Scan failed: {lastScanError}</p>}
 
       {scanning && (
         <p className="folder-page__scanning">
-          Scanning… {scanProgress} file{scanProgress === 1 ? "" : "s"} processed so far.
+          {scanTotal > 0 ? `Reading tags… ${scanProgress.toLocaleString()} of ${scanTotal.toLocaleString()} files.` : `Looking for audio… ${scanProgress.toLocaleString()} found so far.`}
         </p>
       )}
+
+      {!scanning && problems.map((r) => (
+        <p key={r.folder} className="folder-page__error" role="status">
+          {r.status === "inaccessible" && <>Can't open <b>{r.folder}</b> ({r.error}). Your existing tracks from it were kept. {mobileOs ? "Allow audio access for BlackMusic in system settings, then come back — it rescans automatically." : "Check the folder still exists and is readable."}</>}
+          {r.status === "partial" && <><b>{r.folder}</b>: {r.unreadableCount} sub-folder{r.unreadableCount === 1 ? "" : "s"} couldn't be read{r.unreadable[0] ? ` (e.g. ${r.unreadable[0].path.split(/[/\\]/).pop()} — ${r.unreadable[0].reason})` : ""}.</>}
+          {r.status === "empty" && <><b>{r.folder}</b> was scanned and contains no supported audio files.</>}
+        </p>
+      ))}
+
+      {!scanning && ignoredTotals.length > 0 && (
+        <p className="folder-page__notice">
+          Not counted because they aren't audio files: {ignoredTotals.map(([ext, n]) => `.${ext} ×${n.toLocaleString()}`).join(", ")}.
+          {" "}
+          <button type="button" className="pers__chip" onClick={() => void rescan({ full: true })}>Full rescan</button>
+        </p>
+      )}
+
+      {mobileOs && (
+        <p className="folder-page__notice">
+          <button type="button" className="pers__chip" onClick={() => void discover({ force: true })}>Find music on this device</button>
+          {" "}
+          {probe?.volumes.map((v) => `${v.label}${v.readable ? "" : " (no access yet)"}`).join(" · ")}
+          {probe?.note ? ` — ${probe.note}` : ""}
+        </p>
+      )}
+
+      {folders.length > 0 && <SubfolderStrip roots={folders} />}
 
       {folders.length === 0 ? (
         <div className="folder-page__empty">
