@@ -8,16 +8,23 @@ import { MoonIcon, RedoArrowIcon, SearchIcon, SunIcon, UndoArrowIcon } from "./i
 import { NotificationsPopover } from "./NotificationsPopover";
 import { AccountModal } from "./AccountModal";
 import { AccountPopover } from "./AccountPopover";
+import { useT } from "@/lib/i18n";
+import { useIsMobile } from "@/lib/useIsMobile";
+import { ServicesMenu } from "./ServicesMenu";
+import { SearchOverlay } from "./SearchOverlay";
 import placeholderAvatar from "@/assets/profile-placeholder.svg";
 import "./TopBar.css";
 
 export function TopBar() {
+  const t = useT();
   const navigate = useNavigate();
   const { canUndo, canRedo, undo, redo } = useActionHistory();
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [accountOpen, setAccountOpen] = useState(false);
+  const mobile = useIsMobile();
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
@@ -27,7 +34,9 @@ export function TopBar() {
   };
 
   return (
-    <header className="topbar">
+    <header className="topbar" data-mobile={mobile}>
+      {/* Phones have no sidebar, so the services menu lives here (it used to disappear along with the sidebar). */}
+      {mobile && <ServicesMenu />}
       <div className="topbar__history">
         <Tooltip label="Undo" side="bottom">
           <button type="button" onClick={undo} disabled={!canUndo} aria-label="Undo last playback action">
@@ -41,16 +50,22 @@ export function TopBar() {
         </Tooltip>
       </div>
 
-      <form className="topbar__search" onSubmit={onSubmit} role="search">
-        <SearchIcon className="topbar__search-icon" />
-        <input
-          type="text"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search your library, or try @youtube:, @online-spotify:, @genius:…"
-          aria-label="Search BlackMusic"
-        />
-      </form>
+      {mobile ? (
+        <button type="button" className="topbar__search-btn" onClick={() => setSearchOpen(true)} aria-label="Search">
+          <SearchIcon />
+        </button>
+      ) : (
+        <form className="topbar__search" onSubmit={onSubmit} role="search">
+          <SearchIcon className="topbar__search-icon" />
+          <input
+            type="text"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={t("search.placeholder")}
+            aria-label="Search BlackMusic"
+          />
+        </form>
+      )}
 
       <div className="topbar__actions">
         <Tooltip label={theme === "dark" ? "Switch to light" : "Switch to dark"} side="bottom">
@@ -87,6 +102,7 @@ export function TopBar() {
         </Tooltip>
       </div>
 
+      {searchOpen && <SearchOverlay onClose={() => setSearchOpen(false)} />}
       {accountOpen && !user && <AccountModal onClose={() => setAccountOpen(false)} />}
     </header>
   );
