@@ -3,6 +3,7 @@ import { getPreference } from "@/lib/preferencesStore";
 import { serviceFetch, serviceJson } from "./serviceFetch";
 import { fetchAudiusTrending, audiusStreamUrl, type AudiusTrack } from "./audiusClient";
 import { loadCustomApis, CUSTOM_SERVICE_PREFIX, type CustomServiceApi } from "./customApis";
+import { lastfmChartTracks, lastfmSearchTracks } from "./lastfmClient";
 
 /**
  * One function per music service, so wiring a service up is only a matter of
@@ -27,6 +28,8 @@ export interface ServiceClient {
   /** True when a key (env or Settings) is available. */
   isConfigured: (keys: ServiceKeys) => boolean;
   fetchTracks: (keys: ServiceKeys, limit?: number) => Promise<Track[]>;
+  /** 2.2.0: `@online-<service>:` search. Services without a search endpoint fall back to filtering fetchTracks. */
+  search?: (keys: ServiceKeys, query: string, limit?: number) => Promise<Track[]>;
 }
 
 /** Per-service keys the user typed into Settings (override/augment env). */
@@ -36,7 +39,7 @@ export const SERVICE_KEYS_STORAGE_KEY = "blackmusic:serviceKeys";
 
 export const SERVICE_AUTH_SCOPES = {
   spotify:
-    "user-read-private user-read-email user-library-read playlist-read-private streaming user-modify-playback-state user-read-playback-state",
+    "user-read-private user-read-email user-library-read playlist-read-private playlist-read-collaborative user-top-read user-read-recently-played user-follow-read streaming user-modify-playback-state user-read-playback-state",
 } as const;
 
 const env = import.meta.env as unknown as Record<string, string | undefined>;
@@ -80,33 +83,16 @@ const audius: ServiceClient = {
     ),
 };
 
-// --- Last.fm (chart) ----------------------------------------------------------
-interface LastfmChart {
-  tracks?: { track?: { name: string; duration?: string; url: string; artist: { name: string }; image?: { "#text": string }[] }[] };
-}
+// --- Last.fm (chart + search) — metadata service that can ALSO serve music -------------------
+// Last.fm lists/scrobbles, it never streams. 2.2.0: every Last.fm track carries a resolve recipe, so the
+// stream resolver (bundled yt-dlp → Deezer/Audius fallback) makes it playable — that was the "fetched but
+// can't play" bug.
 const lastfm: ServiceClient = {
   id: "lastfm",
   envKeys: ["VITE_LASTFM_API_KEY"],
   isConfigured: (k) => Boolean(pick(k, "lastfm", "VITE_LASTFM_API_KEY")),
-  fetchTracks: async (k, limit = 50) => {
-    const params = new URLSearchParams({
-      method: "chart.gettoptracks",
-      api_key: pick(k, "lastfm", "VITE_LASTFM_API_KEY"),
-      format: "json",
-      limit: String(limit),
-    });
-    const data = await serviceJson<LastfmChart>(`https://ws.audioscrobbler.com/2.0/?${params}`);
-    return (data.tracks?.track ?? []).map((t) =>
-      track({
-        id: `lastfm:${t.artist.name}:${t.name}`,
-        title: t.name,
-        artist: t.artist.name,
-        duration: Number(t.duration ?? 0),
-        // Last.fm lists/scrobbles — it doesn't stream. Artwork is often a blank placeholder.
-        artworkUrl: [...(t.image ?? [])].reverse().find((i) => i["#text"] && !i["#text"].includes("2a96cbd8b46e442fc41c2b86b821562f"))?.["#text"],
-      }),
-    );
-  },
+  fetchTracks: (k, limit = 50) => lastfmChartTracks(pick(k, "lastfm", "VITE_LASTFM_API_KEY"), limit),
+  search: (k, q, limit = 30) => lastfmSearchTracks(pick(k, "lastfm", "VITE_LASTFM_API_KEY"), q, limit),
 };
 
 // --- Deezer (public chart, 30s previews) ---------------------------------------
@@ -128,7 +114,15 @@ const deezer: ServiceClient = {
         duration: t.duration,
         sourceUrl: t.preview, // 30-second preview — full streams need Deezer's licensed SDK
         artworkUrl: t.album.cover_big,
+        provider: "deezer",
+        // Full-length playback: the resolver's yt-dlp path is tried when the preview is all Deezer gives.
       }),
+    );
+  },
+  search: async (_k, q, limit = 30) => {
+    const data = await serviceJson<DeezerChart>(`https://api.deezer.com/search?q=${encodeURIComponent(q)}&limit=${limit}`);
+    return (data.data ?? []).map((t) =>
+      track({ id: `deezer:${t.id}`, title: t.title, artist: t.artist.name, album: t.album.title, duration: t.duration, sourceUrl: t.preview, artworkUrl: t.album.cover_big, provider: "deezer" }),
     );
   },
 };
@@ -215,6 +209,19 @@ const yandex: ServiceClient = {
 interface YoutubeVideos {
   items?: { id: string; snippet: { title: string; channelTitle: string; thumbnails?: { high?: { url: string }; medium?: { url: string } } }; contentDetails?: { duration?: string } }[];
 }
+function youtubeTrack(v: { id: string; snippet: { title: string; channelTitle: string; thumbnails?: { high?: { url: string }; medium?: { url: string } } }; contentDetails?: { duration?: string } }): Track {
+  return track({
+    id: `youtube:${v.id}`,
+    title: v.snippet.title,
+    artist: v.snippet.channelTitle.replace(/ - Topic$/, ""),
+    duration: isoDuration(v.contentDetails?.duration),
+    artworkUrl: v.snippet.thumbnails?.high?.url ?? v.snippet.thumbnails?.medium?.url,
+    provider: "youtube",
+    // 2.2.0: playable — the resolver asks the bundled yt-dlp for this video's audio stream.
+    resolve: { kind: "youtube", videoId: v.id },
+  });
+}
+
 const youtube: ServiceClient = {
   id: "youtube",
   envKeys: ["VITE_YOUTUBE_API_KEY"],
@@ -228,60 +235,205 @@ const youtube: ServiceClient = {
       key: pick(k, "youtube", "VITE_YOUTUBE_API_KEY"),
     });
     const data = await serviceJson<YoutubeVideos>(`https://www.googleapis.com/youtube/v3/videos?${params}`);
-    return (data.items ?? []).map((v) =>
-      track({
-        id: `youtube:${v.id}`,
-        title: v.snippet.title,
-        artist: v.snippet.channelTitle,
-        duration: isoDuration(v.contentDetails?.duration),
-        artworkUrl: v.snippet.thumbnails?.high?.url ?? v.snippet.thumbnails?.medium?.url,
-      }),
-    );
+    return (data.items ?? []).map(youtubeTrack);
+  },
+  search: async (k, q, limit = 25) => {
+    const key = pick(k, "youtube", "VITE_YOUTUBE_API_KEY");
+    if (key) {
+      const sp = new URLSearchParams({ part: "snippet", type: "video", videoCategoryId: "10", q, maxResults: String(Math.min(limit, 50)), key });
+      const found = await serviceJson<{ items?: { id: { videoId: string } }[] }>(`https://www.googleapis.com/youtube/v3/search?${sp}`);
+      const ids = (found.items ?? []).map((i) => i.id.videoId).join(",");
+      if (!ids) return [];
+      const vp = new URLSearchParams({ part: "snippet,contentDetails", id: ids, key });
+      const vids = await serviceJson<YoutubeVideos>(`https://www.googleapis.com/youtube/v3/videos?${vp}`);
+      return (vids.items ?? []).map(youtubeTrack);
+    }
+    // No API key: search through the bundled yt-dlp instead (no quota, no key).
+    const { searchYouTubeWithYtDlp } = await import("@/lib/video/ytdlp");
+    return searchYouTubeWithYtDlp(q, limit);
   },
 };
 
 // --- Tidal (OpenAPI v2 bearer token) ---------------------------------------------------
+// 2.2.0 root cause of "Tidal rejected the credentials (401)": `.env` carried a pasted VITE_TIDAL_ACCESS_TOKEN, and a pasted
+// token ALWAYS won over the client-credentials exchange — so once that (24 h) token expired every request was a 401 and the
+// code that could mint a fresh one was never reached. Every 401/403 was then flattened into one generic message.
+// Token order now: (1) the BlackMusic backend broker (secret never ships in the app), (2) a pasted token that hasn't expired,
+// (3) development builds only: client id + secret from .env. A 401 on a pasted token falls through to the next source once.
 interface TidalSearch {
-  included?: { id: string; type: string; attributes?: { title?: string; duration?: string; name?: string } }[];
+  included?: {
+    id: string;
+    type: string;
+    attributes?: { title?: string; duration?: string; name?: string };
+    relationships?: { artists?: { data?: { id: string; type: string }[] } };
+  }[];
 }
 const TIDAL_TOKEN_URL = "https://auth.tidal.com/v1/oauth2/token";
 let tidalToken: { value: string; expiresAt: number } | null = null;
 
-/** A pasted token wins; otherwise exchange client id + secret (client-credentials flow) and cache it until it expires. */
-async function tidalAccessToken(k: ServiceKeys): Promise<string> {
-  const manual = pick(k, "tidal", "VITE_TIDAL_ACCESS_TOKEN");
-  if (manual) return manual;
-  if (tidalToken && Date.now() < tidalToken.expiresAt) return tidalToken.value;
+export type TidalErrorKind = "not-configured" | "unauthorized" | "expired" | "forbidden" | "rate-limited" | "network" | "unavailable" | "not-found";
+export class TidalError extends Error {
+  kind: TidalErrorKind;
+  constructor(kind: TidalErrorKind, message: string) {
+    super(message);
+    this.name = "TidalError";
+    this.kind = kind;
+  }
+}
+
+/** Seconds-since-epoch `exp` of a JWT, or null when the token isn't a readable JWT. Never logs the token. */
+function jwtExpiry(token: string): number | null {
+  const part = token.split(".")[1];
+  if (!part) return null;
+  try {
+    const json = JSON.parse(atob(part.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(part.length / 4) * 4, "="))) as { exp?: number };
+    return typeof json.exp === "number" ? json.exp : null;
+  } catch {
+    return null;
+  }
+}
+
+function tidalBrokerUrl(): string | null {
+  const direct = env.VITE_TIDAL_TOKEN_URL;
+  if (direct) return direct;
+  const base = env.VITE_PROMOTIONS_API_URL;
+  return base ? `${base.replace(/\/$/, "")}/api/tidal/token` : null;
+}
+
+async function tidalFromBroker(url: string): Promise<string | null> {
+  let res: Response;
+  try {
+    res = await serviceFetch(url);
+  } catch {
+    return null; // broker unreachable → try the next source
+  }
+  if (!res.ok) {
+    if (res.status === 503) return null; // the broker has no Tidal credentials configured
+    if (res.status === 401 || res.status === 403) throw new TidalError("unauthorized", `Tidal refused the client credentials stored on the BlackMusic server (${res.status}). Check TIDAL_CLIENT_ID / TIDAL_CLIENT_SECRET there.`);
+    if (res.status === 429) throw new TidalError("rate-limited", "Tidal is rate-limiting token requests. Try again in a minute.");
+    return null;
+  }
+  const json = (await res.json()) as { access_token?: string; expires_in?: number };
+  if (!json.access_token) return null;
+  tidalToken = { value: json.access_token, expiresAt: Date.now() + Math.max(30, (json.expires_in ?? 3600) - 60) * 1000 };
+  return tidalToken.value;
+}
+
+/** Client-credentials exchange straight from the app. Development builds only — the secret must not be in a shipped bundle. */
+async function tidalFromClientCredentials(): Promise<string | null> {
+  if (!import.meta.env.DEV) return null; // dead-code-eliminated in production, so the secret is never embedded
   const id = env.VITE_TIDAL_CLIENT_ID;
   const secret = env.VITE_TIDAL_CLIENT_SECRET;
-  if (!id || !secret) throw new Error("Tidal needs VITE_TIDAL_ACCESS_TOKEN, or VITE_TIDAL_CLIENT_ID + VITE_TIDAL_CLIENT_SECRET.");
-  const response = await serviceFetch(TIDAL_TOKEN_URL, {
-    method: "POST",
-    headers: { Authorization: `Basic ${btoa(`${id}:${secret}`)}`, "Content-Type": "application/x-www-form-urlencoded" },
-    body: "grant_type=client_credentials",
-  });
-  if (!response.ok) throw new Error(`Tidal token request failed (${response.status}).`);
+  if (!id || !secret) return null;
+  let response: Response;
+  try {
+    response = await serviceFetch(TIDAL_TOKEN_URL, {
+      method: "POST",
+      headers: { Authorization: `Basic ${btoa(`${id}:${secret}`)}`, "Content-Type": "application/x-www-form-urlencoded" },
+      body: "grant_type=client_credentials",
+    });
+  } catch {
+    throw new TidalError("network", "Couldn't reach Tidal to sign in. Check your connection.");
+  }
+  if (response.status === 401) throw new TidalError("unauthorized", "Tidal rejected the client id/secret (401). Check VITE_TIDAL_CLIENT_ID and VITE_TIDAL_CLIENT_SECRET.");
+  if (response.status === 403) throw new TidalError("forbidden", "Tidal accepted the client but denied API access (403). Developer access may need Tidal's approval.");
+  if (response.status === 429) throw new TidalError("rate-limited", "Tidal is rate-limiting token requests. Try again in a minute.");
+  if (!response.ok) throw new TidalError("unavailable", `Tidal's sign-in service answered ${response.status}.`);
   const json = (await response.json()) as { access_token: string; expires_in?: number };
   tidalToken = { value: json.access_token, expiresAt: Date.now() + ((json.expires_in ?? 3600) - 60) * 1000 };
   return tidalToken.value;
 }
 
-const tidal: ServiceClient = {
-  id: "tidal",
-  envKeys: ["VITE_TIDAL_CLIENT_ID", "VITE_TIDAL_CLIENT_SECRET", "VITE_TIDAL_COUNTRY"],
-  isConfigured: (k) =>
-    Boolean(pick(k, "tidal", "VITE_TIDAL_ACCESS_TOKEN") || (env.VITE_TIDAL_CLIENT_ID && env.VITE_TIDAL_CLIENT_SECRET)),
-  fetchTracks: async (k) => {
-    const country = env.VITE_TIDAL_COUNTRY || "US";
-    const token = await tidalAccessToken(k);
-    const data = await serviceJson<TidalSearch>(
-      `https://openapi.tidal.com/v2/searchResults/top?countryCode=${country}&include=tracks`,
+/** `skipManual` is set after a 401 so a stale pasted token can't shadow a source that can mint a fresh one. */
+async function tidalAccessToken(k: ServiceKeys, skipManual = false): Promise<string> {
+  if (tidalToken && Date.now() < tidalToken.expiresAt) return tidalToken.value;
+  const broker = tidalBrokerUrl();
+  if (broker) {
+    const fromBroker = await tidalFromBroker(broker);
+    if (fromBroker) return fromBroker;
+  }
+  const manual = skipManual ? "" : pick(k, "tidal", "VITE_TIDAL_ACCESS_TOKEN");
+  if (manual) {
+    const exp = jwtExpiry(manual);
+    if (exp === null || exp * 1000 > Date.now()) return manual;
+    // Expired: say so, but still try to mint a fresh one below before giving up.
+  }
+  const minted = await tidalFromClientCredentials();
+  if (minted) return minted;
+  if (manual) throw new TidalError("expired", "Your Tidal access token has expired. Paste a new one in Settings → Service API keys, or set up the BlackMusic token server (TIDAL_CLIENT_ID / TIDAL_CLIENT_SECRET).");
+  throw new TidalError(
+    "not-configured",
+    import.meta.env.DEV
+      ? "Tidal needs an access token (Settings → Service API keys), or VITE_TIDAL_CLIENT_ID + VITE_TIDAL_CLIENT_SECRET in .env."
+      : "Tidal needs an access token (Settings → Service API keys) or the BlackMusic token server (VITE_PROMOTIONS_API_URL with TIDAL_CLIENT_ID / TIDAL_CLIENT_SECRET set there).",
+  );
+}
+
+function tidalTracks(data: TidalSearch): Track[] {
+  const included = data.included ?? [];
+  const artists = new Map(included.filter((i) => i.type === "artists").map((i) => [i.id, i.attributes?.name ?? ""]));
+  return included
+    .filter((i) => i.type === "tracks")
+    .map((i) => {
+      const title = i.attributes?.title ?? "Untitled";
+      // Use THIS track's own artist (the old code gave every track the first artist in the response).
+      const ids = (i.relationships?.artists?.data ?? []).map((a) => a.id);
+      const names = ids.map((id) => artists.get(id)).filter((n): n is string => Boolean(n));
+      const primary = names.join(", ") || [...artists.values()][0] || "";
+      return track({
+        id: `tidal:${i.id}`,
+        title,
+        artist: primary || "Unknown artist",
+        duration: isoDuration(i.attributes?.duration),
+        provider: "tidal",
+        // Tidal's API lists tracks but doesn't hand out streams — play them through the resolver.
+        resolve: { kind: "search", query: `${primary} ${title}`.trim() },
+      });
+    });
+}
+
+async function tidalRequest(query: string, token: string): Promise<Response> {
+  const country = env.VITE_TIDAL_COUNTRY || "US";
+  try {
+    return await serviceFetch(
+      `https://openapi.tidal.com/v2/searchResults/${encodeURIComponent(query)}?countryCode=${country}&include=tracks,tracks.artists`,
       { headers: { Authorization: `Bearer ${token}`, accept: "application/vnd.api+json" } },
     );
-    return (data.included ?? [])
-      .filter((i) => i.type === "tracks")
-      .map((i) => track({ id: `tidal:${i.id}`, title: i.attributes?.title ?? "Untitled", duration: isoDuration(i.attributes?.duration) }));
-  },
+  } catch {
+    throw new TidalError("network", "Couldn't reach Tidal. Check your connection and try again.");
+  }
+}
+
+async function tidalSearch(k: ServiceKeys, query: string): Promise<Track[]> {
+  let res = await tidalRequest(query, await tidalAccessToken(k));
+  if (res.status === 401) {
+    // The token we used is stale or was never valid for this API. Drop it, and retry ONCE with a freshly issued one if any source can.
+    tidalToken = null;
+    let fresh: string | null = null;
+    try {
+      fresh = await tidalAccessToken(k, true);
+    } catch {
+      /* no other source — report the original 401 below */
+    }
+    if (fresh) res = await tidalRequest(query, fresh);
+  }
+  if (res.status === 401) throw new TidalError("unauthorized", "Tidal rejected the access token (401). It may be expired or issued for a different API — create a new one, or use the BlackMusic token server.");
+  if (res.status === 403) throw new TidalError("forbidden", "Tidal accepted the token but denied this request (403). Catalog access is invite-only — your developer app may need Tidal's approval.");
+  if (res.status === 429) throw new TidalError("rate-limited", "Tidal is rate-limiting requests. Wait a minute and try again.");
+  if (res.status === 404) throw new TidalError("not-found", "Tidal found nothing for that request (404) — the account/region may not have catalog API access.");
+  if (res.status >= 500) throw new TidalError("unavailable", `Tidal is having problems (${res.status}). Try again later.`);
+  if (!res.ok) throw new TidalError("unavailable", `Tidal responded ${res.status}.`);
+  return tidalTracks((await res.json()) as TidalSearch);
+}
+
+const tidal: ServiceClient = {
+  id: "tidal",
+  envKeys: ["VITE_TIDAL_ACCESS_TOKEN", "VITE_TIDAL_TOKEN_URL", "VITE_TIDAL_COUNTRY"],
+  // "Configured" only means a credential source exists; it does NOT mean Tidal has approved access. The first request tells.
+  isConfigured: (k) =>
+    Boolean(pick(k, "tidal", "VITE_TIDAL_ACCESS_TOKEN") || tidalBrokerUrl() || (import.meta.env.DEV && env.VITE_TIDAL_CLIENT_ID && env.VITE_TIDAL_CLIENT_SECRET)),
+  fetchTracks: (k) => tidalSearch(k, env.VITE_TIDAL_BROWSE_QUERY || "top hits"),
+  search: (k, q) => tidalSearch(k, q),
 };
 
 // --- Amazon Music (Web API alpha) --------------------------------------------------------
@@ -395,6 +547,18 @@ export async function fetchServiceTracks(serviceId: string, limit = 50): Promise
   const keys = await loadServiceKeys();
   if (!client.isConfigured(keys)) return { tracks: [], needsKey: true };
   return { tracks: await client.fetchTracks(keys, limit), needsKey: false };
+}
+
+/** `@online-<service>:` search entry point. Falls back to filtering the service's chart when it has no search endpoint. */
+export async function searchServiceTracks(serviceId: string, query: string, limit = 30): Promise<{ tracks: Track[]; needsKey: boolean }> {
+  const client = SERVICE_CLIENTS[serviceId];
+  if (!client) return { tracks: [], needsKey: false };
+  const keys = await loadServiceKeys();
+  if (!client.isConfigured(keys)) return { tracks: [], needsKey: true };
+  if (client.search) return { tracks: await client.search(keys, query, limit), needsKey: false };
+  const all = await client.fetchTracks(keys, 50);
+  const needle = query.toLowerCase();
+  return { tracks: all.filter((t) => `${t.title} ${t.artist} ${t.album}`.toLowerCase().includes(needle)).slice(0, limit), needsKey: false };
 }
 
 export async function isServiceReady(serviceId: string): Promise<boolean> {
