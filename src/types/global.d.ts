@@ -14,6 +14,7 @@ interface ImportMetaEnv {
   readonly VITE_TIDAL_CLIENT_ID: string;
   readonly VITE_TIDAL_CLIENT_SECRET: string;
   readonly VITE_TIDAL_COUNTRY: string;
+  readonly VITE_TIDAL_TOKEN_URL?: string;
   readonly VITE_AMAZON_MUSIC_ACCESS_TOKEN: string;
   readonly VITE_AMAZON_MUSIC_API_KEY: string;
   readonly VITE_APPLE_MUSIC_DEVELOPER_TOKEN: string;
