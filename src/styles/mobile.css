@@ -1,0 +1,83 @@
+/* BlackMusic 2.2.0 — phone layout. Applies when the shell sets data-mobile="true" (UA or ≤ 720 px wide). */
+.app-shell[data-mobile="true"] { height: 100dvh; width: 100vw; padding-top: env(safe-area-inset-top, 0px); }
+.app-shell[data-mobile="true"] .app-shell__content { padding: var(--space-3); padding-bottom: var(--space-4); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.app-shell[data-mobile="true"] .topbar { padding: 0 var(--space-3); gap: var(--space-2); }
+.app-shell[data-mobile="true"] button, .app-shell[data-mobile="true"] a { -webkit-tap-highlight-color: transparent; }
+.app-shell[data-mobile="true"] .topbar button, .app-shell[data-mobile="true"] .playground__transport button, .app-shell[data-mobile="true"] .playground__secondary-row button { min-width: 40px; min-height: 40px; }
+
+/* Playground: stack, bigger touch targets, secondary row scrolls sideways instead of wrapping into a wall */
+.app-shell[data-mobile="true"] .playground { gap: var(--space-3); }
+.app-shell[data-mobile="true"] .playground__stage { min-height: 220px; }
+.app-shell[data-mobile="true"] .playground__transport { flex-wrap: wrap; justify-content: center; gap: var(--space-1); }
+.app-shell[data-mobile="true"] .playground__secondary-row { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; scrollbar-width: none; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+.app-shell[data-mobile="true"] .playground__secondary-row::-webkit-scrollbar { display: none; }
+.app-shell[data-mobile="true"] .playground__volume, .app-shell[data-mobile="true"] .playground__aspect { display: none; }
+
+/* Shelves swipe, cards a little smaller */
+.app-shell[data-mobile="true"] .shelf-card { width: 132px; }
+.app-shell[data-mobile="true"] .shelf__arrows { display: none; }
+.app-shell[data-mobile="true"] .online-hero__card { min-height: 130px; padding: var(--space-4); }
+
+/* Lists and grids */
+.app-shell[data-mobile="true"] .library-page__grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+.app-shell[data-mobile="true"] .library-page__tabs { overflow-x: auto; scrollbar-width: none; }
+.app-shell[data-mobile="true"] .library-cards { grid-template-columns: 1fr 1fr; }
+
+/* Floating windows and popovers become near-full-width sheets */
+[data-mobile="true"] .bm-window { max-width: 98vw; }
+@media (max-width: 720px) {
+  .bm-window { width: min(98vw, 520px) !important; left: 1vw !important; }
+  .bm-popover { max-width: 96vw; }
+  .global-bar__resize { display: none; }
+}
+
+/* Bottom bars respect the gesture area */
+.app-shell[data-mobile="true"] .global-bar { padding-bottom: 0; }
+@media (hover: none) { .shelf-card__play { opacity: 1; transform: none; } }
+
+/* ======================= 2.2.0 immediate fix — native-feeling mobile ======================= */
+/* Stable viewport: no pinch / double-tap zoom, no rubber-banding the whole app, taps respond instantly. Scrolling inside
+   containers is untouched (pan-x pan-y keeps every scroll gesture; only the zoom gesture is removed). */
+html[data-mobile="true"], html[data-mobile="true"] body {
+  touch-action: pan-x pan-y;
+  overscroll-behavior: none;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-touch-callout: none;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+html[data-mobile="true"] button, html[data-mobile="true"] a, html[data-mobile="true"] input, html[data-mobile="true"] select, html[data-mobile="true"] [role="button"] { touch-action: manipulation; }
+/* iOS zooms the page when a focused field is under 16px. */
+html[data-mobile="true"] input, html[data-mobile="true"] select, html[data-mobile="true"] textarea { font-size: max(16px, 1em); }
+
+/* Scrollbars are hidden everywhere on touch devices; scrolling itself still works. Applies to overlay layers too (they live outside .app-shell). */
+html[data-mobile="true"] *, html[data-mobile="true"] { scrollbar-width: none; -ms-overflow-style: none; }
+html[data-mobile="true"] *::-webkit-scrollbar, html[data-mobile="true"]::-webkit-scrollbar { display: none; width: 0; height: 0; }
+@media (pointer: coarse) {
+  * { scrollbar-width: none; }
+  *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+}
+
+/* The shell uses the REAL viewport (dynamic height) and never wider than it — nothing may force horizontal overflow, which is
+   what made Android shrink the whole page. min-width:0 lets flex children shrink instead of pushing the layout wider. */
+.app-shell[data-mobile="true"] { position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: 100%; overflow: hidden; padding-top: var(--safe-top, 0px); padding-left: var(--safe-left, 0px); padding-right: var(--safe-right, 0px); }
+.app-shell[data-mobile="true"] .app-shell__main, .app-shell[data-mobile="true"] .app-shell__content { min-width: 0; max-width: 100%; }
+.app-shell[data-mobile="true"] .app-shell__content { overflow-x: hidden; }
+.app-shell[data-mobile="true"] .topbar { height: 52px; padding: 0 6px; gap: 2px; justify-content: center; overflow: visible; } /*Justify content space between*/
+.app-shell[data-mobile="true"] .topbar__history { gap: 0; }
+.app-shell[data-mobile="true"] .topbar__history button, .app-shell[data-mobile="true"] .topbar__search-btn, .app-shell[data-mobile="true"] .topbar__actions button, .app-shell[data-mobile="true"] .notifications-popover > button { width: 40px; height: 40px; min-width: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--color-text-muted); }
+.app-shell[data-mobile="true"] .topbar__actions { margin-left: 0; gap: 0; }
+.app-shell[data-mobile="true"] .services-menu__trigger { width: 40px; height: 40px; display: grid; place-items: center; flex-shrink: 0; }
+.app-shell[data-mobile="true"] .topbar__account { margin-left: 0; display: grid; place-items: center; }
+.app-shell[data-mobile="true"] .topbar__account-avatar { width: 28px; height: 28px; }
+/* Popovers opened from the top bar span the screen width instead of hanging off the right edge. */
+.app-shell[data-mobile="true"] .account-popover { position: fixed; top: calc(var(--safe-top, 0px) + 56px); left: 8px; right: 8px; width: auto; }
+.app-shell[data-mobile="true"] .notifications-popover__panel, .app-shell[data-mobile="true"] .notifications-popover__list { max-width: calc(100vw - 16px); }
+
+/* Floating Playground button clears the playback bar + the nav */
+.app-shell[data-mobile="true"] ~ .floating-playground-toggle, .floating-playground-toggle[data-mobile="true"] { bottom: calc(var(--playbar-height) + 76px + var(--safe-bottom, 0px)); right: var(--space-4); }
+
+/* Library: tabs row under the title (see Library.css) */
+.app-shell[data-mobile="true"] .library-page__tabs { justify-content: safe center; }
+.app-shell[data-mobile="true"] .notifications-popover__panel { position: fixed; top: calc(var(--safe-top, 0px) + 56px); left: 8px; right: 8px; width: auto; max-height: 60dvh; overflow-y: auto; }
