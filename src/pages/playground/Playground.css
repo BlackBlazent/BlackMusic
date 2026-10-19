@@ -295,16 +295,16 @@
 .playground[data-ambient="true"] .playground__stage-art { box-shadow: 0 0 80px rgba(255, 255, 255, 0.12); }
 
 /* Fullscreen with on-stage controls + crop */
-.playground__stage:fullscreen { background: #000; padding: 0; justify-content: center; gap: 0; }
-.playground__stage:fullscreen .playground__stage-mode, .playground__stage:fullscreen .playground__now-playing { display: none; }
-.playground__stage:fullscreen .playground__stage-art { max-width: none; width: 100%; height: 100%; flex: 1; aspect-ratio: auto; border-radius: 0; background: #000; }
-.playground__stage:fullscreen .playground__stage-art img, .playground__stage:fullscreen .playground__stage-video { object-fit: contain; }
+.playground__stage:is(:fullscreen, [data-fullscreen="true"]) { background: #000; padding: 0; justify-content: center; gap: 0; }
+.playground__stage:is(:fullscreen, [data-fullscreen="true"]) .playground__stage-mode, .playground__stage:is(:fullscreen, [data-fullscreen="true"]) .playground__now-playing { display: none; }
+.playground__stage:is(:fullscreen, [data-fullscreen="true"]) .playground__stage-art { max-width: none; width: 100%; height: 100%; flex: 1; aspect-ratio: auto; border-radius: 0; background: #000; }
+.playground__stage:is(:fullscreen, [data-fullscreen="true"]) .playground__stage-art img, .playground__stage:is(:fullscreen, [data-fullscreen="true"]) .playground__stage-video { object-fit: contain; }
 .playground__stage[data-fullscreen="true"][data-crop="1x1"] .playground__stage-art { width: min(100vh, 100vw); height: min(100vh, 100vw); flex: none; aspect-ratio: 1 / 1; }
 .playground__stage[data-fullscreen="true"][data-crop="4x3"] .playground__stage-art { height: min(100vh, 75vw); width: min(133.33vh, 100vw); flex: none; aspect-ratio: 4 / 3; }
 .playground__stage[data-fullscreen="true"][data-crop="16x9"] .playground__stage-art { width: min(100vw, 177.78vh); height: min(100vh, 56.25vw); flex: none; aspect-ratio: 16 / 9; }
 .playground__stage[data-fullscreen="true"][data-crop="1x1"] .playground__stage-art img, .playground__stage[data-fullscreen="true"][data-crop="4x3"] .playground__stage-art img, .playground__stage[data-fullscreen="true"][data-crop="16x9"] .playground__stage-art img { object-fit: cover; }
 .playground__fs-controls { position: absolute; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-4) var(--space-5); background: linear-gradient(transparent, rgba(0, 0, 0, 0.8)); color: #fff; opacity: 0; transition: opacity 0.2s; }
-.playground__stage:fullscreen:hover .playground__fs-controls, .playground__fs-controls:focus-within { opacity: 1; }
+.playground__stage:is(:fullscreen, [data-fullscreen="true"]):hover .playground__fs-controls, .playground__fs-controls:focus-within { opacity: 1; }
 .playground__fs-controls button { color: #fff; }
 .playground__fs-back { display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; background: rgba(255, 255, 255, 0.14); font-size: 13px; }
 .playground__fs-transport { display: flex; align-items: center; gap: var(--space-4); }
@@ -318,3 +318,41 @@
 .playground__download-btn { align-self: flex-start; padding: 8px 16px; border-radius: var(--radius-md); background: var(--color-accent); color: #fff; font-size: 12px; }
 .playground__download-btn:disabled { opacity: 0.5; }
 .playground__panel-body { max-height: 38vh; overflow-y: auto; }
+
+/* ---- 2.2.0: layout fixes — popovers float, so nothing inside the page can squeeze the stage ---- */
+.playground { overflow-y: auto; }
+.playground__stage { flex: 1 0 auto; min-height: clamp(240px, 38vh, 560px); }
+.playground__stage-art { flex-shrink: 0; min-height: 160px; container-type: size; }
+.playground__secondary-row { flex-wrap: wrap; }
+.playground__panel-body { display: none; }
+.playground__stage[data-aspect="1x1"]:not(:fullscreen) .playground__stage-art { aspect-ratio: 1 / 1; }
+.playground__stage[data-aspect="4x3"]:not(:fullscreen) .playground__stage-art { aspect-ratio: 4 / 3; }
+.playground__stage[data-aspect="16x9"]:not(:fullscreen) .playground__stage-art { aspect-ratio: 16 / 9; }
+.playground__stage-art img { transition: transform 60ms linear; will-change: transform; }
+.playground__stage-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: screen; }
+.playground__aspect { display: flex; gap: 2px; padding: 2px; border-radius: 999px; background: var(--color-surface-raised); }
+.playground__aspect button { width: auto !important; min-width: 0 !important; height: 24px !important; padding: 0 8px !important; border-radius: 999px !important; font-size: 10px; }
+.playground__aspect button[data-active="true"] { background: var(--color-accent-wash); color: var(--color-accent); }
+
+/* popover panel content */
+.pg-panel { display: flex; flex-direction: column; gap: var(--space-2); font-size: 12px; color: var(--color-text-muted); }
+.pg-panel label { display: flex; flex-direction: column; gap: 4px; }
+.pg-panel__check { flex-direction: row !important; align-items: center; gap: var(--space-2) !important; color: var(--color-text); }
+.pg-panel__row { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: flex-end; }
+.pg-panel input:not([type="range"]):not([type="checkbox"]) { height: 30px; padding: 0 var(--space-2); border-radius: var(--radius-sm); background: var(--color-surface-raised); border: 1px solid var(--color-border); color: var(--color-text); font-size: 12px; min-width: 0; flex: 1; }
+.pg-panel button { padding: 6px 12px; border-radius: var(--radius-sm); background: var(--color-surface-raised); color: var(--color-text); font-size: 12px; }
+.pg-panel button:hover:not(:disabled) { background: var(--color-active); }
+.pg-panel button:disabled { opacity: 0.4; }
+.pg-insights { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.pg-insights div { display: flex; flex-direction: column; gap: 4px; }
+.pg-insights small { color: var(--color-text-faint); }
+.pg-insights strong { font-size: 18px; color: var(--color-text); }
+.pg-insights .playground__panel-note { grid-column: 1 / -1; }
+.pg-meter { display: block; height: 8px; border-radius: 4px; background: var(--color-surface-raised); overflow: hidden; }
+.pg-meter span { display: block; height: 100%; background: var(--color-accent); transition: width 0.5s; }
+.bm-popover .playground__loop-creator, .bm-popover .playground__speed, .bm-popover .playground__sleep, .bm-popover .playground__download { margin: 0; }
+
+/* 2.2.0: immersive presentation that doesn't depend on the browser Fullscreen API (Android WebView and iPhone Safari don't offer it
+   for arbitrary elements). The stage simply covers the viewport, respecting safe areas; on desktop the OS window also goes fullscreen. */
+.playground__stage[data-fullscreen="true"] { position: fixed; inset: 0; z-index: var(--z-popover); width: 100%; height: 100dvh; padding-top: var(--safe-top, 0px); padding-bottom: var(--safe-bottom, 0px); }
+html[data-mobile="true"] .playground__fs-controls { opacity: 1; padding-bottom: calc(var(--space-4) + var(--safe-bottom, 0px)); }
