@@ -16,8 +16,8 @@ export function buildSpotifyAuthUrl(): string | null {
 export async function openInSystemBrowser(url: string): Promise<void> {
   const { isTauri } = await import("@/lib/platform");
   if (isTauri()) {
-    const { open } = await import("@tauri-apps/plugin-shell");
-    await open(url);
+    const { openUrl } = await import("@tauri-apps/plugin-opener"); // opener works on desktop AND mobile (plugin-shell is desktop-only)
+    await openUrl(url);
     return;
   }
   window.open(url, "_blank", "noopener,noreferrer");
