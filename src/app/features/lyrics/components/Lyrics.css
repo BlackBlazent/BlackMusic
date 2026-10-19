@@ -1,4 +1,5 @@
-.lyrics-overlay { position: absolute; /*inset: auto 0 0 0; margin: 0 auto;*/ max-height: 70%; overflow-y: auto; border-radius: var(--radius-md); scrollbar-width: none; }
+/* 2.2.0: centred inside the stage art, sized from its container (see LyricsOverlay), never in the layout flow. */
+.lyrics-overlay { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); box-sizing: border-box; max-width: 96%; max-height: 92%; overflow-y: auto; border-radius: var(--radius-md); scrollbar-width: none; overflow-wrap: anywhere; }
 .lyrics-overlay::-webkit-scrollbar { display: none; }
 .lyrics-overlay[data-alignment="left"] { text-align: left; }
 .lyrics-overlay[data-alignment="center"] { text-align: center; }
@@ -20,3 +21,7 @@
 .lyrics-settings__row button[data-active="true"] { background: var(--color-interactive-wash, var(--color-accent-wash)); color: var(--color-interactive, var(--color-accent)); }
 .lyrics-settings__check { flex-direction: row !important; align-items: center; }
 .lyrics-settings__reset { grid-column: 1 / -1; justify-self: start; padding: 6px 12px; border-radius: var(--radius-sm); background: var(--color-surface-raised); }
+
+.lyrics__word { background: linear-gradient(90deg, var(--karaoke) var(--fill, 0%), currentColor var(--fill, 0%)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.lyrics__generate { margin-top: 8px; padding: 7px 14px; border-radius: 999px; background: var(--color-accent); color: #fff; font-size: 12px; font-weight: 600; }
+.lyrics__generate:disabled { opacity: 0.6; }
