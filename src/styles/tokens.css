@@ -28,6 +28,11 @@
   --sidebar-width-expanded: 232px;
   --sidebar-width-collapsed: 72px;
   --topbar-height: 56px;
+  /* Platform safe-area insets (notch / status bar / gesture bar). 0 on desktop. On Android the activity pads itself, so these are 0 there too. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
   --playbar-height: 88px;
 
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
