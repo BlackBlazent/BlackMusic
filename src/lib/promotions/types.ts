@@ -6,6 +6,7 @@ export type PromotionPlacement =
   | "folder"
   | "local"
   | "online"
+  | "online-hero"
   | "library-all-music";
 
 export type PromotionSource = "manual" | "involve-asia";
@@ -35,6 +36,7 @@ export const MANUAL_ALLOWED_PLACEMENTS: PromotionPlacement[] = [
   "library-artists",
   "library-playlists",
   "folder",
+  "online-hero",
 ];
 
 export const API_ALLOWED_PLACEMENTS: PromotionPlacement[] = ["local", "online", "library-all-music"];
