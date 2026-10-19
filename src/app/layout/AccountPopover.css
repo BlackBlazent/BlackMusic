@@ -60,6 +60,12 @@
   margin-bottom: var(--space-2);
 }
 
+.account-popover__actions {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-2);
+}
+
 .account-popover__signout:hover {
   background: var(--color-hover);
 }
