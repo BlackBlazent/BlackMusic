@@ -21,6 +21,16 @@ function mimeTypeFor(extension: string): string {
       return "audio/mp4";
     case "wma":
       return "audio/x-ms-wma";
+    // 2.2.0 — "Open with" video containers; the media engine plays their audio track (and the stage can show picture).
+    case "mp4":
+    case "m4v":
+      return "video/mp4";
+    case "webm":
+      return "video/webm";
+    case "mkv":
+      return "video/x-matroska";
+    case "mov":
+      return "video/quicktime";
     default:
       return "application/octet-stream";
   }
