@@ -16,6 +16,8 @@ import {
   ShuffleIcon,
   VolumeIcon,
 } from "./icons";
+import { useIsMobile } from "@/lib/useIsMobile";
+import { VolumeControl } from "./VolumeControl";
 import "./GlobalPlaybackBar.css";
 
 export function GlobalPlaybackBar() {
@@ -39,6 +41,7 @@ export function GlobalPlaybackBar() {
     playTrack,
   } = usePlayback();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const mobile = useIsMobile();
 
   // 2.1.0: hover the top edge to grab a resize handle; stretch the bar up to reveal "Up next".
   const MIN = 88;
@@ -67,6 +70,36 @@ export function GlobalPlaybackBar() {
   const expanded = height > MIN + 24;
 
   const remaining = Math.max(0, duration - position);
+
+  // Phones: one compact two-row bar — track + essential controls + a speaker button that opens the volume slider, then the seek bar.
+  // (The desktop three-column layout overflowed a 360 px screen and pushed the volume slider off-screen.)
+  if (mobile) {
+    return (
+      <div className="global-bar global-bar--mobile">
+        <div className="global-bar__m-row">
+          <Link to="/playground" className="global-bar__track" aria-label="Open Playground">
+            <span className="global-bar__art">{currentTrack.artworkUrl ? <img src={currentTrack.artworkUrl} alt="" /> : <PlaygroundIcon />}</span>
+            <span className="global-bar__meta">
+              <span className="global-bar__title">{currentTrack.title}</span>
+              <span className="global-bar__artist">{currentTrack.artist}</span>
+            </span>
+          </Link>
+          <div className="global-bar__m-controls">
+            <button type="button" onClick={previous} aria-label="Previous"><PreviousIcon /></button>
+            <button type="button" className="global-bar__play" onClick={togglePlay} aria-label={isPlaying ? "Pause" : "Play"}>{isPlaying ? <PauseIcon /> : <PlayIcon />}</button>
+            <button type="button" onClick={next} aria-label="Next"><NextIcon /></button>
+            <button type="button" data-active={isFavorite(currentTrack.id)} onClick={() => toggleFavorite(currentTrack.id)} aria-label="Favorite"><HeartIcon /></button>
+            <VolumeControl />
+          </div>
+        </div>
+        <div className="global-bar__seek">
+          <span>{formatDuration(position)}</span>
+          <input type="range" min={0} max={duration || 0} step={0.1} value={Math.min(position, duration || 0)} onChange={(e) => seek(Number(e.target.value))} aria-label="Seek" />
+          <span>-{formatDuration(remaining)}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="global-bar" data-expanded={expanded} data-resizing={resizing} style={{ height }}>
