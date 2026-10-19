@@ -58,3 +58,56 @@ export const CHANGELOG_2_1_0: { version: string; sections: ChangelogSection[] } 
     },
   ],
 };
+
+export const CHANGELOG_2_2_0: { version: string; sections: ChangelogSection[] } = {
+  version: "2.2.0",
+  sections: [
+    {
+      heading: "Fixes",
+      items: [
+        "Update checks now explain exactly why they fail (draft release, missing Windows build in latest.json, bad signature) instead of a generic message — and the release workflow builds Windows and publishes non-draft releases so updating actually works.",
+        "Services menu, link window, metadata editor and modals now live in one global overlay layer: they can be dragged anywhere, never disturb page layout, and the navbar and footer always stay on top.",
+        "YouTube and Last.fm tracks are playable (stream resolver backed by the bundled yt-dlp, with Deezer/Audius fallbacks). Tidal, Spotify and other services now report the real reason when something fails; Spotify asks for the full permission set and has a Reconnect button.",
+        "Service icons no longer get stuck on the large letter after one failed load.",
+        "Playground stage never collapses: option panels are floating popovers, the page scrolls instead of squeezing, and lyrics adapt to the space available.",
+        "yt-dlp ships with the app (and can be updated or replaced in Settings → Plugins & Tools) — no Python install needed.",
+      ],
+    },
+    {
+      heading: "Search",
+      items: [
+        "@youtube:, @online-<service>:, @lastfm: (tracks, artists, tag:, similar:), @musicbrainz:, @genius: (songs, artists, info), @music:, @page:.",
+      ],
+    },
+    {
+      heading: "Online",
+      items: [
+        "Spotify-style browse shelves for every service (stations, recents, best-of, favourite artists, podcasts where available) with a manual-promotion banner slot; the old table is one click away under List.",
+      ],
+    },
+    {
+      heading: "Playground",
+      items: [
+        "Karaoke lyrics, whisper.cpp lyric generation (offline), visualizer effects (Bars, Waves, Particles, Liquid), cover-art effects, timeline markers, focus zones, audio cutter, volume normalizer, pitch shifter, filters (reverb, echo, distortion, 8-bit), auto volume, deep-sleep fader, radio simulation, Hue mood lighting, live BPM/key/energy insights, aspect-ratio presets.",
+      ],
+    },
+    {
+      heading: "Library, Home, Folders",
+      items: [
+        "Library: Bitrate Analyzer, Duplicate Finder, Memory Lane, Mood Tuner, Batch Tag Editor, Format Converter (needs ffmpeg), File Organizer (preview only), Smart Playlists.",
+        "Home: play this week / last 30 days, Memory Highlights, Listening Diary, Cover Battle.",
+        "Folders: subfolder strip. Edit Metadata now covers album artist, year, genre, composer, comments, lyrics and artwork (embedded under 500 KB).",
+      ],
+    },
+    {
+      heading: "System",
+      items: [
+        "Open with BlackMusic: audio/video file associations (Windows, Linux, macOS), multi-file open, already-running app support.",
+        "Settings → Personalization: banner (photo/video), dock mode, screensaver, cover effects, button animations. Settings → Language: English, Deutsch, 日本語, Português (Brasil), English (India), हिन्दी, Français, Español.",
+        "Android and iOS: shared codebase, bottom navigation, automatic music discovery on mobile (see MOBILE.md).",
+      ],
+    },
+  ],
+};
+
+export const LATEST_CHANGELOG = CHANGELOG_2_2_0;
