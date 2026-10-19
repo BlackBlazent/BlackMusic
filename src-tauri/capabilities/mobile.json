@@ -1,0 +1,25 @@
+{
+  "$schema": "../gen/schemas/mobile-schema.json",
+  "identifier": "mobile",
+  "description": "Capabilities for the Android / iOS build (no shell, updater or process plugins on mobile)",
+  "windows": ["main"],
+  "platforms": ["android", "iOS"],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "opener:allow-default-urls",
+    "dialog:default",
+    "store:default",
+    "deep-link:default",
+    "fs:allow-read-file",
+    "fs:allow-read-dir",
+    "fs:allow-exists",
+    "fs:allow-stat",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:allow-write-file",
+    "fs:allow-mkdir",
+    { "identifier": "fs:scope", "allow": [{ "path": "**" }] },
+    { "identifier": "http:default", "allow": [{ "url": "https://*" }, { "url": "http://*" }] }
+  ]
+}
