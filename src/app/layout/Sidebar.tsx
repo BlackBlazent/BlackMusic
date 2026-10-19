@@ -13,19 +13,21 @@ import {
 import { usePane, SIDEBAR_COLLAPSED_WIDTH } from "@/app/context/PaneContext";
 import { ServicesMenu } from "./ServicesMenu";
 import { Tooltip } from "@/app/components/Tooltip";
+import { useT, type TKey } from "@/lib/i18n";
 import "./Sidebar.css";
 
 const NAV_ITEMS = [
-  { to: "/", label: "Home", icon: HomeIcon, end: true },
-  { to: "/playground", label: "Playground", icon: PlaygroundIcon, end: false },
-  { to: "/local", label: "Local", icon: LocalIcon, end: false },
-  { to: "/online", label: "Online", icon: OnlineIcon, end: false },
-  { to: "/library", label: "Library", icon: LibraryIcon, end: false },
-  { to: "/folder", label: "Folders", icon: FolderIcon, end: false },
-  { to: "/settings", label: "Settings", icon: SettingsIcon, end: false },
+  { to: "/", label: "nav.home" as TKey, icon: HomeIcon, end: true },
+  { to: "/playground", label: "nav.playground" as TKey, icon: PlaygroundIcon, end: false },
+  { to: "/local", label: "nav.local" as TKey, icon: LocalIcon, end: false },
+  { to: "/online", label: "nav.online" as TKey, icon: OnlineIcon, end: false },
+  { to: "/library", label: "nav.library" as TKey, icon: LibraryIcon, end: false },
+  { to: "/folder", label: "nav.folders" as TKey, icon: FolderIcon, end: false },
+  { to: "/settings", label: "nav.settings" as TKey, icon: SettingsIcon, end: false },
 ];
 
 export function Sidebar() {
+  const t = useT();
   const { collapsed, width, toggleCollapsed, setWidth } = usePane();
   const dragState = useRef<{ startX: number; startWidth: number } | null>(null);
 
@@ -77,7 +79,7 @@ export function Sidebar() {
       <nav className="sidebar__nav" aria-label="Pages">
         {NAV_ITEMS.map(({ to, label, icon: Icon, end }) =>
           collapsed ? (
-            <Tooltip key={to} label={label} side="right">
+            <Tooltip key={to} label={t(label)} side="right">
               <NavLink
                 to={to}
                 end={end}
@@ -94,7 +96,7 @@ export function Sidebar() {
               className={({ isActive }) => `sidebar__nav-item${isActive ? " is-active" : ""}`}
             >
               <Icon className="sidebar__nav-icon" />
-              <span>{label}</span>
+              <span>{t(label)}</span>
             </NavLink>
           ),
         )}
