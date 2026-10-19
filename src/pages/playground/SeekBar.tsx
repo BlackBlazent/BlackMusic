@@ -1,6 +1,9 @@
 import { useRef, useState, type KeyboardEvent, type MouseEvent as ReactMouseEvent } from "react";
 import { formatDuration } from "@/lib/formatDuration";
+import type { FocusZone, Marker } from "@/app/context/AudioFxContext";
 import "./SeekBar.css";
+
+const MARKER_PRESETS = ["Best drop here! 🔥", "Chorus starts!", "Guitar solo 🎸"];
 
 /** "2:30", "1:02:03", "90" or "2.5" (seconds) -> seconds, or null if it isn't a time. */
 export function parseTimeInput(raw: string, max: number): number | null {
@@ -20,12 +23,24 @@ export function SeekBar({
   duration,
   disabled,
   onSeek,
+  markers = [],
+  zones = [],
+  onAddMarker,
+  onRemoveMarker,
 }: {
   position: number;
   duration: number;
   disabled?: boolean;
   onSeek: (seconds: number) => void;
+  /** Interactive timeline markers ("Best drop here! 🔥", "Chorus starts!", …) */
+  markers?: Marker[];
+  zones?: FocusZone[];
+  onAddMarker?: (label: string, at: number) => void;
+  onRemoveMarker?: (id: string) => void;
 }) {
+  const [adding, setAdding] = useState(false);
+  const [markerDraft, setMarkerDraft] = useState("");
+  const [markerAt, setMarkerAt] = useState(0);
   const trackRef = useRef<HTMLDivElement>(null);
   const [hoverX, setHoverX] = useState<number | null>(null);
   const [hoverTime, setHoverTime] = useState(0);
@@ -94,6 +109,21 @@ export function SeekBar({
             {formatDuration(hoverTime)}
           </span>
         )}
+        {duration > 0 && zones.map((z) => (
+          <span key={z.id} className="seek-bar__zone" title={`Focus zone: ${z.label}`} style={{ left: `${(z.start / duration) * 100}%`, width: `${((z.end - z.start) / duration) * 100}%` }} />
+        ))}
+        {duration > 0 && markers.map((m) => (
+          <button
+            key={m.id}
+            type="button"
+            className="seek-bar__marker"
+            style={{ left: `${(m.at / duration) * 100}%` }}
+            title={`${formatDuration(m.at)} — ${m.label} (right-click to remove)`}
+            onClick={() => onSeek(m.at)}
+            onContextMenu={(e) => { e.preventDefault(); onRemoveMarker?.(m.id); }}
+            aria-label={`Marker: ${m.label}`}
+          />
+        ))}
         <input
           type="range"
           min={0}
@@ -107,6 +137,18 @@ export function SeekBar({
         />
       </div>
       <span className="seek-bar__time">{formatDuration(duration)}</span>
+      {onAddMarker && (
+        <div className="seek-bar__marker-add">
+          <button type="button" disabled={disabled} title="Add a marker at the current position" onClick={() => { setMarkerAt(position); setMarkerDraft(""); setAdding((v) => !v); }} aria-label="Add marker">⚑</button>
+          {adding && (
+            <div className="seek-bar__marker-pop">
+              <small>Marker at {formatDuration(markerAt)}</small>
+              <input value={markerDraft} autoFocus placeholder="Name this moment…" onChange={(e) => setMarkerDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && markerDraft.trim()) { onAddMarker(markerDraft.trim(), markerAt); setAdding(false); } if (e.key === "Escape") setAdding(false); }} />
+              <div>{MARKER_PRESETS.map((p) => <button key={p} type="button" onClick={() => { onAddMarker(p, markerAt); setAdding(false); }}>{p}</button>)}</div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
