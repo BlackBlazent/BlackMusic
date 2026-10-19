@@ -1,7 +1,9 @@
 .library-page__header {
+  /* 2.2.0: title on its own row, tabs on a row BELOW it (they used to share one row and squeeze each other). */
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
   margin-bottom: var(--space-5);
 }
 
@@ -13,22 +15,30 @@
 
 .library-page__tabs {
   display: flex;
-  gap: 2px;
-  padding: 3px;
-  border-radius: var(--radius-md);
-  background: var(--color-surface-raised);
+  flex-wrap: nowrap;
+  gap: var(--space-1);
+  justify-content: safe center; /* centred when they fit; scrolls from the start (never clipped) when they don't */
+  overflow-x: auto;
+  scrollbar-width: none;
+  touch-action: pan-x;
+  background: none; /* no container chrome — the tabs sit directly on the page */
 }
+.library-page__tabs::-webkit-scrollbar { display: none; }
 
 .library-page__tabs button {
+  flex: 0 0 auto;
+  min-height: 40px;
   padding: 6px 14px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  white-space: nowrap;
   color: var(--color-text-muted);
 }
 
 .library-page__tabs button[aria-selected="true"] {
-  background: var(--color-surface);
   color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+  font-weight: 600;
 }
 
 .library-page__empty-text {
