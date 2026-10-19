@@ -10,6 +10,7 @@ import type { Track } from "@/lib/types";
 import type { Promotion } from "@/lib/promotions/types";
 import { useManualPromotions } from "@/app/context/PromotionsContext";
 import { PromotionRailItem } from "@/app/components/Promotion";
+import { CoverBattle, ListeningDiary, MemoryHighlights, PlayWindowCard } from "./HomeExtras";
 import "./Home.css";
 
 export function Home() {
@@ -57,14 +58,8 @@ export function Home() {
       <h1>Home</h1>
 
       <div className="home-page__stat-row">
-        <div className="home-page__stat">
-          <span className="home-page__stat-value">{stats.last7}</span>
-          <span className="home-page__stat-label">Plays this week</span>
-        </div>
-        <div className="home-page__stat">
-          <span className="home-page__stat-value">{stats.last30}</span>
-          <span className="home-page__stat-label">Plays last 30 days</span>
-        </div>
+        <PlayWindowCard days={7} count={stats.last7} label="Plays this week" />
+        <PlayWindowCard days={30} count={stats.last30} label="Plays last 30 days" />
         <div className="home-page__stat">
           <span className="home-page__stat-value">{tracks.length}</span>
           <span className="home-page__stat-label">Tracks in library</span>
@@ -87,6 +82,9 @@ export function Home() {
         promotion={promoFor(2)}
         promotionAt={0}
       />
+      <MemoryHighlights />
+      <ListeningDiary />
+      <CoverBattle />
     </div>
   );
 }
