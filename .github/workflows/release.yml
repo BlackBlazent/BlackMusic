@@ -29,11 +29,13 @@ jobs:
             os: macos-latest
             target: aarch64-apple-darwin
             args: "--target aarch64-apple-darwin"
-          # Optional: build Windows here too so latest.json (auto-update) covers all three platforms.
-          # - name: Windows x64
-          #   os: windows-latest
-          #   target: ""
-          #   args: ""
+          # 2.2.0: Windows is built HERE too. latest.json (the auto-update manifest) only lists platforms that were
+          # built in this workflow — without Windows, `windows-x86_64` was missing and every Windows install's
+          # "Check for updates" failed. (A DRAFT release also hides latest.json from /releases/latest — see below.)
+          - name: Windows x64
+            os: windows-latest
+            target: ""
+            args: ""
 
     steps:
       - name: Checkout repository
@@ -65,25 +67,23 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential curl wget file \
+            build-essential curl wget file cmake \
             libwebkit2gtk-4.1-dev \
             libayatana-appindicator3-dev \
             librsvg2-dev libssl-dev libxdo-dev \
             patchelf xdg-utils
 
-      # open_explorer is a Windows-only sidecar, but tauri.conf.json's externalBin makes Tauri demand a
-      # file for EVERY target triple. The app only calls it on Windows, so a no-op stand-in is enough.
-      - name: Create placeholder sidecar (non-Windows)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          TARGET="${{ matrix.target }}"
-          if [ -z "$TARGET" ]; then TARGET=$(rustc -vV | sed -n 's/host: //p'); fi
-          printf '#!/bin/sh\nexit 0\n' > "src-tauri/binaries/open_explorer-$TARGET"
-          chmod +x "src-tauri/binaries/open_explorer-$TARGET"
-
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
+
+      # yt-dlp (downloaded), the whisper tiny model (downloaded), whisper-cli (compiled statically from source) and
+      # the no-op open_explorer stand-in for non-Windows targets — see scripts/fetch-sidecars.mjs.
+      - name: Prepare bundled tools (yt-dlp, whisper.cpp, tiny model)
+        shell: bash
+        env:
+          BUILD_WHISPER: "1"
+          TAURI_TARGET: ${{ matrix.target }}
+        run: node scripts/fetch-sidecars.mjs
 
       - name: Build and publish Tauri application
         uses: tauri-apps/tauri-action@v1
@@ -106,8 +106,11 @@ jobs:
           releaseBody: |
             ## BlackMusic ${{ github.ref_name }}
 
-            Downloads: Linux (AppImage / deb), macOS Intel and Apple Silicon (dmg).
-          releaseDraft: true
+            Downloads: Windows (MSI / NSIS), Linux (AppImage / deb), macOS Intel and Apple Silicon (dmg).
+          # NOT a draft: GitHub's /releases/latest/download/latest.json ignores drafts, so a draft release made every
+          # in-app "Check for updates" fail. Set this back to true only if you publish manually right after the build.
+          releaseDraft: false
           prerelease: false
           generateReleaseNotes: true
+          uploadUpdaterJson: true
           args: ${{ matrix.args }}
