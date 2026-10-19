@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { isTauri } from "@/lib/platform";
+import { isMobileOs } from "@/lib/useIsMobile";
 import { usePlayback } from "@/app/context/PlaybackContext";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import { useLibrary } from "@/app/context/LibraryContext";
@@ -6,6 +8,7 @@ import { usePlaylists } from "@/app/context/PlaylistsContext";
 import { usePlayerUi } from "@/app/context/PlayerUiContext";
 import { useNotifications } from "@/app/context/NotificationsContext";
 import { usePersistentState } from "@/lib/usePersistentState";
+import { useSharedSetting } from "@/lib/sharedSetting";
 import { downloadVideo, parseYouTubeId } from "@/lib/video/ytdlp";
 import { Tooltip } from "@/app/components/Tooltip";
 import { VideoFrame } from "@/app/components/VideoFrame";
@@ -37,6 +40,12 @@ import {
   VolumeIcon,
 } from "@/app/layout/icons";
 import { SeekBar } from "./SeekBar";
+import { AnchoredPopover } from "@/app/overlay/AnchoredPopover";
+import { useAudioFx } from "@/app/context/AudioFxContext";
+import { StageCanvas } from "./StageCanvas";
+import { useStageEffects, type CoverEffect } from "./useStageEffects";
+import type { VizMode } from "@/lib/audio/visualizers";
+import { CutterPanel, DeepSleepPanel, FiltersPanel, InsightsPanel, MoodPanel, NormalizerPanel, PitchPanel, RadioPanel, VisualizerPanel, ZonesPanel } from "./AccessoryPanels";
 import { LyricsOverlay } from "@/app/features/lyrics/components/LyricsOverlay";
 import { LyricsSettings } from "@/app/features/lyrics/components/LyricsSettings";
 import { QueueStrip, type PlaylistFolder } from "./QueueStrip";
@@ -53,7 +62,22 @@ const CROPS = [
   { id: "16x9", label: "16×9" },
 ] as const;
 type CropId = (typeof CROPS)[number]["id"];
-type Panel = "loop" | "speed" | "link" | "download" | "sleep" | "lyrics-style" | null;
+const ASPECTS = [
+  { id: "fit", label: "Fit" },
+  { id: "1x1", label: "1×1" },
+  { id: "4x3", label: "4×3" },
+  { id: "16x9", label: "16×9" },
+] as const;
+type AspectId = (typeof ASPECTS)[number]["id"];
+type Panel =
+  | "loop" | "speed" | "link" | "download" | "sleep" | "lyrics-style"
+  | "cutter" | "normalizer" | "zones" | "radio" | "deepsleep" | "pitch" | "filters" | "mood" | "insights" | "viz"
+  | null;
+const PANEL_TITLES: Record<Exclude<Panel, null>, string> = {
+  loop: "Loop Creator", speed: "Playback speed", link: "Drop a link", download: "Download video", sleep: "Sleep timer", "lyrics-style": "Lyrics style",
+  cutter: "Audio Cutter / Trimmer", normalizer: "Volume Normalizer", zones: "Focus Zones", radio: "Radio Simulation", deepsleep: "Deep Sleep Auto-Fader",
+  pitch: "Pitch Shifter", filters: "Audio Filters", mood: "Sound Mood Lighting", insights: "Track Insights", viz: "Visualization Effects",
+};
 
 const STRIP_RENDER_LIMIT = 500;
 
@@ -77,6 +101,14 @@ export function Playground() {
   const [fullscreen, setFullscreen] = useState(false);
   const [crop, setCrop] = usePersistentState<CropId>("playground.crop", "fit");
   const stageRef = useRef<HTMLElement>(null);
+  const rowRef = useRef<HTMLElement>(null);
+  const artImgRef = useRef<HTMLImageElement>(null);
+  const fx = useAudioFx();
+  const [aspect, setAspect] = usePersistentState<AspectId>("playground.aspect", "fit");
+  const [vizOn, setVizOn] = usePersistentState<boolean>("playground.vizOn", false);
+  const [vizMode, setVizMode] = usePersistentState<VizMode>("playground.vizMode", "bars");
+  const [coverEffect] = useSharedSetting<CoverEffect>("coverEffect", "off");
+  useStageEffects(artImgRef, coverEffect);
 
   const {
     queue,
@@ -148,15 +180,66 @@ export function Playground() {
   };
 
   // --- fullscreen ----------------------------------------------------------------------
+  // 2.2.0 root cause: only `element.requestFullscreen()` was tried, with the promise ignored. Android's WebView and iPhone Safari don't
+  // support element fullscreen, WebView2 needs the window itself to go fullscreen, and every failure was swallowed — so nothing happened.
+  // Now: desktop → real OS window fullscreen; platforms with the Fullscreen API → element fullscreen; everywhere → an immersive
+  // stage that covers the viewport (data-fullscreen), so the button always does something honest and can always be exited.
+  const viaElementApi = useRef(false);
+  const viaWindow = useRef(false);
+  const exitFullscreen = async () => {
+    setFullscreen(false);
+    try {
+      if (viaWindow.current) {
+        viaWindow.current = false;
+        const { getCurrentWindow } = await import("@tauri-apps/api/window");
+        await getCurrentWindow().setFullscreen(false);
+      }
+      if (viaElementApi.current && document.fullscreenElement) await document.exitFullscreen();
+    } catch (e) {
+      console.warn("[playground] couldn't leave fullscreen cleanly", e);
+    } finally {
+      viaElementApi.current = false;
+    }
+  };
+  const enterFullscreen = async () => {
+    setFullscreen(true); // the immersive stage is active immediately, whatever the platform lets us do next
+    try {
+      if (isTauri() && !isMobileOs()) {
+        const { getCurrentWindow } = await import("@tauri-apps/api/window");
+        await getCurrentWindow().setFullscreen(true);
+        viaWindow.current = true;
+      } else if (document.fullscreenEnabled && stageRef.current?.requestFullscreen) {
+        await stageRef.current.requestFullscreen();
+        viaElementApi.current = true;
+      }
+    } catch (e) {
+      // Not fatal: the immersive stage stays up. (Logged so a real permission/ACL problem is diagnosable.)
+      console.warn("[playground] OS fullscreen unavailable — using the in-app immersive view", e);
+    }
+  };
+  const toggleFullscreen = () => void (fullscreen ? exitFullscreen() : enterFullscreen());
   useEffect(() => {
-    const onChange = () => setFullscreen(document.fullscreenElement === stageRef.current);
+    // The user left element-fullscreen themselves (Esc / system gesture): leave immersive mode too.
+    const onChange = () => {
+      if (viaElementApi.current && !document.fullscreenElement) {
+        viaElementApi.current = false;
+        setFullscreen(false);
+      }
+    };
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
-  const toggleFullscreen = () => {
-    if (document.fullscreenElement) void document.exitFullscreen();
-    else void stageRef.current?.requestFullscreen?.();
-  };
+  useEffect(() => {
+    if (!fullscreen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && void exitFullscreen();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- exitFullscreen only touches refs and setters
+  }, [fullscreen]);
+  // Leaving the page while fullscreen must not strand the OS window in fullscreen.
+  useEffect(() => () => {
+    if (viaWindow.current) void import("@tauri-apps/api/window").then(({ getCurrentWindow }) => getCurrentWindow().setFullscreen(false));
+  }, []);
 
   const stop = () => {
     if (currentTrack) seek(0);
@@ -211,7 +294,7 @@ export function Playground() {
       {/* Ambient mode: a blurred, slowly drifting glow of the art/video behind the whole theater page. */}
       {ui.ambient && ambientSrc && <div className="playground__ambient" style={{ backgroundImage: `url("${ambientSrc}")` }} aria-hidden="true" />}
 
-      <section className="playground__stage" ref={stageRef} data-fullscreen={fullscreen} data-crop={crop}>
+      <section className="playground__stage" ref={stageRef} data-fullscreen={fullscreen} data-crop={crop} data-aspect={aspect}>
         <div className="playground__stage-mode">
           <button type="button" data-active={!ui.videoMode} onClick={() => ui.setVideoMode(false)}>
             Audio
@@ -227,7 +310,7 @@ export function Playground() {
           {videoOnStage ? (
             <VideoFrame videoId={ui.activeVideoId!} className="playground__stage-video" />
           ) : currentTrack?.artworkUrl ? (
-            <img src={currentTrack.artworkUrl} alt="" />
+            <img ref={artImgRef} src={currentTrack.artworkUrl} alt="" />
           ) : (
             <PlaygroundIcon className="playground__stage-placeholder" />
           )}
@@ -239,6 +322,7 @@ export function Playground() {
               {ui.videoStatus === "idle" && "Play a track to fetch its video."}
             </div>
           )}
+          {vizOn && !videoOnStage && <StageCanvas mode={vizMode} className="playground__stage-canvas" />}
           {/* Lyrics overlay sits on the stage like subtitles — in Audio mode only (Video Mode relies on YouTube's own captions). */}
           {lyricsOpen && !ui.videoMode && <LyricsOverlay />}
         </div>
@@ -281,7 +365,7 @@ export function Playground() {
         )}
       </section>
 
-      <SeekBar position={position} duration={duration} disabled={!currentTrack} onSeek={seek} />
+      <SeekBar position={position} duration={duration} disabled={!currentTrack} onSeek={seek} markers={fx.markers} zones={fx.zones} onAddMarker={fx.addMarker} onRemoveMarker={fx.removeMarker} />
 
       <section className="playground__transport">
         <Tooltip label="Shuffle" side="top">
@@ -322,15 +406,24 @@ export function Playground() {
           <VolumeIcon />
           <input type="range" min={0} max={1} step={0.01} value={volume} onChange={(e) => setVolume(Number(e.target.value))} aria-label="Volume" />
         </div>
+        <Tooltip label={fx.autoVolume ? "Auto Volume Adjust: on (dips in silent passages)" : "Auto Volume Adjust"} side="top">
+          <button type="button" data-active={fx.autoVolume} onClick={() => fx.setAutoVolume(!fx.autoVolume)} aria-label="Auto volume adjust">AV</button>
+        </Tooltip>
         <Tooltip label="Mini player (floats over other apps)" side="top"> {/*<Tooltip label="Picture-in-picture" side="top">*/}
           <button type="button" data-active={ui.pipOpen} onClick={() => ui.setPipOpen(!ui.pipOpen)} disabled={!currentTrack}><PipIcon /></button>
         </Tooltip>
+        {/* Aspect ratio presets sit BEFORE fullscreen so the layout can be chosen without entering it. */}
+        <div className="playground__aspect" role="radiogroup" aria-label="Stage aspect ratio">
+          {ASPECTS.map((a) => (
+            <button key={a.id} type="button" role="radio" aria-checked={aspect === a.id} data-active={aspect === a.id} onClick={() => { setAspect(a.id); setCrop(a.id === "fit" ? "fit" : a.id); }}>{a.label}</button>
+          ))}
+        </div>
         <Tooltip label="Fullscreen" side="top">
           <button type="button" data-active={fullscreen} onClick={toggleFullscreen}><FullscreenIcon /></button>
         </Tooltip>
       </section>
 
-      <section className="playground__secondary-row">
+      <section className="playground__secondary-row" ref={rowRef}>
         <Tooltip label={openFolder ? `Playlist: ${openFolder.playlist.name}` : "Queue strip — pick a playlist folder to browse it"} side="top">
           <button type="button" data-active={Boolean(openFolder)} onClick={() => openFolder && setOpenPlaylistId(null)}><QueueListIcon /></button>
         </Tooltip>
@@ -352,6 +445,16 @@ export function Playground() {
         <Tooltip label="Ambient mode" side="top">
           <button type="button" data-active={ui.ambient} onClick={() => ui.setAmbient(!ui.ambient)}><AmbientIcon /></button>
         </Tooltip>
+        <Tooltip label="Audio Cutter / Trimmer" side="top"><button type="button" data-active={openPanel === "cutter"} onClick={() => togglePanel("cutter")}>✂</button></Tooltip>
+        <Tooltip label="Volume Normalizer" side="top"><button type="button" data-active={openPanel === "normalizer" || fx.normalizer} onClick={() => togglePanel("normalizer")}>dB</button></Tooltip>
+        <Tooltip label="Focus Zones" side="top"><button type="button" data-active={openPanel === "zones" || fx.activeZoneId !== null} onClick={() => togglePanel("zones")}>◎</button></Tooltip>
+        <Tooltip label="Pitch Shifter" side="top"><button type="button" data-active={openPanel === "pitch" || fx.pitch !== 0} onClick={() => togglePanel("pitch")}>♯♭</button></Tooltip>
+        <Tooltip label="Audio Filters" side="top"><button type="button" data-active={openPanel === "filters" || Object.values(fx.filters).some(Boolean)} onClick={() => togglePanel("filters")}>FX</button></Tooltip>
+        <Tooltip label="Visualization Effects" side="top"><button type="button" data-active={openPanel === "viz" || vizOn} onClick={() => togglePanel("viz")}>▥</button></Tooltip>
+        <Tooltip label="Track Insights (BPM, key, energy)" side="top"><button type="button" data-active={openPanel === "insights"} onClick={() => togglePanel("insights")}>♩</button></Tooltip>
+        <Tooltip label="Radio Simulation" side="top"><button type="button" data-active={openPanel === "radio" || fx.radio} onClick={() => togglePanel("radio")}>FM</button></Tooltip>
+        <Tooltip label="Sound Mood Lighting (Hue)" side="top"><button type="button" data-active={openPanel === "mood" || fx.hueSync} onClick={() => togglePanel("mood")}>SML</button></Tooltip>
+        <Tooltip label="Deep Sleep Auto-Fader" side="top"><button type="button" data-active={openPanel === "deepsleep" || fx.deepSleep} onClick={() => togglePanel("deepsleep")}>zZ</button></Tooltip>
         <Tooltip label={sleepTimer ? `Sleep timer: ${sleepTimer.minutes} min` : "Sleep timer"} side="top">
           <button type="button" data-active={openPanel === "sleep" || Boolean(sleepTimer)} onClick={() => togglePanel("sleep")}><SleepIcon /></button>
         </Tooltip>
@@ -361,7 +464,17 @@ export function Playground() {
       </section>
 
       {openPanel && (
-        <div className="playground__panel-body">
+        <AnchoredPopover anchorRef={rowRef} onClose={() => setOpenPanel(null)} title={PANEL_TITLES[openPanel]} width={openPanel === "lyrics-style" ? 520 : 420}>
+          {openPanel === "cutter" && <CutterPanel />}
+          {openPanel === "normalizer" && <NormalizerPanel />}
+          {openPanel === "zones" && <ZonesPanel />}
+          {openPanel === "radio" && <RadioPanel />}
+          {openPanel === "deepsleep" && <DeepSleepPanel />}
+          {openPanel === "pitch" && <PitchPanel />}
+          {openPanel === "filters" && <FiltersPanel />}
+          {openPanel === "mood" && <MoodPanel />}
+          {openPanel === "insights" && <InsightsPanel />}
+          {openPanel === "viz" && <VisualizerPanel mode={vizMode} setMode={setVizMode} on={vizOn} setOn={setVizOn} />}
           {openPanel === "loop" && (
             <div className="playground__loop-creator">
               <label>
@@ -433,7 +546,7 @@ export function Playground() {
           )}
 
           {openPanel === "lyrics-style" && <LyricsSettings />}
-        </div>
+        </AnchoredPopover>
       )}
 
       {filterOpen && (
