@@ -1,0 +1,86 @@
+name: BlackMusic Mobile
+
+# Android builds fine on your Windows machine (`pnpm tauri:android`); this workflow builds iOS on a GitHub macOS runner
+# (iOS can't be built on Windows) and also produces an Android artifact for convenience.
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "mobile-v*.*.*"
+
+jobs:
+  ios:
+    name: iOS (unsigned archive / signed IPA when secrets exist)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+      - run: pnpm install --frozen-lockfile
+      - name: Placeholder sidecars (desktop-only tools are not used on iOS)
+        run: node scripts/fetch-sidecars.mjs --if-missing
+      - name: Generate the Xcode project
+        run: pnpm tauri ios init
+      - name: Build iOS
+        env:
+          APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
+          VITE_LASTFM_API_KEY: ${{ secrets.VITE_LASTFM_API_KEY }}
+          VITE_GENIUS_ACCESS_TOKEN: ${{ secrets.VITE_GENIUS_ACCESS_TOKEN }}
+        run: pnpm tauri ios build --export-method debugging
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blackmusic-ios
+          path: src-tauri/gen/apple/build/**/*.ipa
+          if-no-files-found: warn
+
+  android:
+    name: Android (APK/AAB)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/fetch-sidecars.mjs --if-missing
+      - run: sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;26.1.10909125"
+      - run: pnpm tauri android init
+      - run: node scripts/android-post-init.mjs
+      - name: Build Android
+        env:
+          NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/26.1.10909125
+        run: pnpm tauri android build --apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blackmusic-android
+          path: src-tauri/gen/android/app/build/outputs/**/*.apk
+          if-no-files-found: warn
