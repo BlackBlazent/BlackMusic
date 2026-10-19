@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Fixed scale: pinch/double-tap zoom is off so the UI behaves like a native app. Android Chrome also used to SHRINK the whole page
+         to fit any overflowing element when zoom was allowed — that was the "UI zoomed out, canvas cut off" bug in the screenshots. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#121212" />
     <link rel="icon" href="data:," />
     <!--
       No CSP meta tag here — src-tauri/tauri.conf.json already sets
