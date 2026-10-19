@@ -339,3 +339,14 @@ concrete bug fixes worth knowing about if something seems off:
 - **Fast importer**: `src-tauri/src/importer.rs` + `src/lib/library/fastImport.ts`. The JS scanner (`scanFolder.ts`) is only a fallback when the native command is unavailable.
 - **Promotions**: manual and API ecosystems are separate (`src/lib/promotions/types.ts` holds the placement matrix; the renderer re-validates every promotion).
 - **Lyrics**: `src/app/features/lyrics/` — Genius identifies the song; text comes from LRCLIB (Genius has no lyrics endpoint and scraping is not used). Cached in `<appData>/lyrics/*.json|txt`.
+
+
+## 2.2.0 additions
+
+- **Bundled tools:** `pnpm sidecars` (also run automatically by `tauri:dev` / `tauri:build`) downloads yt-dlp and the whisper tiny model and writes
+  placeholders if offline. `pnpm sidecars:whisper` compiles `whisper-cli` statically (needs git + cmake + a C++ toolchain).
+- **Overlay layer:** anything floating (windows, modals, popovers) must go through `src/app/overlay` so the navbar/footer stay on top.
+- **Shared settings:** use `useSharedSetting` (not `usePersistentState`) for anything two components must see live.
+- **i18n:** add keys to `src/lib/i18n/locales/en.ts` first; other languages fall back per key.
+- **Mobile:** see `MOBILE.md`. **Release:** tag `vX.Y.Z` → `.github/workflows/release.yml` (builds Windows too; non-draft so `latest.json` is reachable).
+- **Status vs spec:** `REQUIREMENTS_2_2_0.md`.
