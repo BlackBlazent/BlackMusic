@@ -125,6 +125,61 @@ export async function getValidAccessToken(): Promise<string | null> {
   return refreshed?.accessToken ?? null;
 }
 
+/** Thrown by fetchSpotifyOrThrow so the UI can say WHY (expired session vs. missing scope vs. not allowlisted). */
+export class SpotifyApiError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+    readonly kind: "not-connected" | "expired" | "forbidden" | "rate-limited" | "other",
+  ) {
+    super(message);
+    this.name = "SpotifyApiError";
+  }
+}
+
+export async function fetchSpotifyOrThrow<T>(path: string): Promise<T> {
+  let token = await getValidAccessToken();
+  if (!token) throw new SpotifyApiError(401, "Spotify isn't connected, or the session expired.", "not-connected");
+
+  const attempt = (t: string) => fetch(`https://api.spotify.com/v1${path}`, { headers: { Authorization: `Bearer ${t}` } });
+  let response = await attempt(token);
+
+  // 401 = token expired/revoked. Try a refresh once (only possible with the env PKCE client), then retry.
+  if (response.status === 401) {
+    const stored = await getPreference<SpotifyTokens | null>(TOKENS_KEY, null);
+    const refreshed = stored ? await refreshSpotifyTokens(stored.refreshToken) : null;
+    if (refreshed) {
+      token = refreshed.accessToken;
+      response = await attempt(token);
+    }
+  }
+  if (response.ok) return (await response.json()) as T;
+
+  let detail = "";
+  try {
+    const body = (await response.json()) as { error?: { message?: string } | string; error_description?: string };
+    detail = typeof body.error === "string" ? body.error_description ?? body.error : body.error?.message ?? "";
+  } catch {
+    /* no JSON body */
+  }
+  console.error("[spotify]", response.status, path, detail);
+
+  if (response.status === 401) {
+    await setPreference(TOKENS_KEY, null); // stale token — stop reporting "connected"
+    throw new SpotifyApiError(401, "Your Spotify session expired — reconnect to continue.", "expired");
+  }
+  if (response.status === 403) {
+    throw new SpotifyApiError(
+      403,
+      detail ||
+        "Spotify refused this request. Please check your account access or try reconnecting.", // The token is missing a permission (e.g. user-library-read) or this Spotify account isn't on the app's allow-list in the Spotify Developer Dashboard (apps in development mode only serve allow-listed users).
+      "forbidden",
+    );
+  }
+  if (response.status === 429) throw new SpotifyApiError(429, "Spotify is rate-limiting requests — try again in a moment.", "rate-limited");
+  throw new SpotifyApiError(response.status, detail || `Spotify responded ${response.status}.`, "other");
+}
+
 export async function fetchSpotify<T>(path: string): Promise<T | null> {
   const token = await getValidAccessToken();
   if (!token) return null;
