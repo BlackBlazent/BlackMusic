@@ -16,6 +16,7 @@
  *   INVOLVE_API_BASE_URL=https://api.involve.asia/api      (default)
  *   INVOLVE_COUNTRIES=Philippines|Singapore                (optional, pipe-separated)
  *   ALLOWED_CATEGORIES=                                    (optional, pipe-separated allow-list)
+ *   TIDAL_CLIENT_ID=... / TIDAL_CLIENT_SECRET=...           (optional; enables GET /api/tidal/token — see below)
  *   PORT=8787
  *   SYNC_MINUTES=30
  *
@@ -147,7 +148,31 @@ async function safeSync() {
   }
 }
 
-const server = http.createServer((req, res) => {
+// ---- Tidal client-credentials token broker (2.2.0) ---------------------------------------------------------------
+// Tidal's OpenAPI uses a CONFIDENTIAL client id/secret. Those must never ship inside the desktop/mobile app, so the
+// app asks this server for a short-lived bearer token instead. The secret exists only in this process's environment.
+const TIDAL_ID = process.env.TIDAL_CLIENT_ID;
+const TIDAL_SECRET = process.env.TIDAL_CLIENT_SECRET;
+let tidalToken = null; // { value, expiresAt }
+
+async function tidalAccessToken() {
+  if (!TIDAL_ID || !TIDAL_SECRET) return { error: 503, message: "TIDAL_CLIENT_ID / TIDAL_CLIENT_SECRET are not set on the server." };
+  if (tidalToken && Date.now() < tidalToken.expiresAt) return { token: tidalToken };
+  const response = await fetch("https://auth.tidal.com/v1/oauth2/token", {
+    method: "POST",
+    headers: { Authorization: `Basic ${Buffer.from(`${TIDAL_ID}:${TIDAL_SECRET}`).toString("base64")}`, "Content-Type": "application/x-www-form-urlencoded" },
+    body: "grant_type=client_credentials",
+  });
+  if (!response.ok) {
+    // Pass Tidal's real status through so the app can tell "bad credentials" (401) from "no access" (403) from an outage.
+    return { error: response.status === 401 || response.status === 403 || response.status === 429 ? response.status : 502, message: `Tidal token endpoint answered ${response.status}.` };
+  }
+  const json = await response.json();
+  tidalToken = { value: json.access_token, expiresAt: Date.now() + Math.max(60, (json.expires_in ?? 3600) - 120) * 1000 };
+  return { token: tidalToken };
+}
+
+const server = http.createServer(async (req, res) => {
   const cors = {
     "Access-Control-Allow-Origin": "*", // the Tauri webview origin varies per platform
     "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -157,6 +182,17 @@ const server = http.createServer((req, res) => {
   if (req.method === "GET" && req.url?.split("?")[0] === "/api/promotions") {
     res.writeHead(200, { ...cors, "Content-Type": "application/json", "Cache-Control": "public, max-age=300" });
     return res.end(JSON.stringify({ success: true, syncedAt: cache.syncedAt, promotions: cache.promotions }));
+  }
+  if (req.method === "GET" && req.url?.split("?")[0] === "/api/tidal/token") {
+    try {
+      const r = await tidalAccessToken();
+      if (r.error) return res.writeHead(r.error, { ...cors, "Content-Type": "application/json" }).end(JSON.stringify({ success: false, message: r.message }));
+      res.writeHead(200, { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" });
+      return res.end(JSON.stringify({ success: true, access_token: r.token.value, expires_in: Math.floor((r.token.expiresAt - Date.now()) / 1000) }));
+    } catch (error) {
+      console.error("[tidal] token failed:", error.message);
+      return res.writeHead(502, { ...cors, "Content-Type": "application/json" }).end(JSON.stringify({ success: false, message: "Tidal token request failed." }));
+    }
   }
   if (req.url === "/health") return res.writeHead(200, cors).end("ok");
   res.writeHead(404, cors).end();
