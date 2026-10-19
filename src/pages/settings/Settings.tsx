@@ -7,6 +7,9 @@ import { useAppSettings, INTEGRATIONS } from "@/app/context/AppSettingsContext";
 import { Switch } from "@/app/components/Switch";
 import { ProfileCard } from "@/app/layout/ProfileCard";
 import { ChangelogModal } from "@/app/components/ChangelogModal";
+import { BannerSettings, LanguageSection, PersonalizationSection, PluginsToolsSection } from "./PersonalizationSections";
+import { errorText } from "@/lib/updater";
+import { isMobileOs } from "@/lib/useIsMobile";
 import { LyricsSettings } from "@/app/features/lyrics/components/LyricsSettings";
 import { SERVICE_CLIENTS, SERVICE_KEYS_STORAGE_KEY, loadServiceKeys, type ServiceKeys } from "@/lib/services/serviceRegistry";
 import { useCustomApis } from "@/lib/services/useCustomApis";
@@ -71,7 +74,11 @@ export function Settings() {
             </button>
           ))}
         </div>
+              <BannerSettings />
       </section>
+
+      <PersonalizationSection />
+      <LanguageSection />
 
       <section className="settings__section">
         <h2>Integrations</h2>
@@ -110,6 +117,7 @@ export function Settings() {
       </section>
       
       {import.meta.env.DEV && <PromotionsSection />} {/* TODO: For production {import.meta.env.DEV && <PromotionsSection />}. For my own: <PromotionsSection /> */}
+      <PluginsToolsSection />
       <UpdatesSection onShowChangelog={() => setChangelogOpen(true)} />
       {changelogOpen && <ChangelogModal onClose={() => setChangelogOpen(false)} />}
     </div>
@@ -205,10 +213,12 @@ function ServiceKeysSection() {
 
   return (
     <section className="settings__section">
-      <h2>Service API keys</h2>
+      <h2>Service API keys</h2>    
       <p>
-        Every service is already wired up — it only needs its key. Paste it here (stored on this device only) or put it in{" "}
-        <code>.env</code>. Never paste a client <em>secret</em> you wouldn't want stored locally.
+        Connect the services you want to use by providing their required API keys.
+        Keys entered here are stored locally on this device. Only enter credentials
+        you trust this app to use, and never provide private client secrets or
+        other sensitive credentials that should remain on a secure server.
       </p>
       <form className="settings__keys" onSubmit={onSave}>
         {KEYED_SERVICES.map((client) => (
@@ -313,7 +323,7 @@ function UpdatesSection({ onShowChangelog }: { onShowChangelog: () => void }) {
       setUpdate(found);
       setStatus(found ? "available" : "up-to-date");
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Couldn't check for updates.");
+      setErrorMessage(errorText(error));
       setStatus("error");
     }
   };
@@ -323,7 +333,7 @@ function UpdatesSection({ onShowChangelog }: { onShowChangelog: () => void }) {
     try {
       await installUpdateAndRelaunch();
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Update failed to install.");
+      setErrorMessage(errorText(error));
       setStatus("error");
     }
   };
@@ -339,8 +349,9 @@ function UpdatesSection({ onShowChangelog }: { onShowChangelog: () => void }) {
       </p>
 
       {!isTauri() && <p className="settings__integration-desc">Update checks only run inside the Tauri app.</p>}
+      {isTauri() && isMobileOs() && <p className="settings__integration-desc">Updates on Android and iOS come from the store or the build you installed.</p>}
 
-      {isTauri() && (
+      {isTauri() && !isMobileOs() && (
         <>
           <button type="button" className="settings__update-btn" onClick={onCheck} disabled={status === "checking" || status === "installing"}>
             {status === "checking" ? "Checking…" : "Check for updates"}
