@@ -8,11 +8,7 @@
   overflow: scroll;
 }
 .edit-meta {
-  width: min(420px, 92vw);
-  padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border-strong);
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -77,3 +73,23 @@
 .edit-meta__actions .edit-meta__save:disabled {
   opacity: 0.6;
 }
+
+.edit-meta textarea { padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); background: var(--color-surface-raised); border: 1px solid var(--color-border); color: var(--color-text); font: inherit; font-size: 13px; resize: vertical; }
+.edit-meta textarea:focus { outline: none; border-color: var(--color-accent); }
+.edit-meta__tabs { display: flex; gap: 2px; padding: 3px; border-radius: var(--radius-md); background: var(--color-surface-raised); }
+.edit-meta__tabs button { flex: 1; padding: 6px 8px; border-radius: var(--radius-sm); font-size: 12px; color: var(--color-text-muted); transition: background var(--duration-fast), color var(--duration-fast); }
+.edit-meta__tabs button[data-active="true"] { background: var(--color-surface); color: var(--color-text); }
+.edit-meta__row { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--space-3); }
+.edit-meta__secondary, .edit-meta__art-actions button { padding: 7px 12px; border-radius: var(--radius-md); font-size: 12px; background: var(--color-surface-raised); color: var(--color-text); transition: background var(--duration-fast); }
+.edit-meta__secondary:hover, .edit-meta__art-actions button:hover { background: var(--color-active); }
+.edit-meta__art { display: flex; flex-direction: column; gap: var(--space-3); }
+.edit-meta__art-preview { width: 180px; aspect-ratio: 1; border-radius: var(--radius-md); overflow: hidden; background: var(--color-surface-raised); display: grid; place-items: center; color: var(--color-text-faint); font-size: 12px; align-self: center; }
+.edit-meta__art-preview img { width: 100%; height: 100%; object-fit: cover; }
+.edit-meta__art-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
+.edit-meta__art-actions small { flex-basis: 100%; font-size: 11px; color: var(--color-text-faint); }
+.edit-meta__candidates { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+.edit-meta__candidates button { aspect-ratio: 1; border-radius: var(--radius-sm); overflow: hidden; transition: transform var(--duration-fast); }
+.edit-meta__candidates button:hover { transform: scale(1.04); }
+.edit-meta__candidates img { width: 100%; height: 100%; object-fit: cover; }
+.edit-meta__busy { margin: 0; font-size: 12px; color: var(--color-text-muted); }
+.edit-meta__lyrics { font-family: ui-monospace, Consolas, monospace !important; font-size: 12px !important; }
