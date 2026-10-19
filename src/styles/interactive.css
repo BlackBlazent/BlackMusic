@@ -32,3 +32,40 @@
 :root .local-page__row[data-selected="true"] {
   background: var(--color-interactive-wash);
 }
+
+/* ======================================================================================================
+   2.2.0 — button motion + state colours (toggle in Settings → Personalization → "Button animations")
+   Hover / press / favourited states with deliberate delays so controls feel responsive but not twitchy.
+   ====================================================================================================== */
+:root {
+  --motion-hover-delay: 30ms;
+  --color-favorite: #ff3b6b;
+  --color-favorite-wash: rgba(255, 59, 107, 0.16);
+}
+
+.app-shell[data-motion="true"] button:not(:disabled),
+.app-shell[data-motion="true"] [role="button"],
+.bm-window button, .bm-popover button, .shelf-card, .dock__item {
+  transition:
+    background-color var(--duration-base, 180ms) var(--ease-standard, ease) var(--motion-hover-delay),
+    color var(--duration-base, 180ms) var(--ease-standard, ease) var(--motion-hover-delay),
+    transform var(--duration-fast, 120ms) var(--ease-standard, ease),
+    box-shadow var(--duration-base, 180ms) var(--ease-standard, ease) var(--motion-hover-delay),
+    opacity var(--duration-base, 180ms) var(--ease-standard, ease);
+}
+.app-shell[data-motion="true"] button:not(:disabled):hover { transform: translateY(-1px); }
+.app-shell[data-motion="true"] button:not(:disabled):active { transform: translateY(0) scale(0.95); transition-delay: 0ms; }
+.app-shell[data-motion="true"] button:not(:disabled):focus-visible { outline: 2px solid var(--color-interactive); outline-offset: 2px; }
+/* Heart / favourited */
+.app-shell button[aria-label*="avorite"][data-active="true"],
+.app-shell button[title*="avorite"][data-active="true"],
+.search-results__track button[data-active="true"] { color: var(--color-favorite); background: var(--color-favorite-wash); }
+.app-shell[data-motion="true"] button[aria-label*="avorite"][data-active="true"] svg { animation: bm-heart-pop 0.35s var(--ease-standard, ease); }
+@keyframes bm-heart-pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+/* Hover colour for every icon button that has no state yet */
+.app-shell button:not(:disabled):not([data-active="true"]):hover { color: var(--color-text); }
+.app-shell[data-motion="false"] *, .app-shell[data-motion="false"] *::before, .app-shell[data-motion="false"] *::after { transition-duration: 0ms !important; animation-duration: 0ms !important; }
+@media (prefers-reduced-motion: reduce) {
+  .app-shell[data-motion="true"] button { transition-duration: 0ms; }
+  .app-shell[data-motion="true"] button:hover, .app-shell[data-motion="true"] button:active { transform: none; }
+}
