@@ -60,8 +60,23 @@
 }
 
 /* ---- 2.1.0: editable start time ---- */
-.seek-bar__time--editable { cursor: text; border-radius: var(--radius-sm); padding: 2px 4px; color: inherit; font: inherit; font-size: 11px; }
+.seek-bar__time--editable { cursor: text; border-radius: var(--radius-sm); padding: 2px 4px; color: inherit; font: none; font-size: 11px; }
 .seek-bar__time--editable:hover:not(:disabled) { background: var(--color-hover); color: var(--color-interactive, var(--color-accent)); }
 .seek-bar__time--input { width: 64px; padding: 2px 6px; text-align: center; background: var(--color-surface-raised); border: 1px solid var(--color-interactive, var(--color-accent)); border-radius: var(--radius-sm); color: var(--color-text); font: inherit; }
 .seek-bar__time--input[data-invalid="true"] { border-color: #ff3b3b; }
 .seek-bar__time--input:focus { outline: none; }
+
+/* ---- 2.2.0: markers + focus zones ---- */
+.seek-bar__marker { position: absolute; top: 50%; width: 10px; height: 18px; margin-left: -5px; transform: translateY(-50%); z-index: 2; background: transparent; }
+.seek-bar__marker::before { content: ""; position: absolute; left: 4px; top: 1px; width: 2px; height: 16px; border-radius: 1px; background: #ffd24a; box-shadow: 0 0 6px rgba(255, 210, 74, 0.8); transition: transform var(--duration-fast); }
+.seek-bar__marker:hover::before { transform: scaleY(1.25) scaleX(1.6); }
+.seek-bar__zone { position: absolute; top: 50%; height: 8px; transform: translateY(-50%); border-radius: 4px; background: color-mix(in srgb, var(--color-accent) 35%, transparent); pointer-events: none; }
+.seek-bar__marker-add { position: relative; }
+.seek-bar__marker-add > button { width: 24px; height: 24px; border-radius: 50%; color: var(--color-text-faint); transition: color var(--duration-fast), background var(--duration-fast); }
+.seek-bar__marker-add > button:hover:not(:disabled) { color: #ffd24a; background: var(--color-hover); }
+.seek-bar__marker-pop { position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 20; width: 230px; display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: var(--radius-md); background: var(--color-surface-sunken); border: 1px solid var(--color-border-strong); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4); }
+.seek-bar__marker-pop small { color: var(--color-text-faint); font-size: 11px; }
+.seek-bar__marker-pop input { height: 28px; padding: 0 8px; border-radius: var(--radius-sm); background: var(--color-surface-raised); border: 1px solid var(--color-border); color: var(--color-text); font-size: 12px; }
+.seek-bar__marker-pop div { display: flex; flex-wrap: wrap; gap: 4px; }
+.seek-bar__marker-pop div button { padding: 3px 8px; border-radius: 999px; background: var(--color-surface-raised); font-size: 11px; color: var(--color-text-muted); }
+.seek-bar__marker-pop div button:hover { color: var(--color-text); background: var(--color-active); }
