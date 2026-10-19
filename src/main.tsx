@@ -3,7 +3,11 @@ import ReactDOM from "react-dom/client";
 import "./styles/tokens.css";
 import "./styles/reset.css";
 import "./styles/interactive.css";
+import "./styles/mobile.css";
 import { isPipWindow } from "@/lib/pip/pipBridge";
+import { installMobileLock } from "@/lib/mobileLock";
+
+if (!isPipWindow()) installMobileLock();
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 
