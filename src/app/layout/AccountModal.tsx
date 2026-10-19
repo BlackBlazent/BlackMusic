@@ -1,11 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { CloseIcon } from "./icons";
-import { SERVICE_AUTH_SCOPES } from "@/lib/services/serviceRegistry";
 import { ProfileCard } from "./ProfileCard";
+import { Modal } from "@/app/overlay/Modal";
 import "./AccountModal.css";
 
-const SPOTIFY_SCOPES = SERVICE_AUTH_SCOPES.spotify;
 
 export function AccountModal({ onClose }: { onClose: () => void }) {
   const { user, configured, loading, error, notice, signInWithEmail, signUpWithEmail, signInWithProvider, signOut } =
@@ -21,8 +20,8 @@ export function AccountModal({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="account-modal__backdrop" onClick={onClose}>
-      <div className="account-modal" onClick={(e) => e.stopPropagation()}>
+    <Modal onClose={onClose}>
+      <div className="account-modal">
         <div className="account-modal__header">
           <h2>Account</h2>
           <button type="button" onClick={onClose} aria-label="Close">
@@ -89,13 +88,13 @@ export function AccountModal({ onClose }: { onClose: () => void }) {
               <button type="button" disabled={!configured} onClick={() => void signInWithProvider("facebook")}>
                 Facebook
               </button>
-              <button type="button" disabled={!configured} onClick={() => void signInWithProvider("spotify", { scopes: SPOTIFY_SCOPES })}>
+              <button type="button" disabled={!configured} onClick={() => void signInWithProvider("spotify")}>
                 Spotify
               </button>
             </div>
           </>
         )}
       </div>
-    </div>
+    </Modal>
   );
 }
