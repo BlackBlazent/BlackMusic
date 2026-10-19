@@ -1,0 +1,77 @@
+/* Layer scale. Chrome (navbar + footer) sits ABOVE draggable windows and modals but BELOW popovers. */
+:root {
+  --z-window: 800;
+  --z-modal: 900;
+  --z-chrome: 1000;
+  --z-popover: 1100;
+  --z-screensaver: 2000;
+  --z-tooltip: 3000;
+}
+
+#bm-overlay-root {
+  /* 2.2.0 fix: this used to be `position: fixed; z-index: 999`, which made the whole overlay root ONE stacking context at 999 —
+     below the top bar / footer (z-index 1000) — so a popover or the mobile search/services panels could never get above them,
+     whatever their own z-index said. Static = each layer below competes in the page's stacking context with its own z-index. */
+  position: static;
+  pointer-events: none; /* the root never blocks the app; children opt back in */
+}
+
+.bm-overlay-layer > * {
+  pointer-events: auto;
+}
+.bm-overlay-layer[data-layer="window"] { position: fixed; inset: 0; z-index: var(--z-window); pointer-events: none; }
+.bm-overlay-layer[data-layer="modal"] { position: fixed; inset: 0; z-index: var(--z-modal); pointer-events: none; }
+.bm-overlay-layer[data-layer="popover"] { position: fixed; inset: 0; z-index: var(--z-popover); pointer-events: none; }
+.bm-overlay-layer[data-layer="screensaver"] { position: fixed; inset: 0; z-index: var(--z-screensaver); pointer-events: none; }
+
+/* Navbar + footer always on the top layer relative to windows/modals. No ancestor creates a stacking context. */
+.topbar,
+.app-footer,
+.mobile-nav {
+  position: relative;
+  z-index: var(--z-chrome);
+}
+
+/* Modal backdrops start below the navbar and end above the footer so those stay reachable. */
+.bm-modal-backdrop {
+  position: fixed;
+  top: var(--topbar-height);
+  bottom: var(--footer-height, 36px);
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  overflow: auto;
+}
+
+/* ---- Floating window ------------------------------------------------------------------ */
+.bm-window {
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  max-width: 96vw;
+  max-height: calc(100vh - var(--topbar-height) - var(--footer-height, 36px));
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+.bm-window[data-dragging="true"] { cursor: grabbing; user-select: none; }
+.bm-window__header {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 8px 6px 12px;
+  cursor: grab; touch-action: none; user-select: none;
+  border-bottom: 1px solid var(--color-border);
+}
+.bm-window__title { flex: 1; min-width: 0; font-size: 12px; font-weight: 600; color: var(--color-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bm-window__header button { width: 24px; height: 24px; display: grid; place-items: center; border-radius: var(--radius-sm); color: var(--color-text-muted); }
+.bm-window__header button:hover { background: var(--color-hover); color: var(--color-text); }
+.bm-window__body { overflow: auto; min-height: 0; }
+
+/* ---- Anchored popover ---- */
+.bm-popover { position: fixed; display: flex; flex-direction: column; border-radius: var(--radius-lg); background: var(--color-surface-sunken); border: 1px solid var(--color-border-strong); box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45); overflow: hidden; animation: bm-pop-in var(--duration-base) var(--ease-standard); }
+.bm-popover__title { padding: 10px 14px 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; color: var(--color-text-muted); }
+.bm-popover__body { padding: 8px 14px 14px; overflow-y: auto; min-height: 0; }
+@keyframes bm-pop-in { from { opacity: 0; transform: translateY(6px) scale(0.98); } to { opacity: 1; transform: none; } }
