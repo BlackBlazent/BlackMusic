@@ -20,7 +20,7 @@
 
 .settings__section h2 {
   margin: 0 0 var(--space-2);
-  font-size: 14px;
+  font-size: 20px; /* TODO: Change to 14px when ready */
   font-weight: 600;
 }
 
