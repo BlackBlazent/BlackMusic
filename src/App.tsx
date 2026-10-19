@@ -14,6 +14,7 @@ import { NotificationsProvider } from "@/app/context/NotificationsContext";
 import { AuthProvider } from "@/app/context/AuthContext";
 import { PlayerUiProvider } from "@/app/context/PlayerUiContext";
 import { PromotionsProvider } from "@/app/context/PromotionsContext";
+import { AudioFxProvider } from "@/app/context/AudioFxContext";
 import { LyricsProvider } from "@/app/features/lyrics/context/LyricsContext";
 import { router } from "@/app/router";
 
@@ -35,7 +36,9 @@ export function App() {
                               <LyricsProvider>
                                 <PromotionsProvider>
                                   <PlayerUiProvider>
-                                    <RouterProvider router={router} />
+                                    <AudioFxProvider>
+                                      <RouterProvider router={router} />
+                                    </AudioFxProvider>
                                   </PlayerUiProvider>
                                 </PromotionsProvider>
                               </LyricsProvider>
