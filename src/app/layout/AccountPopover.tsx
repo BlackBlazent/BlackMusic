@@ -25,15 +25,17 @@ export function AccountPopover({ onClose }: { onClose: () => void }) {
         <ProfileCard user={user} size={44} />
       </div>
 
+      <div className="account-popover__actions">
+        
       <button type="button" className="account-popover__signout" onClick={() => { void signOut(); onClose(); }}>
         Log out
       </button>
-
       {!confirmingDelete ? (
         <button type="button" className="account-popover__delete" onClick={() => setConfirmingDelete(true)}>
           Delete account
         </button>
       ) : (
+        
         <div className="account-popover__confirm">
           <p>This can't be undone.</p>
           <div>
@@ -46,6 +48,7 @@ export function AccountPopover({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       )}
+      </div>
 
       {deleteMessage && <p className="account-popover__delete-note">{deleteMessage}</p>}
     </div>
