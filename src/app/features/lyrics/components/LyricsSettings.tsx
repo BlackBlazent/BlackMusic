@@ -35,6 +35,8 @@ export function LyricsSettings() {
       <label className="lyrics-settings__check"><input type="checkbox" checked={s.autoScroll} onChange={(e) => u({ autoScroll: e.target.checked })} /> Auto-scroll</label>
       <label className="lyrics-settings__check"><input type="checkbox" checked={s.showCurrentLineOnly} onChange={(e) => u({ showCurrentLineOnly: e.target.checked })} /> Show current line only</label>
       <label className="lyrics-settings__check"><input type="checkbox" checked={s.shadow} onChange={(e) => u({ shadow: e.target.checked })} /> Text shadow</label>
+      <label className="lyrics-settings__check"><input type="checkbox" checked={s.karaoke} onChange={(e) => u({ karaoke: e.target.checked })} /> Karaoke mode (word-by-word)</label>
+      <label>Karaoke colour <input type="color" value={s.karaokeColor} onChange={(e) => u({ karaokeColor: e.target.value })} /></label>
       <button type="button" className="lyrics-settings__reset" onClick={resetSettings}>Reset to defaults</button>
     </div>
   );
