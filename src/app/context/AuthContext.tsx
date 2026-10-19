@@ -5,6 +5,7 @@ import { openInSystemBrowser } from "@/lib/services/openInSystemBrowser";
 import { isTauri } from "@/lib/platform";
 import { completeAuthFromUrl } from "@/lib/auth/authCallback";
 import { storeSpotifyProviderTokens } from "@/lib/services/spotifyClient";
+import { SERVICE_AUTH_SCOPES } from "@/lib/services/serviceRegistry";
 import { useNotifications } from "./NotificationsContext";
 
 export type AuthProviderId = "google" | "github" | "facebook" | "spotify";
@@ -41,7 +42,7 @@ interface AuthContextValue {
   error: string | null;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string) => Promise<void>;
-  signInWithProvider: (provider: AuthProviderId, options?: { scopes?: string }) => Promise<void>;
+  signInWithProvider: (provider: AuthProviderId, options?: { scopes?: string; forceConsent?: boolean }) => Promise<void>;
   /** Message shown after a successful email sign-up that still needs confirmation. */
   notice: string | null;
   signOut: () => Promise<void>;
@@ -168,9 +169,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // `skipBrowserRedirect` because there's no in-app browser to redirect —
       // this just returns the provider's authorize URL, which we open in the
       // system browser ourselves (same pattern as Spotify's connect flow).
+      // 2.2.0: signing in with Spotify from the ACCOUNT modal used to request only Spotify's default scopes, so the
+      // later /me/tracks call failed with 403 (insufficient scope). Always ask for the full set for Spotify, and
+      // let a reconnect force Spotify's consent dialog so newly-required scopes are actually granted.
+      const scopes = provider === "spotify" ? options?.scopes ?? SERVICE_AUTH_SCOPES.spotify : options?.scopes;
       const { data, error: authError } = await client.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: SUPABASE_AUTH_REDIRECT, skipBrowserRedirect: true, scopes: options?.scopes },
+        options: {
+          redirectTo: SUPABASE_AUTH_REDIRECT,
+          skipBrowserRedirect: true,
+          scopes,
+          queryParams: provider === "spotify" && options?.forceConsent ? { show_dialog: "true" } : undefined,
+        },
       });
       if (authError) setError(authError.message);
       else if (data.url) await openInSystemBrowser(data.url);
