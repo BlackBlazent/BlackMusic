@@ -6,6 +6,9 @@ task/
 native/
 release/
 bundle/
+temp/
+LICENSE
+REQUIREMENTS_2_2_0.md
 temp.py
 src-tauri/resources/*
 temp/
@@ -16,6 +19,24 @@ dist-ssr/
 vite.config.js
 vite.config.js.timestamp-1791360954293-78970cec9dc6b8.mjs
 vite.config.d.ts
+
+
+# ============================================
+# BlackMusic — Private Android Signing Material
+# ============================================
+
+# Entire local Android signing directory
+/.android-signing/
+
+# Java/Android private keystores
+*.jks
+*.keystore
+
+# Signing credentials and local secret properties
+keystore.properties
+android-signing.properties
+signing.properties
+
 
 # Env
 .env
