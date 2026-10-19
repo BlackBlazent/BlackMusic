@@ -33,10 +33,8 @@
 }
 
 .services-menu__panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  z-index: 150;
+  /* 2.2.0: rendered in the global popover layer (see app/overlay) — position is set inline from the trigger. */
+  position: fixed;
   width: 220px;
   padding: var(--space-2);
   border-radius: var(--radius-md);
@@ -46,7 +44,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 360px;
+  max-height: min(420px, calc(100vh - 140px));
   overflow-y: auto;
 }
 
@@ -94,3 +92,30 @@
   color: var(--color-text-faint);
   flex-shrink: 0;
 }
+
+/* ---- Mobile drawer (slides in from the left, ~half the screen; tap outside / swipe left / X closes it) ---- */
+.services-drawer { position: fixed; inset: 0; }
+.services-drawer__backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); animation: services-fade var(--duration-base) var(--ease-standard); }
+.services-drawer__panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: min(60vw, 300px);
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--safe-top, 0px) + 8px) 8px calc(var(--safe-bottom, 0px) + 8px) calc(var(--safe-left, 0px) + 8px);
+  background: var(--color-surface-sunken);
+  border-right: 1px solid var(--color-border-strong);
+  box-shadow: 12px 0 32px rgba(0, 0, 0, 0.4);
+  animation: services-slide var(--duration-base) var(--ease-standard);
+  touch-action: pan-y;
+}
+.services-drawer__header { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 8px; }
+.services-drawer__header button { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: var(--color-text-muted); }
+.services-drawer__list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; scrollbar-width: none; }
+.services-drawer__list::-webkit-scrollbar { display: none; }
+.services-drawer .services-menu__item { min-height: 48px; font-size: 15px; padding: 8px 10px; }
+@keyframes services-slide { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes services-fade { from { opacity: 0; } to { opacity: 1; } }
