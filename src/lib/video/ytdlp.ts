@@ -1,12 +1,13 @@
 import { isTauri } from "@/lib/platform";
 import { getPreference, setPreference } from "@/lib/preferencesStore";
+import type { Track } from "@/lib/types";
 
 /**
  * Video Mode backend — yt-dlp instead of the YouTube Data API, so there's no API quota.
  * The active local track is turned into a search ("<artist> <title> official music video"),
  * yt-dlp resolves the top result to a video id/url, Playground embeds it, and the same
- * url is handed back to yt-dlp to download. Needs `yt-dlp` on PATH (or the user's PATH
- * equivalent on macOS/Linux/Windows); scoped in capabilities/default.json.
+ * url is handed back to yt-dlp to download. yt-dlp ships WITH the app (bundled sidecar),
+ * so users never install it separately; Settings → Plugins & Tools can update or replace it.
  */
 
 export interface VideoMatch {
@@ -23,10 +24,10 @@ function searchQuery(title: string, artist: string) {
 }
 
 async function runYtDlp(args: string[]) {
-  const { Command } = await import("@tauri-apps/plugin-shell");
-  const out = await Command.create("yt-dlp", args).execute();
-  if (out.code !== 0) throw new Error(out.stderr.trim() || `yt-dlp exited with code ${out.code}`);
-  return out.stdout;
+  // 2.2.0: yt-dlp is bundled (src-tauri/binaries/yt-dlp-<target-triple>) and run from Rust, which also
+  // honours a user-imported executable and falls back to one on PATH — see src-tauri/src/tools.rs.
+  const { ytdlp } = await import("@/lib/tools/ytdlpRunner");
+  return ytdlp(args);
 }
 
 export async function isYtDlpAvailable(): Promise<boolean> {
@@ -82,4 +83,29 @@ export function parseYouTubeId(link: string): string | null {
     /* not a url */
   }
   return null;
+}
+
+/** Key-less YouTube search through the bundled yt-dlp (flat playlist = fast, no per-video extraction). */
+export async function searchYouTubeWithYtDlp(query: string, limit = 25): Promise<Track[]> {
+  const stdout = await runYtDlp([`ytsearch${Math.min(limit, 50)}:${query}`, "--flat-playlist", "--no-warnings", "--print", "%(id)s\t%(title)s\t%(channel)s\t%(duration)s"]);
+  return stdout
+    .trim()
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const [id, title, channel, duration] = line.split("\t");
+      return {
+        id: `youtube:${id}`,
+        path: "",
+        title: title || "Untitled",
+        artist: (channel && channel !== "NA" ? channel : "YouTube").replace(/ - Topic$/, ""),
+        album: "",
+        duration: Number(duration) || 0,
+        sourceUrl: "",
+        artworkUrl: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+        addedAt: Date.now(),
+        provider: "youtube",
+        resolve: { kind: "youtube", videoId: id },
+      } satisfies Track;
+    });
 }
