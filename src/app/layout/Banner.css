@@ -1,0 +1,13 @@
+.app-banner { position: absolute; top: 0; left: 0; right: 0; height: var(--banner-height, 240px); z-index: 0; overflow: hidden; pointer-events: none; }
+.app-banner img, .app-banner video { width: 100%; height: 100%; object-fit: cover; object-position: center 30%; display: block; animation: banner-in 0.6s var(--ease-standard); }
+/* Fade the picture into the theme background (works for dark + light) and dim it for legibility. */
+.app-banner__veil { position: absolute; inset: 0; background: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) calc(var(--banner-dim, 0.35) * 100%), transparent) 0%, color-mix(in srgb, var(--color-bg) 55%, transparent) 55%, var(--color-bg) 100%); }
+@keyframes banner-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* With a banner, chrome that normally paints an opaque background lets it show through (upper area only). */
+.app-shell[data-banner="true"] .topbar { background: transparent; border-bottom-color: transparent; }
+.app-shell[data-banner="true"] .sidebar { background: linear-gradient(to bottom, transparent 0, transparent calc(var(--banner-height, 240px) - 40px), var(--color-surface-raised) var(--banner-height, 240px)); border-right-color: color-mix(in srgb, var(--color-border) 50%, transparent); }
+.app-shell[data-banner="true"] .app-shell__content { background: transparent; }
+.app-shell { position: relative; }
+.app-shell > *:not(.app-banner) { position: relative; z-index: 1; }
+.app-shell__main { z-index: 1; }
