@@ -41,21 +41,6 @@
     "core:window:allow-is-fullscreen",
     "dialog:allow-save",
     {
-      "identifier": "shell:allow-execute",
-      "allow": [
-        {
-          "name": "binaries/open_explorer",
-          "sidecar": true,
-          "args": true
-        },
-        {
-          "name": "yt-dlp",
-          "cmd": "yt-dlp",
-          "args": true
-        }
-      ]
-    },
-    {
       "identifier": "http:default",
       "allow": [
         {
@@ -65,6 +50,32 @@
           "url": "http://*"
         }
       ]
+    },
+    "core:event:default",
+    "core:app:default",
+    "core:window:allow-set-always-on-top",
+    "core:window:allow-set-size",
+    "core:window:allow-set-position",
+    "core:window:allow-is-maximized",
+    "core:window:allow-toggle-maximize",
+    "dialog:default",
+    "fs:allow-copy-file",
+    "fs:allow-remove",
+    "fs:allow-rename",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "binaries/open_explorer",
+          "sidecar": true,
+          "args": true
+        }
+      ]
     }
+  ],
+  "platforms": [
+    "windows",
+    "macOS",
+    "linux"
   ]
 }
