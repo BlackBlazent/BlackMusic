@@ -1,0 +1,11 @@
+{
+  "bundle": {
+    "resources": {
+      "resources/models/*": "models/",
+      "binaries/whisper.dll": "whisper-libs/whisper.dll",
+      "binaries/ggml.dll": "whisper-libs/ggml.dll",
+      "binaries/ggml-base.dll": "whisper-libs/ggml-base.dll",
+      "binaries/ggml-cpu.dll": "whisper-libs/ggml-cpu.dll"
+    }
+  }
+}
