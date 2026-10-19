@@ -14,6 +14,8 @@ import { useNotifications } from "@/app/context/NotificationsContext";
 import type { Promotion } from "@/lib/promotions/types";
 import { SkeletonRows } from "@/app/components/Skeleton";
 import type { Track } from "@/lib/types";
+import { useT } from "@/lib/i18n";
+import { LibraryCards, SmartPlaylists } from "./LibraryTools";
 import "./Library.css";
 
 type View = "all" | "albums" | "artists" | "playlists" | "favorites";
@@ -32,6 +34,7 @@ interface Artist {
 }
 
 export function Library() {
+  const t = useT();
   const { tracks, scanning, ready } = useLibrary();
   const { favoriteIds } = useFavorites();
   const { playTrack } = usePlayback();
@@ -152,7 +155,7 @@ export function Library() {
         <div className="library-page__tabs" role="tablist">
           {(["all", "albums", "artists", "playlists", "favorites"] as View[]).map((v) => (
             <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)}>
-              {v === "all" ? "All music" : v[0].toUpperCase() + v.slice(1)}
+              {t(`library.tab.${v}` as const)}
             </button>
           ))}
         </div>
@@ -162,6 +165,7 @@ export function Library() {
         <SkeletonRows count={6} />
       ) : (
         <>
+          {view === "all" && <LibraryCards />}
           {view === "all" && (
             <AllMusicList
               tracks={tracks}
@@ -220,6 +224,7 @@ export function Library() {
 
           {view === "playlists" && (
             <div className="library-page__playlists">
+              <SmartPlaylists />
               <form className="library-page__new-playlist" onSubmit={onCreatePlaylist}>
                 <input
                   type="text"
