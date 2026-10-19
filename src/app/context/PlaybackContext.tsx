@@ -13,6 +13,7 @@ import { usePlaybackHistory } from "./PlaybackHistoryContext";
 import { useActionHistory } from "./ActionHistoryContext";
 import { useNotifications } from "./NotificationsContext";
 import { createLocalBlobUrl } from "@/lib/library/localAudioSource";
+import { needsResolving, resolveStream } from "@/lib/services/streamResolver";
 import { useLibrary } from "./LibraryContext";
 import { getPreference, setPreference } from "@/lib/preferencesStore";
 import {
@@ -57,6 +58,10 @@ interface PlaybackContextValue {
   cancelSleepTimer: () => void;
   /** Replaces the play queue without changing what's playing (strip reorder/remove). */
   reorderQueue: (next: Track[]) => void;
+  /** 2.2.0: the one shared <audio> engine — the analyser, filters, cutter preview and fader tap into it. */
+  audioElement: HTMLAudioElement | null;
+  /** 2.2.0: multiplies the user's volume (auto-volume, deep-sleep fader, normalizer). 1 = unchanged. */
+  setGainMultiplier: (multiplier: number) => void;
 }
 
 export interface SleepTimerState {
@@ -87,7 +92,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     audioRef.current = new Audio();
   }
 
-  const { recordPlay } = usePlaybackHistory();
+  const { recordPlay, recordSkip } = usePlaybackHistory();
   const { pushAction } = useActionHistory();
   const { push: pushNotification } = useNotifications();
   const { tracks: libraryTracks, ready: libraryReady } = useLibrary();
@@ -237,6 +242,22 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // 2.2.0: YouTube / Last.fm / MusicBrainz / Tidal tracks list music without a stream URL — resolve one first.
+      if (needsResolving(track)) {
+        pushNotification("Finding a stream…", `${track.title} — ${track.artist}`);
+        resolveStream(track)
+          .then(({ url, preview }) => {
+            if (loadRequestIdRef.current !== requestId) return;
+            if (preview) pushNotification("Playing a 30-second preview", "Only a preview of this track was available (install/enable yt-dlp for the full song).");
+            assignAndMaybePlay(url);
+          })
+          .catch((err) => {
+            if (loadRequestIdRef.current !== requestId) return;
+            pushNotification("Couldn't play track", `${track.title}: ${err instanceof Error ? err.message : String(err)}`);
+          });
+        return;
+      }
+
       assignAndMaybePlay(track.sourceUrl);
     },
     [recordPlay, handleSpotifyState, pushNotification],
@@ -351,8 +372,14 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const gainMultiplierRef = useRef(1);
+  const setGainMultiplier = useCallback((m: number) => {
+    gainMultiplierRef.current = Math.min(1, Math.max(0, m));
+    if (audioRef.current) audioRef.current.volume = Math.min(1, Math.max(0, volumeRef.current * gainMultiplierRef.current));
+  }, []);
+
   useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = volume;
+    if (audioRef.current) audioRef.current.volume = Math.min(1, volume * gainMultiplierRef.current);
     if (currentTrackRef.current && isSpotifyTrackId(currentTrackRef.current.id)) {
       void spotifySetVolume(volume);
     }
@@ -407,6 +434,9 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 
   const next = useCallback(() => {
     const previousIndex = currentIndex;
+    // Skipped before the halfway point = a "skip" (feeds Smart Playlists → most skipped).
+    const cur = currentTrackRef.current;
+    if (cur && duration > 0 && position < duration / 2) recordSkip(cur.id);
     const nextIndex = resolveNextIndex(queue, 1);
     if (nextIndex === -1) return;
     loadTrackAt(queue, nextIndex, true);
@@ -415,7 +445,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       do: () => loadTrackAt(queue, nextIndex, true),
       undo: () => loadTrackAt(queue, previousIndex, true),
     });
-  }, [currentIndex, queue, resolveNextIndex, loadTrackAt, pushAction]);
+  }, [currentIndex, queue, resolveNextIndex, loadTrackAt, pushAction, duration, position, recordSkip]);
 
   const previous = useCallback(() => {
     const track = currentTrackRef.current;
@@ -554,6 +584,8 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       startSleepTimer,
       cancelSleepTimer,
       reorderQueue,
+      audioElement: audioRef.current,
+      setGainMultiplier,
     }),
     [
       queue,
@@ -577,6 +609,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       startSleepTimer,
       cancelSleepTimer,
       reorderQueue,
+      setGainMultiplier,
     ],
   );
 
