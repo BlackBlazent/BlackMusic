@@ -1,8 +1,10 @@
 ![Visitors](https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2FBlackBlazent%2FBlackMusic&label=BlackMusic%20Visitors&labelColor=%23090040&countColor=%23B13BFF&style=flat&labelStyle=lower)
 
+<img src="./public/assets/media/images/banner/banner.png" alt="BlackMusic Banner" width="100%"/>
+
 # BlackMusic
 
-**BlackMusic** is a desktop music player for the music you already have, plus the services you already use — in one place, without giving up control of either.
+**BlackMusic** is a music player for Windows, macOS and Linux (with Android and iOS builds from the same code). It plays the music already on your computer and the services you already use, side by side, in one app, and every online feature stays opt-in.
 
 [![Version](https://img.shields.io/github/v/release/BlackBlazent/BlackMusic?display_name=tag\&sort=semver\&label=Version\&labelColor=090040\&color=B13BFF)](https://github.com/BlackBlazent/BlackMusic/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/BlackBlazent/BlackMusic/total?label=GitHub%20Downloads\&labelColor=090040\&color=B13BFF)](https://github.com/BlackBlazent/BlackMusic/releases)
@@ -17,69 +19,80 @@ Get BlackMusic from the following distribution channels:
 [![itch.io](https://img.shields.io/badge/itch.io-Download-B13BFF?logo=itchdotio\&logoColor=white\&labelColor=090040)](https://jednaz-lonestamp.itch.io/blackmusic)
 [![SourceForge](https://img.shields.io/badge/SourceForge-Download-B13BFF?logo=sourceforge\&logoColor=white\&labelColor=090040)](https://sourceforge.net/projects/blackmusic/)
 
-### Store availability
+GitHub Releases is the primary source. **Settings → Updates** checks it and installs new versions in place.
 
-[![Microsoft Store](https://img.shields.io/badge/Microsoft%20Store-Not%20Available-B13BFF?logo=microsoft\&logoColor=white\&labelColor=090040)](#)
-[![Uptodown](https://img.shields.io/badge/Uptodown-Not%20Available-B13BFF?labelColor=090040)](#)
-[![Softonic](https://img.shields.io/badge/Softonic-Not%20Available-B13BFF?labelColor=090040)](#)
-[![Snap Store](https://img.shields.io/badge/Snap%20Store-Not%20Available-B13BFF?logo=microsoft\&logoColor=white\&labelColor=090040)](#)
+## Screenshots
 
-GitHub Releases remain the primary release source for BlackMusic during development and distribution.
+**Desktop**
 
+| Home | Playground |
+|:---:|:---:|
+| <img src="./public/assets/media/images/screenshots/home.png" alt="BlackMusic Home" width="400"> | <img src="./public/assets/media/images/screenshots/playground.png" alt="BlackMusic Playground" width="400"> |
+| **Local Music** | **Online Music** |
+| <img src="./public/assets/media/images/screenshots/local.png" alt="BlackMusic Local" width="400"> | <img src="./public/assets/media/images/screenshots/online.png" alt="BlackMusic Online" width="400"> |
+| **Library** | **Settings** |
+| <img src="./public/assets/media/images/screenshots/library.png" alt="BlackMusic Library" width="400"> | <img src="./public/assets/media/images/screenshots/settings.png" alt="BlackMusic Settings" width="400"> |
 
+**Mobile**
 
-<div align="center">
-
-<img src="https://a.fsdn.com/con/app/proj/blackmusic/screenshots/Slide1-9902ff54.PNG/max/max/1" alt="BlackMusic Library">
-
-</div>
+| Home | Playground |
+|:---:|:---:|
+| <img src="./public/assets/media/images/screenshots/home.jpg" alt="BlackMusic Home" width="400"> | <img src="./public/assets/media/images/screenshots/playground.jpg" alt="BlackMusic Playground" width="400"> |
+| **Local Music** | **Online Music** |
+| <img src="./public/assets/media/images/screenshots/local.jpg" alt="BlackMusic Local" width="400"> | <img src="./public/assets/media/images/screenshots/online.jpg" alt="BlackMusic Online" width="400"> |
+| **Library** | **Settings** |
+| <img src="./public/assets/media/images/screenshots/library.jpg" alt="BlackMusic Library" width="400"> | <img src="./public/assets/media/images/screenshots/settings.jpg" alt="BlackMusic Settings" width="400"> |
 
 ## What it does
 
-* **Plays your own library.** Point it at the folders where your music lives and it stays in sync — add a folder and only that folder gets scanned; nothing gets re-imported every time you open the app.
+* **Plays your own library.** Point it at the folders where your music lives and it keeps them in sync. Adding a folder scans only that folder, and nothing is re-imported each time you open the app. On Android, your device's music folders are discovered automatically.
 
-* **Brings in streaming services alongside your library**, not instead of it. Connect Spotify or Audius from the sidebar logo and switch between "my files" and "my Spotify" without leaving the app or opening a separate player window.
+* **Brings services in alongside your files, not instead of them.** Connect a service from the logo in the sidebar and switch between "my files" and "my Spotify" without leaving the app. Online pages use the same browse layout for every service: shelves of recents, stations, best-of lists and favorite artists.
 
-* **One now-playing bar, everywhere.** Whatever's playing follows you from page to page at the bottom of the window, with a floating shortcut back to the full player.
+* **Searches everywhere from one box.** Plain text searches your library. Prefixes reach further: `@youtube:`, `@online-spotify:` (or any service), `@lastfm:`, `@musicbrainz:`, `@genius:`, and `@page:` to jump to a page.
 
-* **A proper "theater" view** (Playground) for when you want to actually look at what's playing — album art front and center, an optional lyrics overlay, a loop creator for practicing a section of a song on repeat, and a filmstrip of your library to jump between tracks.
+* **Keeps one now-playing bar on every page**, with a shortcut back to the full player.
 
-* **Organizes what you have.** Local, Library (all music / albums / artists / playlists / favorites), and Folders for managing what's available.
+* **Has a full "theater" view (Playground).** Album art, synced and karaoke-style lyrics, a loop creator, timeline markers, focus zones for practicing a section, an audio cutter, visualizers, and sound tools such as a pitch shifter, filters, a volume normalizer and live tempo/key/energy readouts.
 
-* **Stays out of your way by default.** Nothing talks to a third party you haven't explicitly connected — Last.fm (for missing album art) and YouTube are off until you turn them on in Settings.
+* **Makes lyrics work offline.** Lyrics come from public sources when available. When they aren't, BlackMusic can transcribe a local track on your computer with built-in speech recognition (whisper.cpp), with no upload.
 
-## Getting it
+* **Looks after your files.** Edit tags and embedded artwork (title, artist, album, album artist, year, genre, composer, comments, lyrics), fix many tracks at once, and find low-bitrate files and duplicates. Smart playlists fill themselves from rules such as "most skipped" or "never played".
 
-BlackMusic is currently distributed through GitHub Releases and selected external distribution platforms.
+* **Opens files from your system.** Choose "Open with BlackMusic" on supported audio and video files, including several at once.
 
-For developers who want to build BlackMusic from source, see **[DEVELOPMENT.md](DEVELOPMENT.md)** for setup and build instructions, including Windows, macOS, and Linux.
+* **Looks the way you want.** Add a banner photo or video, pin a dock to any screen edge, enable a visualizer screensaver, and choose from English, Deutsch, 日本語, Português (Brasil), English (India), हिन्दी, Français and Español.
 
-Once it's set up, **Settings → Updates** will check GitHub Releases for new versions and install them in place.
+## Platforms
+
+* **Windows, macOS, Linux:** installers are on GitHub Releases.
+* **Android and iOS:** built from the same code. See **[MOBILE.md](MOBILE.md)**. Mobile uses a bottom navigation bar, and desktop-only tools such as the mini player, dock mode and the bundled tools are hidden.
 
 ## Using it
 
-* **Folders** — add the folders on your machine where your music lives. BlackMusic watches them; removing a folder here removes its tracks from the app, not from your disk.
+* **Folders:** add the folders where your music lives. A strip shows the subfolders inside the one you are browsing. Removing a folder removes its tracks from the app, never from your disk.
+* **Local:** every track in your watched folders, sortable and filterable.
+* **Library:** your music by album, artist, playlist or favorites, plus the maintenance tools (bitrate analyzer, duplicate finder, batch tag editor, format converter and more).
+* **Online:** pick a connected service from the sidebar logo and browse its content, or switch to the list view.
+* **Home:** your recent listening, plus "play this week", "play the last 30 days", a highlights timeline and a listening diary.
+* **Playground:** the full-screen player, with tools opening as floating panels so nothing resizes beneath you.
+* **Settings:** appearance and banner, personalization, language, integrations and API keys, plugins and tools, account, and updates.
 
-* **Local** — every track found in your watched folders, sortable and filterable, with pin, sort, and select tools in the corner.
+## Bundled tools
 
-* **Library** — the same music organized by album, by artist, as playlists you build, or just your favorites.
+BlackMusic ships with **yt-dlp** (plays and searches YouTube-based sources) and **whisper.cpp** (offline lyrics). **Settings → Plugins & Tools** lets you update or replace yt-dlp and download or import larger speech models. The format converter additionally needs **ffmpeg**, which is not bundled. Download only content you have the right to download.
 
-* **Online** — pick a connected service from the logo in the top-left of the sidebar; this page shows that service's content. Spotify needs a Premium account to actually play here — that's Spotify's own restriction on their Web Playback SDK, not something BlackMusic adds.
+## Good to know
 
-* **Playground** — the full-screen "now playing" view. Toggle the lyrics overlay, set up a loop section to repeat a part of a song, drop in a link to embed something, and adjust playback speed.
+* **Spotify playback needs Spotify Premium.** Free accounts can sign in but cannot use Spotify's Web Playback SDK. That restriction is Spotify's, not BlackMusic's. Apps in Spotify's development mode also only serve accounts on the app's allow-list.
+* **Some services list music without streaming it** (Last.fm, MusicBrainz, Tidal). BlackMusic finds a playable source when you click a track. If only a short preview exists, it says so.
+* **Third-party services are opt-in.** Nothing you play is sent to a service you haven't connected or used. YouTube, Last.fm, MusicBrainz and Genius only make requests when you search them, play from them or enable them in Settings. MusicBrainz needs no key. Last.fm and Genius use free keys you provide.
+* **File associations register BlackMusic as an option, not as your default.** You choose the default app in your system settings.
 
-* **Settings** — theme, per-integration on/off switches, account, and update checks.
+## Building from source
 
-## A couple of things worth knowing
-
-* **Spotify playback requires Spotify Premium.** Free accounts can authorize the app but can't use the Web Playback SDK that makes in-app playback possible — this is Spotify's restriction.
-
-* **Video Mode and downloading from YouTube aren't implemented.** Downloading video off YouTube outside their official API sits in a legal gray area around their Terms of Service, so rather than quietly build it in, it's left as an open question for you to decide on — see **DEVELOPMENT.md**.
-
-* **Third-party services are opt-in.** Nothing about how you use BlackMusic is sent to third-party services unless you explicitly connect or enable a supported integration.
+See **[DEVELOPMENT.md](DEVELOPMENT.md)** for setup and build instructions on Windows, macOS and Linux, and **[MOBILE.md](MOBILE.md)** for Android and iOS.
 
 ## License
 
-BlackMusic is released under the **MIT License**.
-
-See the [LICENSE](LICENSE) file for the complete terms.
+BlackMusic is released under the **BlackBlazent License**. See the [LICENSE](LICENSE) file for the complete terms.
