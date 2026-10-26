@@ -41,7 +41,7 @@ jobs:
           VITE_LASTFM_API_KEY: ${{ secrets.VITE_LASTFM_API_KEY }}
           VITE_GENIUS_ACCESS_TOKEN: ${{ secrets.VITE_GENIUS_ACCESS_TOKEN }}
         run: pnpm tauri ios build --export-method debugging
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: blackmusic-ios
           path: src-tauri/gen/apple/build/**/*.ipa
@@ -79,7 +79,7 @@ jobs:
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/26.1.10909125
         run: pnpm tauri android build --apk
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: blackmusic-android
           path: src-tauri/gen/android/app/build/outputs/**/*.apk
