@@ -189,7 +189,7 @@ on (or in CI for) each target platform separately.
 4. `pnpm tauri:build` -- outputs a `.deb`, `.rpm`, and/or an `.AppImage` depending on what's
    available on your system, under `src-tauri/target/release/bundle/`.
 
-### Building from Windows for Mac/Linux
+### Building from Windows for Mac/Linux & vice versa
 
 You can't, directly -- Tauri builds a native binary for the OS it's running on. The standard way
 around this is CI: a GitHub Actions workflow with a job per OS (`windows-latest`, `macos-latest`,
@@ -350,3 +350,13 @@ concrete bug fixes worth knowing about if something seems off:
 - **i18n:** add keys to `src/lib/i18n/locales/en.ts` first; other languages fall back per key.
 - **Mobile:** see `MOBILE.md`. **Release:** tag `vX.Y.Z` → `.github/workflows/release.yml` (builds Windows too; non-draft so `latest.json` is reachable).
 - **Status vs spec:** `REQUIREMENTS_2_2_0.md`.
+
+## 3.0.0 additions
+
+- **Sync (optional):** `src/lib/sync/` (engine, fingerprints, transfer policy, device-to-device transfer) + `supabase/migrations/20261028000000_blackmusic_sync.sql`. Set-up: [docs/SYNC_SETUP.md](docs/SYNC_SETUP.md).
+- **Same-Wi-Fi Meet Room:** `src-tauri/src/lan_room.rs` is a tiny WebSocket relay written with the standard library only. `cargo test` in `src-tauri/` checks the handshake and framing.
+- **Mobile native add-ons (FFmpeg, whisper.cpp):** `scripts/native-addons.mjs`, bridge in `scripts/android/NativeBridge.kt.tpl`, guide in [docs/MOBILE_NATIVE.md](docs/MOBILE_NATIVE.md).
+- **Compile-time platform separation:** `yt-dlp` and the desktop FFmpeg runner (`ytdlp_run`, `ytdlp_update`, `ffmpeg_run` in `src-tauri/src/tools.rs`) are `#[cfg(not(any(target_os = "android", target_os = "ios")))]`; mobile builds contain only a stub that returns a clear message.
+- **Release signing:** `.github/workflows/release.yml` signs Windows and macOS when the secrets listed at the top of the job exist; without them the build is unsigned and the log says so. This is separate from the updater key (`TAURI_SIGNING_PRIVATE_KEY`).
+- **README artwork:** `node scripts/generate-readme-assets.mjs` rewrites `docs/assets/banners` and `docs/assets/icons`.
+- **Status of every 3.0.0 item(Undisclosed):** [REQUIREMENTS_3_0_0.md](REQUIREMENTS_3_0_0.md).
