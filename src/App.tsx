@@ -9,6 +9,7 @@ import { FavoritesProvider } from "@/app/context/FavoritesContext";
 import { PlaylistsProvider } from "@/app/context/PlaylistsContext";
 import { PlaybackHistoryProvider } from "@/app/context/PlaybackHistoryContext";
 import { PlaybackProvider } from "@/app/context/PlaybackContext";
+import { LiveSessionProvider } from "@/app/context/LiveSessionContext";
 import { ServicesProvider } from "@/app/context/ServicesContext";
 import { NotificationsProvider } from "@/app/context/NotificationsContext";
 import { AuthProvider } from "@/app/context/AuthContext";
@@ -33,6 +34,7 @@ export function App() {
                         <PlaylistsProvider>
                           <PlaybackHistoryProvider>
                             <PlaybackProvider>
+                              <LiveSessionProvider>
                               <LyricsProvider>
                                 <PromotionsProvider>
                                   <PlayerUiProvider>
@@ -42,6 +44,7 @@ export function App() {
                                   </PlayerUiProvider>
                                 </PromotionsProvider>
                               </LyricsProvider>
+                              </LiveSessionProvider>
                             </PlaybackProvider>
                           </PlaybackHistoryProvider>
                         </PlaylistsProvider>
