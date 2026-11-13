@@ -11,6 +11,7 @@ import type { Promotion } from "@/lib/promotions/types";
 import { useManualPromotions } from "@/app/context/PromotionsContext";
 import { PromotionRailItem } from "@/app/components/Promotion";
 import { CoverBattle, ListeningDiary, MemoryHighlights, PlayWindowCard } from "./HomeExtras";
+import { BadgesSection, CountriesSection } from "./BadgesAndCountries";
 import "./Home.css";
 
 export function Home() {
@@ -82,6 +83,9 @@ export function Home() {
         promotion={promoFor(2)}
         promotionAt={0}
       />
+      {/* Confirmed order: Badges → Countries → Memory Highlights */}
+      <BadgesSection />
+      <CountriesSection />
       <MemoryHighlights />
       <ListeningDiary />
       <CoverBattle />
