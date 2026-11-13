@@ -1,0 +1,31 @@
+/* FEAT-04 — progress bar animations. The wrapper carries data-seek-anim and --seek-progress. */
+[data-seek-anim]:not([data-seek-anim="classic"]) { position: relative; }
+[data-seek-anim]:not([data-seek-anim="classic"])::after {
+  content: ""; position: absolute; left: 0; top: 50%; width: var(--seek-progress, 0%); pointer-events: none; transform: translateY(-50%);
+  background: var(--color-accent); border-radius: 999px;
+}
+[data-seek-anim="wavy"] input[type="range"], [data-seek-anim="zigzag"] input[type="range"] { background: var(--color-surface-raised) !important; }
+
+[data-seek-anim="wavy"]::after {
+  height: 12px; border-radius: 0;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12' viewBox='0 0 24 12'%3E%3Cpath d='M0 6 Q6 0 12 6 T24 6' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x 0 0 / 24px 12px;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='12' viewBox='0 0 24 12'%3E%3Cpath d='M0 6 Q6 0 12 6 T24 6' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") repeat-x 0 0 / 24px 12px;
+  animation: seek-wave 1s linear infinite;
+}
+[data-seek-anim="zigzag"]::after {
+  height: 12px; border-radius: 0;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='12' viewBox='0 0 16 12'%3E%3Cpath d='M0 10 L4 2 L12 10 L16 2' fill='none' stroke='black' stroke-width='2.5' stroke-linejoin='miter'/%3E%3C/svg%3E") repeat-x 0 0 / 16px 12px;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='12' viewBox='0 0 16 12'%3E%3Cpath d='M0 10 L4 2 L12 10 L16 2' fill='none' stroke='black' stroke-width='2.5' stroke-linejoin='miter'/%3E%3C/svg%3E") repeat-x 0 0 / 16px 12px;
+  animation: seek-zig 0.8s linear infinite;
+}
+[data-seek-anim="flash"]::after { height: 6px; box-shadow: 0 0 10px var(--color-accent); animation: seek-flash 0.9s ease-in-out infinite; }
+[data-seek-anim="dissolve"]::after {
+  height: 6px; background: linear-gradient(90deg, var(--color-accent), transparent 92%);
+  -webkit-mask: linear-gradient(90deg, #000 40%, transparent); mask: linear-gradient(90deg, #000 40%, transparent);
+  animation: seek-dissolve 2.2s ease-in-out infinite;
+}
+@keyframes seek-wave { to { -webkit-mask-position: 24px 0; mask-position: 24px 0; } }
+@keyframes seek-zig { to { -webkit-mask-position: 16px 0; mask-position: 16px 0; } }
+@keyframes seek-flash { 0%, 100% { opacity: 1; filter: brightness(1.5); } 50% { opacity: 0.45; filter: brightness(0.9); } }
+@keyframes seek-dissolve { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { [data-seek-anim]::after { animation: none !important; } }
