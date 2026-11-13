@@ -1,0 +1,11 @@
+{
+  "id": "com.blackblazent.blackmusic",
+  "version": "3.0.0",
+  "vendor": "BlackBlazent",
+  "type": "web",
+  "main": "index.html",
+  "title": "BlackMusic",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "resolution": "1920x1080"
+}
