@@ -1,0 +1,14 @@
+{
+  "name": "blackmusic-apple-tv",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Isolated Apple TV (tvOS) add-on. Shares logic with ../src through Metro aliasing; the main Tauri/Vite project is untouched.",
+  "scripts": {
+    "start": "react-native start",
+    "tvos": "react-native run-ios --scheme BlackMusicTV-tvOS --simulator 'Apple TV'"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-native": "npm:react-native-tvos@latest"
+  }
+}
