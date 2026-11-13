@@ -154,7 +154,8 @@ function distortionCurve(amount: number): Float32Array {
 
 /** Local (blob:) or same-origin sources only — cross-origin streams would go silent when routed. */
 export function canRouteThroughGraph(audio: HTMLAudioElement): boolean {
-  return audio.src.startsWith("blob:") || audio.src.startsWith("asset:") || audio.src.startsWith(window.location.origin) || audio.src === "";
+  // return audio.src.startsWith("blob:") || audio.src.startsWith("asset:") || audio.src.startsWith(window.location.origin) || audio.src === "";
+  return audio.src.startsWith("blob:") || audio.src.startsWith("asset:") || audio.src.startsWith(window.location.origin);
 }
 
 /**
@@ -200,7 +201,14 @@ export interface EffectSettings {
   normalizeGain: number;
   /** Pitch shift in semitones (−12…+12) WITHOUT changing playback speed. */
   pitchSemitones?: number;
+  /** Graphic EQ gains (dB), see EQ_BANDS. Omitted/flat = no EQ nodes. */
+  eq?: number[];
 }
+
+/** 3.0.0 (FEAT-03b) — 10-band graphic equalizer. Gains in dB (−12…+12), one per EQ_BANDS frequency. */
+export const EQ_BANDS = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000] as const;
+export const EQ_FLAT: number[] = EQ_BANDS.map(() => 0);
+export const eqIsFlat = (g?: number[]) => !g || g.every((v) => Math.abs(v) < 0.05);
 
 // ---- pitch shifter: granular two-tap delay-line (AudioWorklet), pitch changes while speed stays put ----------
 const PITCH_WORKLET = `
@@ -281,7 +289,7 @@ export function bypassEffects(): void {
  *  so a broken effect can never leave the player silent. */
 export function applyEffects(settings: EffectSettings): ApplyResult {
   if (!routed || !effectIn || !effectOut || !taps) return { ok: false, error: "Audio effects aren't active yet." };
-  const noEffects = !Object.values(settings.filters).some(Boolean) && !settings.pitchSemitones && settings.normalizeGain === 1;
+  const noEffects = !Object.values(settings.filters).some(Boolean) && !settings.pitchSemitones && settings.normalizeGain === 1 && eqIsFlat(settings.eq);
   if (noEffects) {
     bypassEffects();
     return { ok: true };
@@ -317,9 +325,22 @@ function buildChain(settings: EffectSettings): void {
     tail = node;
   };
 
+  if (!eqIsFlat(settings.eq)) {
+    EQ_BANDS.forEach((freq, i) => {
+      const gain = settings.eq?.[i] ?? 0;
+      if (Math.abs(gain) < 0.05) return; // untouched band: no node
+      const band = ctx.createBiquadFilter();
+      band.type = i === 0 ? "lowshelf" : i === EQ_BANDS.length - 1 ? "highshelf" : "peaking";
+      band.frequency.value = freq;
+      band.Q.value = 1.1;
+      band.gain.value = Math.max(-12, Math.min(12, gain));
+      add(band);
+    });
+  }
   if (settings.filters.distortion) {
     const shaper = ctx.createWaveShaper();
     shaper.curve = distortionCurve(60) as unknown as Float32Array<ArrayBuffer>;
+    // shaper.curve = distortionCurve(60);
     shaper.oversample = "4x";
     add(shaper);
   }
@@ -333,6 +354,7 @@ function buildChain(settings: EffectSettings): void {
       curve[i] = Math.round(x * levels) / levels;
     }
     crusher.curve = curve as unknown as Float32Array<ArrayBuffer>;
+    //crusher.curve = curve;
     const lp = ctx.createBiquadFilter();
     lp.type = "lowpass";
     lp.frequency.value = 4800;
