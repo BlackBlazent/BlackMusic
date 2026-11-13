@@ -50,6 +50,18 @@ export function useMediaSession(): void {
       }
     };
     window.__bmMedia = run; // Android bridge → app
+    // FIX-02 (iOS, and any native shell): the OS tells us another app / a call took the audio ("began") and gave it back ("ended").
+    // Pause when it begins; resume only if WE were playing and the system says resuming is appropriate. Permanent loss: stay paused.
+    let resumeAfter = false;
+    window.__bmInterruption = (phase, shouldResume) => {
+      const c = live.current;
+      if (phase === "began") {
+        if (c.isPlaying) { resumeAfter = true; c.togglePlay(); }
+      } else {
+        if (resumeAfter && shouldResume && !c.isPlaying) c.togglePlay();
+        resumeAfter = false;
+      }
+    };
 
     const ms = "mediaSession" in navigator ? navigator.mediaSession : null;
     const set = (name: MediaSessionAction, handler: MediaSessionActionHandler | null) => {
@@ -65,6 +77,7 @@ export function useMediaSession(): void {
     set("seekbackward", (d) => run("seekbackward", d.seekOffset));
     return () => {
       delete window.__bmMedia;
+      delete window.__bmInterruption;
       for (const a of ["play", "pause", "stop", "previoustrack", "nexttrack", "seekto", "seekforward", "seekbackward"] as MediaSessionAction[]) set(a, null);
     };
   }, []);
