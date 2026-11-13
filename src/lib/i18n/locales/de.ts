@@ -78,4 +78,5 @@ export const de: Catalog = {
   "online.list": "Liste",
   "folder.subfolders": "Unterordner",
   "playground.nothing": "Nichts wird abgespielt",
+  "library.tab.country": "Land"
 };
