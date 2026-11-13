@@ -78,4 +78,5 @@ export const fr: Catalog = {
   "online.list": "Liste",
   "folder.subfolders": "Sous-dossiers",
   "playground.nothing": "Rien en lecture",
+  "library.tab.country": "Pays"
 };
