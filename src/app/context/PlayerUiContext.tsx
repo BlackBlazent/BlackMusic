@@ -116,7 +116,7 @@ export function PlayerUiProvider({ children }: { children: ReactNode }) {
       videoMode,
       setVideoMode: (on) => {
         setVideoMode(on);
-        if (on) push("Video Mode on", "Fetching the official video for the active track with yt-dlp.");
+        if (on) push("Video Mode on", "Fetching the official video for the active track.");
       },
       video,
       videoStatus,
