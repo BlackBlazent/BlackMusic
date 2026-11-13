@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
 import type { Track } from "@/lib/types";
 import type { Playlist } from "@/app/context/PlaylistsContext";
 import { EditIcon, FolderIcon, PinIcon, PlaygroundIcon, TrashIcon } from "@/app/layout/icons";
@@ -24,6 +24,7 @@ export function QueueStrip({
   onEdit,
   onRemove,
   onMove,
+  onOpenQueue,
 }: {
   tracks: Track[];
   currentTrackId?: string;
@@ -38,6 +39,8 @@ export function QueueStrip({
   onEdit: (track: Track) => void;
   onRemove: (track: Track) => void;
   onMove: (dragId: string, targetId: string) => void;
+  /** IMP-04: opens the full-queue floating window. */
+  onOpenQueue?: () => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [dragId, setDragId] = useState<string | null>(null);
@@ -50,6 +53,13 @@ export function QueueStrip({
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", id);
   };
+
+  // IMP-04: keep the playing song in view. With 1,000 songs the strip used to sit at item 1 while song 200 played.
+  useEffect(() => {
+    if (!currentTrackId) return;
+    const el = scrollRef.current?.querySelector<HTMLElement>('.queue-strip__item[data-active="true"]');
+    el?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [currentTrackId, tracks.length]);
 
   if (tracks.length === 0 && folders.length === 0 && !openFolder) return null;
 
@@ -140,6 +150,11 @@ export function QueueStrip({
       <button type="button" className="queue-strip__nav" onClick={() => scrollBy(320)} aria-label="Scroll right">
         ›
       </button>
+      {onOpenQueue && (
+        <button type="button" className="queue-strip__nav queue-strip__expand" onClick={onOpenQueue} aria-label="Open the full queue" title="Open the full queue">
+          ⤢
+        </button>
+      )}
     </div>
   );
 }
