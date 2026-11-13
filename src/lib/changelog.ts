@@ -19,22 +19,21 @@ export const CHANGELOG_2_1_0: { version: string; sections: ChangelogSection[] } 
     {
       heading: "New in Playground",
       items: [
-      `Video Mode (official video via yt-dlp) with download to your Downloads folder.
-      
-      Note: Video Mode uses yt-dlp. If yt-dlp is not already installed:
-      
-      1. Download and install the latest version of Python from https://www.python.org/. During installation, enable "Add Python to PATH".
-      2. Download the Raven yt-dlp Installer: https://github.com/BlackBlazent/BlackMusic/blob/main/scripts/raven_ytdl_installer.py
-      3. Run the script. It will automatically install or update yt-dlp to the latest available version.
-      4. Restart BlackMusic after installation.`,
-      
+        `Video Mode (official video via yt-dlp) with download to your Downloads folder.
+
+Note: Video Mode uses yt-dlp. If yt-dlp is not already installed:
+
+1. Download and install the latest version of Python from https://www.python.org/. During installation, enable "Add Python to PATH".
+2. Download the Raven yt-dlp Installer: https://github.com/BlackBlazent/BlackMusic/blob/main/scripts/raven_ytdl_installer.py
+3. Run the script. It will automatically install or update yt-dlp to the latest available version.
+4. Restart BlackMusic after installation.`,
         "Click the start time to type a position (e.g. 2:30) and jump there.",
         "Picture-in-Picture mini player, Ambient mode, Sleep timer (10m–1h by whole songs).",
         "Genius-powered lyric lookup, saved locally, with a styleable overlay.",
         "Draggable, minimizable link window.",
         "Playlists appear as folders in the queue strip; pin (up to 10), drag to reorder, edit metadata, remove.",
         "Fullscreen controls (Back, previous/next) and crop: fit, 1×1, 4×3, 16×9.",
-],
+      ],
     },
     {
       heading: "Local & Library",
@@ -110,4 +109,76 @@ export const CHANGELOG_2_2_0: { version: string; sections: ChangelogSection[] } 
   ],
 };
 
-export const LATEST_CHANGELOG = CHANGELOG_2_2_0;
+export const CHANGELOG_3_0_0: { version: string; sections: ChangelogSection[] } = {
+  version: "3.0.0",
+  sections: [
+    {
+      heading: "Fixes",
+      items: [
+        "Cover Battle is more reliable, with clearer error messages and fewer interruptions when a cover cannot be found.",
+        "Music playback behaves better when Android audio focus changes, such as when another app needs audio.",
+        "Android folder browsing works better with SD cards, including clearer explanations when some folders cannot be accessed.",
+        "Playback controls in notifications respond faster.",
+        "Signing in on mobile now returns you to BlackMusic more reliably.",
+        "Library imports are faster.",
+      ],
+    },
+    {
+      heading: "Home & personalization",
+      items: [
+        "Discover listening badges, country highlights and interactive Memory Highlights, with options to play all or choose individual songs.",
+        "Listening Diary now lets you replay a day, discover similar music and explore recommendations based on your mood.",
+        "Settings are easier to browse with search, grouped sections and dedicated detail pages.",
+        "The app now provides clearer error messages and recovery options instead of leaving blank screens when something goes wrong.",
+      ],
+    },
+    {
+      heading: "Playground & playback",
+      items: [
+        "Enjoy clearer playback controls and active-state indicators.",
+        "Use the improved queue strip and open the full queue in a floating window.",
+        "Lyrics upload and an Equalizer window with presets are available.",
+      ],
+    },
+    {
+      heading: "Library & music tools",
+      items: [
+        "Use Batch Tag Editor and File Organizer on mobile.",
+        "Format Converter is available on mobile when its optional add-on is installed.",
+        "The Library Create button stays within reach while browsing.",
+        "Generate thumbnails and explore music by country and mood.",
+        "Back up and restore your music data, with support for JSON, M3U8 and CSV files.",
+        "Browse genre cards and move through large libraries more easily with A–Z, Number and Symbol tabs and mini search.",
+      ],
+    },
+    {
+      heading: "Discovery, listening & sharing",
+      items: [
+        "Explore music by country and use expanded discovery views, including Browse, Map, Milestones, Graph and List.",
+        "Meet Room and Session Share let you enjoy listening sessions with others online or on the same Wi-Fi network. Each person plays their own copy of the song.",
+        "Transfer music and other supported content directly between devices.",
+        "Sync features are available after the required account setup is completed.",
+      ],
+    },
+    {
+      heading: "Mobile & TV",
+      items: [
+        "Android now includes a home-screen music widget.",
+        "Android TV supports remote-control navigation.",
+        "A webOS build option is available.",
+        "Apple TV support is still in development; the current release includes an initial setup foundation rather than a complete Apple TV app.",
+        "Mobile versions have clearer information when optional audio tools are unavailable.",
+      ],
+    },
+    {
+      heading: "What's next & setup notes",
+      items: [
+        "Some optional mobile audio tools require additional components to be installed before they can be used.",
+        "The app and its documentation have been refreshed, including updated getting-started and development guides.",
+        "New interface text is currently in English; other languages fall back to English.",
+      ],
+    },
+  ],
+};
+
+export const LATEST_CHANGELOG = CHANGELOG_3_0_0;
