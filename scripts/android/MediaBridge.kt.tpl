@@ -19,6 +19,7 @@ class MediaBridge(private val context: Context) {
         MediaHub.playing = playing
         MediaHub.positionMs = positionMs
         MediaHub.durationMs = durationMs
+        MediaHub.syncFocus(context) // FIX-02: audio focus follows the play state
         if (artwork != lastArtwork) {
             lastArtwork = artwork
             // Library thumbnails arrive as data: URLs; remote http(s) artwork is skipped (no network work on the bridge thread).
