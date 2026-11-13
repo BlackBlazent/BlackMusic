@@ -12,9 +12,10 @@
  *     notification-shade / lock-screen playback card, plus the `window.BlackMusicMedia` bridge used by src/lib/mediaSession.ts.
  * Idempotent: running it twice changes nothing.
  */
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { installNativeAddons } from "./native-addons.mjs";
 
 const root = join(process.cwd(), "src-tauri", "gen", "android", "app", "src", "main");
 const manifestPath = join(root, "AndroidManifest.xml");
@@ -38,6 +39,25 @@ for (const p of perms) {
   if (!manifest.includes(`android:name="${name}"`)) {
     manifest = manifest.replace(/<application/, `<uses-permission android:name="${p}" />\n    <application`);
   }
+}
+
+// FIX-05 (3.0.0) — OAuth return path. Supabase answers the provider login with `302 -> blackmusic://auth/callback?code=...`.
+// Without a BROWSABLE intent filter for that scheme Android has nothing to hand the link to, so Chrome just shows the
+// raw "<a href=blackmusic://auth/callback?...>Found</a>" body and the user is never signed in.
+const authFilter = `
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="blackmusic" android:host="auth" android:pathPrefix="/callback" />
+                <data android:scheme="blackmusic" android:host="spotify" android:pathPrefix="/callback" />
+            </intent-filter>`;
+if (!manifest.includes('android:scheme="blackmusic"')) {
+  manifest = manifest.replace(/(<activity[\s\S]*?android:name="\.MainActivity"[\s\S]*?>)/, `$1${authFilter}`);
+}
+// One MainActivity instance, so a callback link re-uses the running app (and its stored PKCE verifier) instead of starting a second one.
+if (!/android:launchMode=/.test(manifest)) {
+  manifest = manifest.replace(/(<activity[^>]*android:name="\.MainActivity")/, '$1 android:launchMode="singleTask"');
 }
 
 const filters = `
@@ -112,22 +132,103 @@ if (kt) {
       super.onWebViewCreate(webView)
       MediaHub.webView = webView
       webView.addJavascriptInterface(MediaBridge(applicationContext), "BlackMusicMedia")
+      webView.addJavascriptInterface(NativeBridge(applicationContext) { MediaHub.webView }, "BMNative")
+      webView.addJavascriptInterface(StorageBridge(this) { MediaHub.webView }, "BMStorage")
     }
 `;
     const lastBrace = src.lastIndexOf("}");
     src = src.slice(0, lastBrace) + hook + src.slice(lastBrace);
     changed = true;
   }
+  
+  /*
+  // Projects patched by an older run: add the BMNative line once.
+  if (pkg && src.includes("BLACKMUSIC_MEDIA_BRIDGE") && !src.includes('"BMNative"')) {
+    src = src.replace(/(webView\.addJavascriptInterface\(MediaBridge\(applicationContext\), "BlackMusicMedia"\))/, '$1\n      webView.addJavascriptInterface(NativeBridge(applicationContext) { MediaHub.webView }, "BMNative")');
+    changed = true;
+  }
+  if (changed) writeFileSync(kt, src);
+  */
+
+   // Projects patched by an older run: add the BMNative line once.
+  if (pkg && src.includes("BLACKMUSIC_MEDIA_BRIDGE") && !src.includes('"BMNative"')) {
+    src = src.replace(/(webView\.addJavascriptInterface\(MediaBridge\(applicationContext\), "BlackMusicMedia"\))/, '$1\n      webView.addJavascriptInterface(NativeBridge(applicationContext) { MediaHub.webView }, "BMNative")');
+    changed = true;
+  }
+
+  // FIX-03: Add StorageBridge to previously initialized Android projects.
+  if (pkg && src.includes("BLACKMUSIC_MEDIA_BRIDGE") && !src.includes('"BMStorage"')) {
+    src = src.replace(
+      /(webView\.addJavascriptInterface\(NativeBridge\(applicationContext\) \{ MediaHub\.webView \}, "BMNative"\))/,
+      '$1\n      webView.addJavascriptInterface(StorageBridge(this) { MediaHub.webView }, "BMStorage")'
+    );
+    changed = true;
+  }
+
+  // FIX-03: Forward Android's file-write permission result to StorageBridge.
+  // BLACKMUSIC_STORAGE_BRIDGE — forwards the MediaStore write-grant result to StorageBridge.
+  if (pkg && !src.includes("BLACKMUSIC_STORAGE_BRIDGE")) {
+    const hook = `
+    // BLACKMUSIC_STORAGE_BRIDGE
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: android.content.Intent?) {
+      super.onActivityResult(requestCode, resultCode, data)
+      // StorageBridge.onActivityResult(requestCode, resultCode)
+      StorageBridge.onActivityResult(requestCode, resultCode, data)
+    }
+`;
+    const lastBrace = src.lastIndexOf("}");
+    src = src.slice(0, lastBrace) + hook + src.slice(lastBrace);
+    changed = true;
+  }
+
+  // Projects patched before the folder picker existed: pass the result Intent through as well.
+if (src.includes("StorageBridge.onActivityResult(requestCode, resultCode)")) {
+  src = src.replace(
+    "StorageBridge.onActivityResult(requestCode, resultCode)",
+    "StorageBridge.onActivityResult(requestCode, resultCode, data)"
+  );
+  changed = true;
+}
+
   if (changed) writeFileSync(kt, src);
 
   if (pkg) {
     const templates = join(dirname(fileURLToPath(import.meta.url)), "android");
     const outDir = dirname(kt);
-    for (const name of ["MediaHub", "MediaBridge", "MediaPlaybackService", "MediaActionReceiver"]) {
+    // for (const name of ["MediaHub", "MediaBridge", "MediaPlaybackService", "MediaActionReceiver", "BlackMusicWidget"]) 
+    for (const name of ["MediaHub", "MediaBridge", "MediaPlaybackService", "MediaActionReceiver", "BlackMusicWidget", "StorageBridge"]) {
       const body = readFileSync(join(templates, `${name}.kt.tpl`), "utf8").replaceAll("__PKG__", pkg);
       writeFileSync(join(outDir, `${name}.kt`), body);
     }
+    installNativeAddons({ pkg, srcMain: root, appDir: join(root, "..", ".."), javaDir: outDir });
     let m = readFileSync(manifestPath, "utf8");
+    // FEAT-10: home-screen widget receiver
+    if (!m.includes(".BlackMusicWidget")) {
+      m = m.replace(/<\/application>/, `    <receiver android:name=".BlackMusicWidget" android:exported="false" android:label="BlackMusic">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/bm_widget_info" />
+        </receiver>
+    </application>`);
+      writeFileSync(manifestPath, m);
+    }
+    // FEAT-03c: same-Wi-Fi rooms talk plain ws:// to a computer on the local network (an IP address cannot have a certificate).
+    if (!m.includes("usesCleartextTraffic")) {
+      m = m.replace(/<application/, '<application android:usesCleartextTraffic="true"');
+      writeFileSync(manifestPath, m);
+    }
+    // FEAT-15: Android TV — no touchscreen required, appears in the Leanback launcher; a phone is unaffected.
+    if (!m.includes("android.software.leanback")) {
+      m = m.replace(/<application/, `<uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <application`);
+      m = m.replace(/(<activity[\s\S]*?android:name="\.MainActivity"[\s\S]*?>)/, `$1
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>`);
+      if (!m.includes("android:banner=")) m = m.replace(/<application/, '<application android:banner="@mipmap/ic_launcher"');
+      writeFileSync(manifestPath, m);
+    }
     if (!m.includes(".MediaPlaybackService")) {
       m = m.replace(/<\/application>/, `    <service android:name=".MediaPlaybackService" android:exported="false" android:foregroundServiceType="mediaPlayback" />
         <receiver android:name=".MediaActionReceiver" android:exported="false" />
@@ -136,4 +237,43 @@ if (kt) {
     }
   } else console.warn("Couldn't read the Android package name — media controls were not installed.");
 }
+// Resources used by the notification icon (IMP-01) and the widget (FEAT-10). Written only when missing, so edits survive.
+const res = join(root, "res");
+const put = (rel, body) => {
+  const f = join(res, rel);
+  if (!existsSync(f)) {
+    mkdirSync(dirname(f), { recursive: true });
+    writeFileSync(f, body);
+  }
+};
+put("drawable/ic_stat_music.xml", `<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFFFF" android:pathData="M12,3v10.55c-0.59,-0.34 -1.27,-0.55 -2,-0.55 -2.21,0 -4,1.79 -4,4s1.79,4 4,4 4,-1.79 4,-4V7h4V3h-6z" />
+</vector>
+`);
+put("drawable/bm_widget_bg.xml", `<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#E6282C34" />
+    <corners android:radius="18dp" />
+</shape>
+`);
+put("xml/bm_widget_info.xml", `<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp" android:minHeight="70dp" android:targetCellWidth="4" android:targetCellHeight="1"
+    android:updatePeriodMillis="0" android:resizeMode="horizontal" android:widgetCategory="home_screen"
+    android:initialLayout="@layout/bm_widget" android:description="@string/bm_widget_desc" />
+`);
+put("layout/bm_widget.xml", `<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@drawable/bm_widget_bg" android:gravity="center_vertical" android:orientation="horizontal" android:padding="12dp">
+    <LinearLayout android:id="@+id/bm_widget_text" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <TextView android:id="@+id/bm_widget_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:maxLines="1" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold" />
+        <TextView android:id="@+id/bm_widget_artist" android:layout_width="match_parent" android:layout_height="wrap_content" android:ellipsize="end" android:maxLines="1" android:textColor="#ABB2BF" android:textSize="12sp" />
+    </LinearLayout>
+    <ImageButton android:id="@+id/bm_widget_prev" android:layout_width="40dp" android:layout_height="40dp" android:background="@null" android:contentDescription="Previous" android:src="@android:drawable/ic_media_previous" />
+    <ImageButton android:id="@+id/bm_widget_play" android:layout_width="44dp" android:layout_height="44dp" android:background="@null" android:contentDescription="Play" android:src="@android:drawable/ic_media_play" />
+    <ImageButton android:id="@+id/bm_widget_next" android:layout_width="40dp" android:layout_height="40dp" android:background="@null" android:contentDescription="Next" android:src="@android:drawable/ic_media_next" />
+</LinearLayout>
+`);
+put("values/bm_widget_strings.xml", `<resources>
+    <string name="bm_widget_idle">Nothing playing</string>
+    <string name="bm_widget_desc">Now playing, with previous, play/pause and next.</string>
+</resources>
+`);
 console.log("Android project patched.");
