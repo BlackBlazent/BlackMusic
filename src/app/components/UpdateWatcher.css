@@ -1,0 +1,13 @@
+.update-watcher { width: min(420px, 92vw); padding: var(--space-5); border-radius: var(--radius-md); background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text); }
+.update-watcher h2 { margin: 0 0 4px; font-size: 18px; }
+.update-watcher__sub, .update-watcher small { color: var(--color-text-muted); font-size: 12px; }
+.update-watcher__notes { max-height: 140px; overflow: auto; white-space: pre-wrap; font-size: 13px; }
+.update-watcher__progress { display: grid; gap: 6px; margin-top: var(--space-3); }
+.update-watcher__bar { height: 8px; border-radius: 99px; background: var(--color-border); overflow: hidden; }
+.update-watcher__bar span { display: block; height: 100%; background: var(--color-accent); transition: width 0.2s; }
+.update-watcher__bar span[data-indeterminate="true"] { animation: uw-slide 1.1s ease-in-out infinite alternate; }
+@keyframes uw-slide { from { margin-left: 0; } to { margin-left: 65%; } }
+.update-watcher__error { color: #e5484d; font-size: 13px; }
+.update-watcher__actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-4); }
+.update-watcher__actions button { padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); background: transparent; color: var(--color-text); font: inherit; cursor: pointer; }
+.update-watcher__actions .update-watcher__primary { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
