@@ -9,15 +9,24 @@ bundle/
 temp/
 LICENSE
 REQUIREMENTS_2_2_0.md
+REQUIREMENTS_3_0_0.md
+dist-webos
+snap/*
+certificate/*
+docs/ICONS_PROMPT.md
+snap/*
 temp.py
 src-tauri/resources/*
 temp/
+backup/*
 ~/.tauri/
+tauri.conf.json.bak
 dist-ssr/
 *.local
 *.tsbuildinfo
 vite.config.js
 vite.config.js.timestamp-1791360954293-78970cec9dc6b8.mjs
+vite.config.js.timestamp-1793000092522-81acc747e3ea48.mjs
 vite.config.d.ts
 
 
