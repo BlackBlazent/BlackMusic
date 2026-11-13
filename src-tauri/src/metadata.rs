@@ -85,14 +85,57 @@ fn apply(tag: &mut Tag, patch: &MetadataPatch) -> Result<(), String> {
             let data = encode_cover(cover)?;
             tag.remove_picture_type(PictureType::CoverFront);
             // tag.push_picture(Picture::unchecked(data).pic_type(PictureType::CoverFront).mime_type(MimeType::Jpeg).build());
-            tag.push_picture(Picture::new_unchecked(PictureType::CoverFront, Some(MimeType::Jpeg), None, data));
+            // tag.push_picture(Picture::new_unchecked(PictureType::CoverFront, Some(MimeType::Jpeg), None, data));
+            // Description must be Some(""), not None: with ID3v2.3 (UTF-16) lofty writes a bare 0x00 for None, which can't be read back.
+            tag.push_picture(Picture::new_unchecked(PictureType::CoverFront, Some(MimeType::Jpeg), Some(String::new()), data));
         }
     }
     Ok(())
 }
 
+/// Android (scoped storage): the app may READ a song in Downloads/Music but not open it for writing by path (EACCES, os error 13).
+/// The JS side asks MediaStore for a write grant (StorageBridge.kt) and passes the resulting file descriptor here. The descriptor
+/// is only accepted when /proc/self/fd/<fd> points at the same shared-storage file name as `path`, so it can't be used to touch
+/// any other file the process has open.
+#[cfg(unix)]
+fn adopt_granted_fd(fd: i32, path: &str) -> Result<std::fs::File, String> {
+    use std::os::unix::io::FromRawFd;
+    let link = std::fs::read_link(format!("/proc/self/fd/{fd}"))
+        .map_err(|_| "Android returned an invalid file handle for this song.".to_string())?;
+    let same_name = link.file_name().is_some()
+        && link.file_name() == std::path::Path::new(path).file_name();
+    let shared = link.starts_with("/storage") || link.starts_with("/mnt");
+    if !same_name || !shared {
+        return Err("Android returned a file handle for a different file; nothing was changed.".to_string());
+    }
+    // SAFETY: `fd` was detached from a ParcelFileDescriptor by the Android bridge and verified above; File now owns (and closes) it.
+    Ok(unsafe { std::fs::File::from_raw_fd(fd) })
+}
+
+#[cfg(not(unix))]
+fn adopt_granted_fd(_fd: i32, _path: &str) -> Result<std::fs::File, String> {
+    Err("Granted file handles are only used on Android.".to_string())
+}
+
+/// Puts the backup back: through the granted descriptor when there is one, otherwise by path.
+fn put_back(backup: &std::path::Path, path: &str, granted: Option<&mut std::fs::File>) -> bool {
+    use std::io::{Seek, SeekFrom};
+    match granted {
+        Some(f) => match std::fs::File::open(backup) {
+            Ok(mut src) => {
+                f.seek(SeekFrom::Start(0)).is_ok()
+                    && f.set_len(0).is_ok()
+                    && std::io::copy(&mut src, f).is_ok()
+            }
+            Err(_) => false,
+        },
+        None => std::fs::copy(backup, path).is_ok(),
+    }
+}
+
 #[tauri::command]
-pub async fn write_metadata(path: String, patch: MetadataPatch) -> Result<(), String> {
+// pub async fn write_metadata(path: String, patch: MetadataPatch) -> Result<(), String> {
+pub async fn write_metadata(path: String, patch: MetadataPatch, fd: Option<i32>) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || {
         let mut tagged = lofty::read_from_path(&path).map_err(|e| format!("Couldn't read this file's tags: {e}"))?;
 
@@ -104,16 +147,63 @@ pub async fn write_metadata(path: String, patch: MetadataPatch) -> Result<(), St
         let tag = tagged.primary_tag_mut().ok_or_else(|| "This file format doesn't support tags.".to_string())?;
         apply(tag, &patch)?;
 
+        // 3.0.0 (FEAT-09) safe write: back the file up, write, RE-READ it to prove it still parses and has the same
+        // duration, and put the original back if anything looks wrong. A failed edit can never leave a damaged song behind.
+        let original_secs = tagged.properties().duration().as_secs_f64();
+        let mut granted = match fd {
+            Some(n) => Some(adopt_granted_fd(n, &path)?),
+            None => None,
+        };
+        let backup = std::env::temp_dir().join(format!("blackmusic-tagbackup-{}-{}.bak", std::process::id(), path.len() ^ (original_secs as usize)));
+        std::fs::copy(&path, &backup).map_err(|e| format!("Couldn't make a safety backup, so nothing was changed: {e}"))?;
+        /*let restore = |why: String| -> String {
+            let restored = std::fs::copy(&backup, &path).is_ok();
+            let _ = std::fs::remove_file(&backup);
+            if restored { format!("{why} The original file was restored untouched.") } else { format!("{why} Restoring the original failed — a copy is kept at {}.", backup.display()) }
+        };*/
+        let restore = |why: String, granted: Option<&mut std::fs::File>| -> String {
+            let restored = put_back(&backup, &path, granted);
+            let _ = std::fs::remove_file(&backup);
+            if restored {
+                format!("{why} The original file was restored untouched.")
+            } else {
+                format!("{why} Restoring the original failed — a copy is kept at {}.", backup.display())
+            }
+        };
+
         // ID3v2.3 for MP3: the version Windows Explorer and older players read most reliably.
-        // The audio stream is never rewritten — only the tag block — so the audio data can't be corrupted.
-        tagged.save_to_path(&path, WriteOptions::new().use_id3v23(true)).map_err(|e| {
+        // The audio stream is never rewritten — only the tag block.
+        let opts = WriteOptions::new().use_id3v23(true);
+        let saved = match granted.as_mut() {
+            Some(f) => tagged.save_to(f, opts),
+            None => tagged.save_to_path(&path, opts),
+        };
+        
+        if let Err(e) = saved {
             let msg = e.to_string();
-            if msg.contains("os error 32") || msg.contains("being used by another process") {
+            let why = if msg.contains("os error 32") || msg.contains("being used by another process") {
                 "The file is in use by another program. Pause/skip the track or close the other app, then try again.".to_string()
             } else {
-                format!("Couldn't save the tags: {msg}")
+                format!("Couldn't save the tags: {msg}.")
+            };
+            return Err(restore(why, granted.as_mut()));
+        }
+
+        match lofty::read_from_path(&path) {
+            Ok(check) if (check.properties().duration().as_secs_f64() - original_secs).abs() <= 1.0 => {
+                let _ = std::fs::remove_file(&backup);
+                Ok(())
             }
-        })
+            Ok(_) => Err(restore(
+                "After saving, the audio length no longer matched.".to_string(),
+                granted.as_mut(),
+            )),
+            Err(e) => Err(restore(
+                format!("After saving, the file could not be read back ({e})."),
+                granted.as_mut(),
+            )),
+        }
+
     })
     .await
     .map_err(|e| e.to_string())?
