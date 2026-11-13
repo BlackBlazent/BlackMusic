@@ -1,5 +1,12 @@
 # Changelog
 
+## 3.0.0 — stability and cross-platform update
+Full status and what you must supply: `REQUIREMENTS_3_0_0.md`.
+
+**Fixed:** Cover Battle reliability · audio focus (Android, iOS) · instant media notification · mobile OAuth return · iOS CI · Windows/macOS code signing in CI · import speed · SD-card discovery (with diagnostics).
+**Improved:** standard playback and notification icons · Playground controls, smart queue strip, full-queue window · Folder sizes + other-device folders · Home badges, Memory Highlights, Listening Diary · Library on mobile · Settings redesigned into blocks, automatic update check with progress · no blank screens (error screens + global error watcher) · yt-dlp / desktop FFmpeg / whisper executable compiled out of mobile builds.
+**New:** Equalizer · lyrics upload · fullscreen controls · progress-bar animations · Local A–Z tabs and mini search · Online Map/Milestones/Graph, Discover · Library tabs + genre cards · Music by country · safe tag editing with rollback + AI thumbnail · optional Music Portable Sync with device-to-device copy or buffered streaming · backup, restore and export · Meet Room and Session Share (online and same-Wi-Fi) · Android widget · Android TV and webOS · optional on-device FFmpeg and speech-to-text on mobile.
+
 ## 2.2.0 — immediate fix (not yet released)
 **Desktop**
 - Whisper: `whisper-cli failed: unknown error` was the Windows loader failing (the bundled `whisper-cli.exe` is the *shared* build and its DLLs were never shipped). DLLs are now bundled (`tauri.windows.conf.json`), put on the child's PATH, pre-checked, and every failure maps to a readable message. One run at a time, cancellable, 45-min timeout, per-run scratch folder, empty transcripts are never saved.
