@@ -1,0 +1,28 @@
+name: Apple TV add-on (manual)
+
+# Starting point for FEAT-15. It can only succeed after `apple-tv/ios` exists (generate it once with the react-native-tvos
+# template on a Mac and commit it) and the scheme/workspace names below match. Until then it is intentionally manual-only.
+on:
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+  build-tvos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: lts/*
+      - name: Guard — the Xcode project must exist
+        run: test -d apple-tv/ios || (echo "apple-tv/ios is missing. Generate the tvOS project first (see docs/TV.md)." && exit 1)
+      - run: npm install
+        working-directory: apple-tv
+      - run: pod install
+        working-directory: apple-tv/ios
+      - name: Build tvOS (unsigned simulator build)
+        run: |
+          xcodebuild -workspace apple-tv/ios/BlackMusicTV.xcworkspace -scheme BlackMusicTV-tvOS -configuration Release \
+            -sdk appletvsimulator -destination 'generic/platform=tvOS Simulator' CODE_SIGNING_ALLOWED=NO build
