@@ -84,6 +84,7 @@ fn run(path: &Path, args: &[String]) -> Result<CmdOutput, String> {
     })
 }
 
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 pub async fn ytdlp_run(app: AppHandle, args: Vec<String>) -> Result<CmdOutput, String> {
     let (path, _) = locate(&app, "yt-dlp");
@@ -92,6 +93,15 @@ pub async fn ytdlp_run(app: AppHandle, args: Vec<String>) -> Result<CmdOutput, S
     })
     .await
     .map_err(|e| e.to_string())?
+}
+
+/// 3.0.0 (IMP-09): on Android/iOS this tool is not compiled in at all — no process spawning, no bundled binary — only this stub that
+/// answers with a clear message. (Hiding the button is not enough for store review; the code itself is excluded from the build.)
+#[cfg(any(target_os = "android", target_os = "ios"))]
+#[tauri::command]
+#[allow(unused_variables)]
+pub async fn ytdlp_run(args: Vec<String>) -> Result<CmdOutput, String> {
+    Err("This desktop tool is not part of the mobile app. Video search and playback use the YouTube API instead.".into())
 }
 
 fn version_arg(tool: &str) -> &'static str {
@@ -155,6 +165,7 @@ pub fn tool_reset(app: AppHandle, tool: String) -> Result<(), String> {
 }
 
 /// `yt-dlp -U` only works on a copy we can write to, so the bundled binary is first copied into app data.
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 pub async fn ytdlp_update(app: AppHandle) -> Result<String, String> {
     let dir = app_dir(&app, "tools")?;
@@ -176,6 +187,14 @@ pub async fn ytdlp_update(app: AppHandle) -> Result<String, String> {
     })
     .await
     .map_err(|e| e.to_string())?
+}
+
+/// 3.0.0 (IMP-09): on Android/iOS this tool is not compiled in at all — no process spawning, no bundled binary — only this stub that
+/// answers with a clear message. (Hiding the button is not enough for store review; the code itself is excluded from the build.)
+#[cfg(any(target_os = "android", target_os = "ios"))]
+#[tauri::command]
+pub async fn ytdlp_update() -> Result<String, String> {
+    Err("The yt-dlp updater is not part of the mobile app.".into())
 }
 
 // ------------------------------------------------------------------------------------ whisper models --
@@ -237,7 +256,8 @@ pub async fn whisper_download_model(app: AppHandle, id: String) -> Result<(), St
     let part_path = dir.join(format!("{}.part", model_file(&id)));
     let url = format!("https://huggingface.co/ggerganov/whisper.cpp/resolve/main/{}", model_file(&id));
 
-    let response = reqwest::get(&url).await.map_err(|e| format!("Download failed: {e}"))?;
+    let client = reqwest::Client::builder().connect_timeout(std::time::Duration::from_secs(15)).build().map_err(|e| e.to_string())?;
+    let response = client.get(&url).send().await.map_err(|e| format!("Download failed: {e}"))?;
     if !response.status().is_success() { return Err(format!("Hugging Face answered {}.", response.status())); }
     let total = response.content_length().unwrap_or(0);
     let mut file = fs::File::create(&part_path).map_err(|e| e.to_string())?;
@@ -254,6 +274,19 @@ pub async fn whisper_download_model(app: AppHandle, id: String) -> Result<(), St
         }
     }
     drop(file);
+    // 3.0.0 (IMP-09 / mobile-integrations §1.2): a truncated or wrong file handed to native whisper code can crash the whole app,
+    // so prove the download is whole BEFORE it becomes a usable model: size matches, and it carries the ggml magic number.
+    if total > 0 && done != total {
+        let _ = fs::remove_file(&part_path);
+        return Err(format!("The download stopped early ({done} of {total} bytes). Check your connection and try again."));
+    }
+    let mut magic = [0u8; 4];
+    let magic_ok = fs::File::open(&part_path).and_then(|mut f| { use std::io::Read; f.read_exact(&mut magic) }).is_ok()
+        && (&magic == b"lmgg" || &magic == b"ggml" || &magic == b"ggjt" || &magic == b"GGUF");
+    if !magic_ok {
+        let _ = fs::remove_file(&part_path);
+        return Err("The downloaded file isn't a valid whisper model, so it was discarded. Try again.".into());
+    }
     fs::rename(&part_path, &final_path).map_err(|e| e.to_string())?;
     let _ = app.emit("whisper:progress", json!({ "id": id, "downloaded": done, "total": total, "done": true }));
     Ok(())
@@ -435,11 +468,19 @@ pub fn whisper_cancel() {
 /// Speech-to-text for lyrics/captions. Audio is decoded + resampled to 16 kHz mono WAV in Rust first, so any format
 /// the app plays (mp3, flac, m4a, aac, ogg, wav) works; `translate` asks whisper to translate to English (offline).
 /// Desktop only — there is no whisper-cli for Android/iOS, and we say so instead of failing obscurely.
+/// 3.0.0: absolute path of an installed, valid model — lets the mobile native whisper bridge open it. Errors say what to do.
+#[tauri::command]
+pub async fn whisper_model_path(app: AppHandle, id: String) -> Result<String, String> {
+    let path = model_path(&app, &id).ok_or_else(|| format!("The “{id}” model isn't installed. Download it in Settings → Plugins & Tools."))?;
+    if !model_looks_valid(&path) {
+        return Err(format!("The “{id}” model file is damaged. Delete it and download it again in Settings → Plugins & Tools."));
+    }
+    Ok(path.to_string_lossy().into_owned())
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 pub async fn whisper_transcribe(app: AppHandle, audio_path: String, model_id: String, language: Option<String>, translate: bool) -> Result<Vec<Segment>, String> {
-    if cfg!(any(target_os = "android", target_os = "ios")) {
-        return Err("Transcription runs on the desktop app. whisper.cpp has no Android/iOS build in BlackMusic yet.".into());
-    }
     let guard = BusyGuard::acquire().ok_or("A transcription is already running — wait for it to finish or cancel it.")?;
 
     // ---- preflight: every failure here names exactly what is wrong ----
@@ -508,13 +549,32 @@ pub async fn whisper_transcribe(app: AppHandle, audio_path: String, model_id: St
     result?
 }
 
+/// 3.0.0: the whisper.cpp EXECUTABLE is desktop-only. Mobile transcribes through the native library add-on instead
+/// (src/lib/whisper.ts -> window.BMNative), so no process-spawning transcription code is compiled into mobile builds.
+#[cfg(any(target_os = "android", target_os = "ios"))]
+#[tauri::command]
+#[allow(unused_variables)]
+pub async fn whisper_transcribe(audio_path: String, model_id: String, language: Option<String>, translate: bool) -> Result<Vec<Segment>, String> {
+    Err("On mobile, transcription runs through the built-in speech library, not this desktop runner.".into())
+}
+
 /// ffmpeg is NOT bundled (size/licensing); the Format Converter uses it when present on PATH or imported.
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 pub async fn ffmpeg_run(app: AppHandle, args: Vec<String>) -> Result<CmdOutput, String> {
     let (path, _) = locate(&app, "ffmpeg");
     tauri::async_runtime::spawn_blocking(move || run(&path, &args).map_err(|_| "ffmpeg isn't installed. Import it in Settings → Plugins & Tools, or install it on your PATH.".to_string()))
         .await
         .map_err(|e| e.to_string())?
+}
+
+/// 3.0.0 (IMP-09): on Android/iOS this tool is not compiled in at all — no process spawning, no bundled binary — only this stub that
+/// answers with a clear message. (Hiding the button is not enough for store review; the code itself is excluded from the build.)
+#[cfg(any(target_os = "android", target_os = "ios"))]
+#[tauri::command]
+#[allow(unused_variables)]
+pub async fn ffmpeg_run(args: Vec<String>) -> Result<CmdOutput, String> {
+    Err("On mobile, audio conversion uses the built-in FFmpeg add-on, not this desktop runner.".into())
 }
 
 #[cfg(test)]
