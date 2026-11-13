@@ -1,0 +1,8 @@
+.problem { max-width: 460px; margin: 12vh auto; padding: 0 var(--space-4, 16px); text-align: center; color: var(--color-text, #abb2bf); }
+.problem h1 { font-size: 22px; margin: 0 0 8px; }
+.problem p { color: var(--color-text-muted, #7f848e); }
+.problem__actions { display: flex; justify-content: center; gap: 8px; margin: 18px 0; }
+.problem__actions button { padding: 10px 18px; border-radius: 10px; border: 1px solid var(--color-border, #3e4451); background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.problem__actions .problem__primary { background: var(--color-accent, #61afef); border-color: var(--color-accent, #61afef); color: #fff; }
+.problem details { text-align: left; font-size: 12px; color: var(--color-text-muted, #7f848e); }
+.problem pre { white-space: pre-wrap; word-break: break-word; }
