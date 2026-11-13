@@ -1,0 +1,9 @@
+/* TV mode: 10-foot UI — visible focus, bigger targets, no hover reliance. */
+html[data-tv="true"] { font-size: 120%; cursor: none; }
+html[data-tv="true"] :focus-visible, html[data-tv="true"] :focus {
+  outline: 4px solid #61afef !important; outline-offset: 3px; border-radius: 10px;
+  box-shadow: 0 0 0 8px rgba(97, 175, 239, 0.25);
+}
+html[data-tv="true"] button, html[data-tv="true"] [role="tab"] { min-height: 48px; min-width: 48px; }
+html[data-tv="true"] .alpha-tabs button { min-width: 44px; font-size: 16px; }
+html[data-tv="true"] ::-webkit-scrollbar { display: none; }
