@@ -4,6 +4,7 @@ import { LANGUAGES, useLanguage, useT } from "@/lib/i18n";
 import { VIZ_MODES } from "@/lib/audio/visualizers";
 import { isTauri } from "@/lib/platform";
 import { isMobileOs } from "@/lib/useIsMobile";
+import { nativeCapabilities } from "@/lib/mobileNative";
 import { downloadModel, deleteModel, getActiveModel, importModel, listModels, setActiveModel, type WhisperModel } from "@/lib/whisper";
 import { importTool, resetTool, toolStatus, updateYtDlp, type ToolStatus } from "@/lib/tools/ytdlpRunner";
 import { useNotifications } from "@/app/context/NotificationsContext";
@@ -241,11 +242,13 @@ export function PluginsToolsSection() {
   }, []);
   useEffect(load, [load]);
 
-  if (!isTauri() || isMobileOs()) {
+  const mobile = isMobileOs();
+  const caps = nativeCapabilities();
+  if (!isTauri()) {
     return (
       <section className="settings__section">
         <h2>{t("settings.plugins")}</h2>
-        <p>yt-dlp and whisper.cpp are desktop tools — on mobile BlackMusic falls back to previews and hosted lyrics.</p>
+        <p>These tools run in the BlackMusic app.</p>
       </section>
     );
   }
@@ -273,14 +276,26 @@ export function PluginsToolsSection() {
   return (
     <section className="settings__section">
       <h2>{t("settings.plugins")}</h2>
-      <p>BlackMusic ships with yt-dlp and whisper.cpp built in. You can update them, or point to your own build.</p>
+      <p>{mobile
+        ? "On your phone, video comes from the YouTube API (search and play only — no downloads), and speech-to-text and audio conversion run on-device through built-in libraries."
+        : "BlackMusic ships with yt-dlp and whisper.cpp built in. You can update them, or point to your own build."}</p>
       <div className="pers">
-        <ToolRow tool="yt-dlp" title={t("settings.tools.ytdlp")} hint="Plays YouTube & Last.fm tracks, searches videos, downloads." />
-        <ToolRow tool="whisper-cli" title={t("settings.tools.whisper")} hint="Generates synced lyrics from the audio, fully offline." />
-        <ToolRow tool={"ffmpeg" as "yt-dlp"} title="ffmpeg (optional)" hint="Only needed by the Format Converter (MP3/AAC output). Not bundled." />
+        {mobile ? (
+          <>
+            <div className="pers__tool"><div><strong>YouTube</strong><small>Uses the YouTube API. Add your own key in Service API keys below if you want your own quota.</small></div></div>
+            <div className="pers__tool"><div><strong>FFmpeg (audio)</strong><small>{caps.ffmpeg ? "Built in — used by the Format Converter and speech-to-text." : "Not included in this build, so audio conversion and speech-to-text are switched off."}</small></div></div>
+            <div className="pers__tool"><div><strong>whisper.cpp</strong><small>{caps.whisper ? "Built in — transcribes on your device. Pick a model below." : "Not included in this build. You can still manage models here; transcription turns on when the library is included."}</small></div></div>
+          </>
+        ) : (
+          <>
+            <ToolRow tool="yt-dlp" title={t("settings.tools.ytdlp")} hint="Plays YouTube & Last.fm tracks, searches videos, downloads." />
+            <ToolRow tool="whisper-cli" title={t("settings.tools.whisper")} hint="Generates synced lyrics from the audio, fully offline." />
+            <ToolRow tool={"ffmpeg" as "yt-dlp"} title="ffmpeg (optional)" hint="Only needed by the Format Converter (MP3/AAC output). Not bundled." />
+          </>
+        )}
 
         <h3>{t("settings.tools.models")}</h3>
-        <p className="pers__hint">“tiny” is built in. Larger models are more accurate but slower; “.en” models are English-only and faster.</p>
+        <p className="pers__hint">{mobile ? "Models are downloaded from the official whisper.cpp source over HTTPS, checked, and can be removed any time to free space. " : "“tiny” is built in. "}Larger models are more accurate but slower; “.en” models are English-only and faster.</p>
 
         <div className="pers__models">
           {models.map((m) => (
@@ -302,7 +317,7 @@ export function PluginsToolsSection() {
             </div>
           ))}
         </div>
-        <button type="button" className="settings__update-btn" onClick={() => void importFile()}>{t("common.import")} model…</button>
+        {!mobile && <button type="button" className="settings__update-btn" onClick={() => void importFile()}>{t("common.import")} model…</button>}
       </div>
     </section>
   );
