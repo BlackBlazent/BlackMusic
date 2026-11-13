@@ -78,4 +78,5 @@ export const pt_BR: Catalog = {
   "online.list": "Lista",
   "folder.subfolders": "Subpastas",
   "playground.nothing": "Nada tocando",
+  "library.tab.country": "País"
 };
