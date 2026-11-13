@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useNotifications } from "./NotificationsContext";
 import { getPreference, setPreference } from "@/lib/preferencesStore";
+import { recordPlaylistDeletion } from "@/lib/sync/tombstones";
 
 const STORAGE_KEY = "blackmusic:playlists";
 
@@ -31,6 +32,8 @@ interface PlaylistsContextValue {
   addTracks: (playlistId: string, trackIds: string[]) => number;
   setCover: (playlistId: string, coverUrl: string | undefined) => void;
   removeTrack: (playlistId: string, trackId: string) => void;
+  /** 3.0.0 (sync): replace the whole list in one write. Used only by the sync engine when applying another device's changes. */
+  replaceAll: (updater: (prev: Playlist[]) => Playlist[]) => void;
 }
 
 const PlaylistsContext = createContext<PlaylistsContextValue | null>(null);
@@ -70,7 +73,11 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
     return playlist;
   };
 
-  const deletePlaylist = (id: string) => persist(playlistsRef.current.filter((p) => p.id !== id));
+  const deletePlaylist = (id: string) => {
+    recordPlaylistDeletion(id); // a deletion must sync too, or another device would bring the playlist back
+    persist(playlistsRef.current.filter((p) => p.id !== id));
+  };
+  const replaceAll = (updater: (prev: Playlist[]) => Playlist[]) => persist(updater(playlistsRef.current));
 
   const renamePlaylist = (id: string, name: string) =>
     persist(playlistsRef.current.map((p) => (p.id === id ? { ...p, name } : p)));
@@ -114,6 +121,7 @@ export function PlaylistsProvider({ children }: { children: ReactNode }) {
     <PlaylistsContext.Provider
       value={{
         playlists,
+        replaceAll,
         createPlaylist,
         deletePlaylist,
         renamePlaylist,
