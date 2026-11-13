@@ -8,6 +8,9 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Icon
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.media.MediaMetadata
 import android.media.session.MediaSession
 import android.media.session.PlaybackState
@@ -35,11 +38,85 @@ object MediaHub {
     @Volatile var durationMs = 0L
     @Volatile var active = false
 
+    // Fix 05: Disable native focus to prevent audio interruptions
+    private const val USE_NATIVE_FOCUS = false
+    @Volatile private var appCtx: Context? = null
+
     fun dispatch(action: String, seekSeconds: Double? = null) {
+        // FIX-04: reflect play/pause in the notification IMMEDIATELY, without waiting for the web view round-trip.
+        // (A backgrounded WebView may have its JS timers paused, which used to leave the card stale until the app was reopened.)
+        if (action == "play" || action == "pause") {
+            playing = action == "play"
+            appCtx?.let { c ->
+                try { c.getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, publish(c)) } catch (_: Exception) {}
+            }
+        }
         val wv = webView ?: return
         val js = if (seekSeconds != null) "window.__bmMedia&&window.__bmMedia('seekto',$seekSeconds)"
                  else "window.__bmMedia&&window.__bmMedia('$action')"
-        wv.post { wv.evaluateJavascript(js, null) }
+        wv.post {
+            wv.resumeTimers() // make sure the page can actually run the command while the app is in the background
+            wv.evaluateJavascript(js, null)
+        }
+    }
+
+    // ---- FIX-02: audio focus (another app starts playing -> pause; it stops -> resume) -----------------------------
+    private var focusRequest: AudioFocusRequest? = null
+    @Volatile private var hasFocus = false
+    @Volatile private var resumeOnGain = false
+
+    private val focusListener = AudioManager.OnAudioFocusChangeListener { change ->
+        when (change) {
+            // Temporary loss (a call, a navigation prompt, another player): pause, and remember to come back.
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                if (playing) { resumeOnGain = true; dispatch("pause") }
+            }
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                if (resumeOnGain) { resumeOnGain = false; dispatch("play") }
+            }
+            // Permanent loss (another music app took over): stay paused, do not resume.
+            AudioManager.AUDIOFOCUS_LOSS -> {
+                resumeOnGain = false
+                if (playing) dispatch("pause")
+                abandonFocus()
+            }
+        }
+    }
+
+    @Synchronized
+    private fun requestFocus(ctx: Context) {
+        if (hasFocus) return
+        val am = ctx.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val granted = if (Build.VERSION.SDK_INT >= 26) {
+            val req = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
+                .setOnAudioFocusChangeListener(focusListener)
+                .build()
+            focusRequest = req
+            am.requestAudioFocus(req)
+        } else {
+            @Suppress("DEPRECATION")
+            am.requestAudioFocus(focusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN)
+        }
+        hasFocus = granted == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+    }
+
+    @Synchronized
+    fun abandonFocus() {
+        val ctx = appCtx ?: return
+        val am = ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        if (Build.VERSION.SDK_INT >= 26) focusRequest?.let { am.abandonAudioFocusRequest(it) }
+        else @Suppress("DEPRECATION") am.abandonAudioFocus(focusListener)
+        focusRequest = null
+        hasFocus = false
+    }
+
+    /** Called with every state push from the web app: hold focus while playing; give it up when the user pauses. */
+    fun syncFocus(ctx: Context) {
+        appCtx = ctx.applicationContext
+        if (!USE_NATIVE_FOCUS) return   // the WebView already handles audio focus; a second request pauses playback
+        if (playing) { resumeOnGain = false; requestFocus(ctx) }
+        else if (!resumeOnGain) abandonFocus() // a focus-caused pause keeps the request so GAIN can resume us
     }
 
     @Synchronized
@@ -79,6 +156,7 @@ object MediaHub {
     @Synchronized
     fun publish(ctx: Context): Notification {
         val app = ctx.applicationContext
+        appCtx = app
         val s = ensureSession(app)
         s.setMetadata(
             MediaMetadata.Builder()
@@ -106,7 +184,8 @@ object MediaHub {
             Notification.Action.Builder(Icon.createWithResource(app, icon), label, pending(app, a, code)).build()
         val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(app, CHANNEL_ID) else @Suppress("DEPRECATION") Notification.Builder(app)
         builder
-            .setSmallIcon(app.applicationInfo.icon)
+            // Status-bar icons must be a white silhouette (Google Play / Android rule) — the coloured launcher icon is not one.
+            .setSmallIcon(app.resources.getIdentifier("ic_stat_music", "drawable", app.packageName).takeIf { it != 0 } ?: app.applicationInfo.icon)
             .setContentTitle(title)
             .setContentText(artist)
             .setSubText(album.ifEmpty { null })
@@ -123,11 +202,14 @@ object MediaHub {
             )
             .addAction(action(android.R.drawable.ic_media_next, "Next", "next", 4))
             .setStyle(Notification.MediaStyle().setMediaSession(s.sessionToken).setShowActionsInCompactView(0, 1, 2))
+        BlackMusicWidget.refresh(app)
         return builder.build()
     }
 
     @Synchronized
     fun release(ctx: Context) {
+        resumeOnGain = false
+        abandonFocus()
         active = false
         session?.release()
         session = null
