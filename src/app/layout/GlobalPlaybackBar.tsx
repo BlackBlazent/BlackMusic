@@ -18,6 +18,8 @@ import {
 } from "./icons";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { VolumeControl } from "./VolumeControl";
+import { useSeekAnimation } from "@/lib/seekAnimation";
+import "@/app/components/SeekAnimations.css";
 import "./GlobalPlaybackBar.css";
 
 export function GlobalPlaybackBar() {
@@ -42,6 +44,7 @@ export function GlobalPlaybackBar() {
   } = usePlayback();
   const { isFavorite, toggleFavorite } = useFavorites();
   const mobile = useIsMobile();
+  const [seekAnim] = useSeekAnimation();
 
   // 2.1.0: hover the top edge to grab a resize handle; stretch the bar up to reveal "Up next".
   const MIN = 88;
@@ -70,6 +73,8 @@ export function GlobalPlaybackBar() {
   const expanded = height > MIN + 24;
 
   const remaining = Math.max(0, duration - position);
+  //const [seekAnim] = useSeekAnimation();
+  const seekStyle = { ["--seek-progress" as string]: `${duration > 0 ? Math.min(100, (position / duration) * 100) : 0}%` };
 
   // Phones: one compact two-row bar — track + essential controls + a speaker button that opens the volume slider, then the seek bar.
   // (The desktop three-column layout overflowed a 360 px screen and pushed the volume slider off-screen.)
@@ -94,7 +99,7 @@ export function GlobalPlaybackBar() {
         </div>
         <div className="global-bar__seek">
           <span>{formatDuration(position)}</span>
-          <input type="range" min={0} max={duration || 0} step={0.1} value={Math.min(position, duration || 0)} onChange={(e) => seek(Number(e.target.value))} aria-label="Seek" />
+          <div className="global-bar__seek-track" data-seek-anim={seekAnim} style={seekStyle}><input type="range" min={0} max={duration || 0} step={0.1} value={Math.min(position, duration || 0)} onChange={(e) => seek(Number(e.target.value))} aria-label="Seek" /></div>
           <span>-{formatDuration(remaining)}</span>
         </div>
       </div>
@@ -153,6 +158,7 @@ export function GlobalPlaybackBar() {
         </div>
         <div className="global-bar__seek">
           <span>{formatDuration(position)}</span>
+          <div className="global-bar__seek-track" data-seek-anim={seekAnim} style={seekStyle}>
           <input
             type="range"
             min={0}
@@ -162,6 +168,7 @@ export function GlobalPlaybackBar() {
             onChange={(e) => seek(Number(e.target.value))}
             aria-label="Seek"
           />
+          </div>
           <span>-{formatDuration(remaining)}</span>
         </div>
       </div>
