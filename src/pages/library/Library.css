@@ -406,3 +406,31 @@
 .group-detail__art--cover:hover .group-detail__cover-btn {
   opacity: 1;
 }
+
+/* FEAT-07 — genre cards */
+.library-genre-cards { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: 0 0 var(--space-4); }
+.library-genre-card {
+  display: inline-flex; align-items: baseline; gap: 8px;
+  padding: 8px 14px; border: 1px solid var(--color-border); border-radius: 16px;
+  background: var(--color-surface); color: var(--color-text); font: inherit; font-size: 13px; cursor: pointer;
+}
+.library-genre-card span { color: var(--color-text-muted); font-size: 11px; }
+.library-genre-card:hover { border-color: var(--color-accent); }
+.library-genre-card[data-active="true"] { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+.library-genre-card[data-active="true"] span { color: rgba(255, 255, 255, 0.85); }
+
+/* IMP-07 — phones: the Create button must always be visible, anchored at the bottom of the page and never pushed off-screen. */
+.app-shell[data-mobile="true"] .library-page__new-playlist {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  flex-wrap: nowrap;
+  align-items: center;
+  margin: var(--space-4) calc(var(--space-3) * -1) 0;
+  padding: var(--space-2) var(--space-3) calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+.app-shell[data-mobile="true"] .library-page__new-playlist input { max-width: none; min-width: 0; flex: 1 1 auto; height: 42px; }
+.app-shell[data-mobile="true"] .library-page__new-playlist select { max-width: 34%; height: 42px; }
+.app-shell[data-mobile="true"] .library-page__new-playlist button { flex: 0 0 auto; min-width: 84px; height: 42px; display: inline-flex; align-items: center; justify-content: center; }
