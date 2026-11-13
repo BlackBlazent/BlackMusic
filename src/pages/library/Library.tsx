@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { useLibrary } from "@/app/context/LibraryContext";
 import { useFavorites } from "@/app/context/FavoritesContext";
 import { usePlayback } from "@/app/context/PlaybackContext";
@@ -16,9 +16,25 @@ import { SkeletonRows } from "@/app/components/Skeleton";
 import type { Track } from "@/lib/types";
 import { useT } from "@/lib/i18n";
 import { LibraryCards, SmartPlaylists } from "./LibraryTools";
+import { useTracksWithExtras } from "@/lib/library/trackExtras";
 import "./Library.css";
 
-type View = "all" | "albums" | "artists" | "playlists" | "favorites";
+type View = "all" | "genre" | "country" | "year" | "albums" | "composers" | "artists" | "mood" | "playlists" | "favorites";
+type GroupView = "genre" | "country" | "year" | "composers" | "mood";
+const GROUP_VIEWS: GroupView[] = ["genre", "country", "year", "composers", "mood"];
+// Added
+const isGroupView = (view: View): view is GroupView =>
+  GROUP_VIEWS.includes(view as GroupView);
+const TAB_LABEL: Record<GroupView, string> = { genre: "Genre", country: "Country", year: "Year", composers: "Composers", mood: "Mood" };
+const groupValue = (track: Track, view: GroupView): string | undefined => {
+  switch (view) {
+    case "genre": return track.genre;
+    case "country": return track.country;
+    case "year": return track.year ? String(track.year) : undefined;
+    case "composers": return track.composer;
+    case "mood": return track.mood;
+  }
+};
 
 interface Album {
   key: string;
@@ -35,12 +51,43 @@ interface Artist {
 
 export function Library() {
   const t = useT();
-  const { tracks, scanning, ready } = useLibrary();
+  const { tracks: libraryTracks, scanning, ready } = useLibrary();
+  const allTracks = useTracksWithExtras(libraryTracks);
+  // FEAT-07: a clicked genre card narrows whatever tab is showing to that genre.
+  const [genreFilter, setGenreFilter] = usePersistentState<string | null>("library.genreFilter", null);
+  const tracks = useMemo(
+    () => (genreFilter && allTracks.some((x) => x.genre === genreFilter) ? allTracks.filter((x) => x.genre === genreFilter) : allTracks),
+    [allTracks, genreFilter],
+  );
+  const genreCards = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const x of allTracks) if (x.genre) counts.set(x.genre, (counts.get(x.genre) ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  }, [allTracks]);
+  // A tab is only offered when at least one track has that metadata (Year = release year, never the download date).
+  const available = useMemo(() => {
+    const has = (v: GroupView) => allTracks.some((x) => Boolean(groupValue(x, v)));
+    return { genre: has("genre"), country: has("country"), year: has("year"), composers: has("composers"), mood: has("mood") };
+  }, [allTracks]);
+  const groupsFor = (v: GroupView) => {
+    const map = new Map<string, Track[]>();
+    for (const x of tracks) {
+      const g = groupValue(x, v);
+      if (!g) continue;
+      (map.get(g) ?? map.set(g, []).get(g)!).push(x);
+    }
+    const entries = [...map.entries()];
+    return v === "year" ? entries.sort((a, b) => Number(b[0]) - Number(a[0])) : entries.sort((a, b) => a[0].localeCompare(b[0]));
+  };
   const { favoriteIds } = useFavorites();
   const { playTrack } = usePlayback();
   const { playlists, createPlaylist, deletePlaylist, togglePin, updatePlaylistDetails, setCover, removeTrack } = usePlaylists();
   const [view, setView] = usePersistentState<View>("library.view", "all");
   const [openGroup, setOpenGroup] = usePersistentState<string | null>("library.openGroup", null);
+  // A restored tab whose metadata no longer exists falls back to All music instead of an empty page.
+  useEffect(() => {
+    if (ready && (GROUP_VIEWS as string[]).includes(view) && !available[view as GroupView]) setView("all");
+  }, [ready, view, available, setView]);
   const albumPromos = useManualPromotions("library-albums");
   const artistPromos = useManualPromotions("library-artists");
   const playlistPromos = useManualPromotions("library-playlists");
@@ -121,6 +168,17 @@ export function Library() {
         );
       }
     }
+    if ((GROUP_VIEWS as string[]).includes(kind)) {
+      const value = openGroup.slice(kind.length + 2);
+      const list = groupsFor(kind as GroupView).find(([k]) => k === value)?.[1];
+      if (list) {
+        return (
+          <GroupDetail title={value} subtitle={`${TAB_LABEL[kind as GroupView]} · ${list.length} tracks`} onBack={() => setOpenGroup(null)}>
+            <TrackList tracks={list} onPlay={(t) => playTrack(t, list)} />
+          </GroupDetail>
+        );
+      }
+    }
     if (kind === "playlist") {
       const playlist = playlists.find((p) => `playlist::${p.id}` === openGroup);
       if (playlist) {
@@ -153,11 +211,14 @@ export function Library() {
       <div className="library-page__header">
         <h1>Library</h1>
         <div className="library-page__tabs" role="tablist">
-          {(["all", "albums", "artists", "playlists", "favorites"] as View[]).map((v) => (
-            <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)}>
-              {t(`library.tab.${v}` as const)}
-            </button>
-          ))}
+          {(["all", "genre", "country", "year", "albums", "composers", "artists", "mood", "playlists", "favorites"] as View[])
+            .filter((v) => !(GROUP_VIEWS as string[]).includes(v) || available[v as GroupView])
+            .map((v) => (
+              <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)}>
+                {/*{(GROUP_VIEWS as string[]).includes(v) ? TAB_LABEL[v as GroupView] : t(`library.tab.${v}` as const)}*/}
+                {isGroupView(v) ? TAB_LABEL[v] : t(`library.tab.${v}`)}
+              </button>
+            ))}
         </div>
       </div>
 
@@ -165,6 +226,33 @@ export function Library() {
         <SkeletonRows count={6} />
       ) : (
         <>
+          {genreCards.length > 0 && view !== "playlists" && (
+            <div className="library-genre-cards" role="group" aria-label="Genres">
+              {genreCards.map(([genre, count]) => (
+                <button
+                  key={genre}
+                  type="button"
+                  className="library-genre-card"
+                  data-active={genreFilter === genre}
+                  onClick={() => setGenreFilter((g) => (g === genre ? null : genre))}
+                  title={genreFilter === genre ? "Clear genre filter" : `Show only ${genre}`}
+                >
+                  <strong>{genre}</strong>
+                  <span>{count}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {(GROUP_VIEWS as string[]).includes(view) &&
+            (groupsFor(view as GroupView).length === 0 ? (
+              <p className="library-page__empty-text">Nothing here yet. Add {TAB_LABEL[view as GroupView].toLowerCase()} in Edit metadata.</p>
+            ) : (
+              <div className="library-page__grid">
+                {groupsFor(view as GroupView).map(([value, list]) => (
+                  <Tile key={value} art={list.find((x) => x.artworkUrl)?.artworkUrl} title={value} subtitle={`${list.length} track(s)`} onClick={() => setOpenGroup(`${view}::${value}`)} />
+                ))}
+              </div>
+            ))}
           {view === "all" && <LibraryCards />}
           {view === "all" && (
             <AllMusicList
