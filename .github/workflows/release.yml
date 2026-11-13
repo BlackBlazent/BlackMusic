@@ -8,10 +8,28 @@ on:
 permissions:
   contents: write
 
+# Node 20 actions are deprecated; run every JavaScript action on Node 24 (FIX-06 notes).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   release:
     name: Build ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+
+    # FIX-07: OS code signing. Create these as GitHub repository secrets (Settings -> Secrets and variables -> Actions).
+    # Missing secrets do not fail the build — that platform is simply released UNSIGNED, and the "Signing status" step says so.
+    env:
+      # Windows (Authenticode .pfx):  base64 -w0 cert.pfx  ->  WINDOWS_CERTIFICATE ; its password -> WINDOWS_CERTIFICATE_PASSWORD
+      WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+      WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+      # macOS (Developer ID Application .p12 + notarization)
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
     strategy:
       fail-fast: false
@@ -39,7 +57,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -47,7 +65,7 @@ jobs:
           version: 11.9.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: lts/*
           cache: pnpm
@@ -78,6 +96,29 @@ jobs:
 
       # yt-dlp (downloaded), the whisper tiny model (downloaded), whisper-cli (compiled statically from source) and
       # the no-op open_explorer stand-in for non-Windows targets — see scripts/fetch-sidecars.mjs.
+      - name: Signing status (which OS signing secrets are present)
+        shell: bash
+        run: |
+          has() { [ -n "$1" ] && echo "present" || echo "MISSING (this build will be unsigned)"; }
+          if [ "$RUNNER_OS" = "Windows" ]; then echo "Windows certificate: $(has "$WINDOWS_CERTIFICATE")"; fi
+          if [ "$RUNNER_OS" = "macOS" ]; then
+            echo "Apple certificate:   $(has "$APPLE_CERTIFICATE")"
+            echo "Apple notarization:  $(has "$APPLE_ID")"
+          fi
+          echo "Updater key:         $(has "${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}")"
+
+      - name: Import Windows code-signing certificate
+        if: runner.os == 'Windows' && env.WINDOWS_CERTIFICATE != ''
+        shell: pwsh
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP "codesign.pfx"
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
+          $pwd = ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -AsPlainText -Force
+          $cert = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $pwd
+          Remove-Item $pfx -Force
+          $env:WINDOWS_CERTIFICATE_THUMBPRINT = $cert.Thumbprint
+          node scripts/ci-set-windows-signing.mjs
+
       - name: Prepare bundled tools (yt-dlp, whisper.cpp, tiny model)
         shell: bash
         env:
