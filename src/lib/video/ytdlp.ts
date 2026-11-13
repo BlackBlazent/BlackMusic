@@ -1,4 +1,5 @@
 import { isTauri } from "@/lib/platform";
+import { isMobileOs } from "@/lib/useIsMobile";
 import { getPreference, setPreference } from "@/lib/preferencesStore";
 import type { Track } from "@/lib/types";
 
@@ -45,6 +46,19 @@ export async function findOfficialVideo(trackId: string, title: string, artist: 
   const cache = await getPreference<Record<string, VideoMatch>>(CACHE_KEY, {});
   if (cache[trackId]) return cache[trackId];
   if (!isTauri()) throw new Error("Video Mode needs the desktop app (it runs yt-dlp).");
+
+  // Mobile has no yt-dlp. Find the video with the YouTube Data API instead (VITE_YOUTUBE_API_KEY or the key saved in Settings);
+  // the Playground then embeds it by id, exactly as on desktop.
+  if (isMobileOs()) {
+    const { searchServiceTracks } = await import("@/lib/services/serviceRegistry");
+    const { tracks, needsKey } = await searchServiceTracks("youtube", searchQuery(title, artist), 1);
+    if (needsKey) throw new Error("Add a YouTube Data API key (Settings → Online services, or VITE_YOUTUBE_API_KEY in .env) to find videos on mobile.");
+    const hit = tracks[0]?.resolve && "videoId" in tracks[0].resolve ? tracks[0].resolve.videoId : null;
+    if (!hit) return null;
+    const found: VideoMatch = { id: hit, title: tracks[0].title || title, url: `https://www.youtube.com/watch?v=${hit}` };
+    await setPreference(CACHE_KEY, { ...cache, [trackId]: found });
+    return found;
+  }
 
   const stdout = await runYtDlp([
     `ytsearch1:${searchQuery(title, artist)}`,
