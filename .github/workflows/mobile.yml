@@ -75,14 +75,14 @@ jobs:
       # Always keep the logs: the first failing line in ios-build.log is the real cause of any red run.
       - name: Upload iOS logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: blackmusic-ios-logs
           path: |
             ios-init.log
             ios-build.log
           if-no-files-found: ignore
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: blackmusic-ios
           path: |
@@ -140,7 +140,7 @@ jobs:
         env:
           NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/26.1.10909125
         run: pnpm tauri android build --apk
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: blackmusic-android
           path: src-tauri/gen/android/app/build/outputs/**/*.apk
