@@ -1,4 +1,31 @@
 import { isTauri } from "@/lib/platform";
+import { isMobileOs } from "@/lib/useIsMobile";
+import { nativeCall } from "@/lib/mobileNative";
+import "@/lib/library/androidFolders"; // declares window.BMStorage
+
+async function openAndroidWriteFd(path: string): Promise<number | undefined> {
+  if (!isMobileOs() || !window.BMStorage) return undefined;
+
+  const bridge = window.BMStorage;
+  const answer = await nativeCall(
+    (id) => bridge.openForWrite!(id, path),
+    180_000
+  );
+
+  const r = JSON.parse(answer) as {
+    ok: boolean;
+    fd?: number;
+    error?: string;
+  };
+
+  if (!r.ok || typeof r.fd !== "number") {
+    throw new Error(
+      r.error ?? "Android didn't allow BlackMusic to edit this file."
+    );
+  }
+
+  return r.fd;
+}
 
 /** `undefined` = leave the field alone; `""` = clear it; `year: 0` clears the year. */
 export interface MetadataPatch {
@@ -31,10 +58,22 @@ export interface FullTags {
  * Writes tags into the audio file itself (MP3/ID3, FLAC, M4A, OGG, Opus, WAV, AIFF) through the Rust
  * `write_metadata` command, which uses `lofty`. Only the tag block is rewritten — the audio stream is untouched.
  */
+
+/*
 export async function writeMetadata(path: string, patch: MetadataPatch): Promise<void> {
   if (!isTauri()) throw new Error("Editing tags needs the desktop app.");
   const { invoke } = await import("@tauri-apps/api/core");
   await invoke("write_metadata", { path, patch });
+}
+*/
+
+export async function writeMetadata(path: string, patch: MetadataPatch): Promise<void> {
+  if (!isTauri()) throw new Error("Editing tags needs the desktop app.");
+
+  const { invoke } = await import("@tauri-apps/api/core");
+
+  const fd = await openAndroidWriteFd(path);
+  await invoke("write_metadata", { path, patch, fd });
 }
 
 export async function readFullTags(path: string): Promise<FullTags> {
