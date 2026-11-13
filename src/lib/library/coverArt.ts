@@ -5,7 +5,24 @@ import { serviceFetch } from "@/lib/services/serviceFetch";
 export async function pickImageFile(): Promise<string | null> {
   const { open } = await import("@tauri-apps/plugin-dialog");
   const picked = await open({ multiple: false, filters: [{ name: "Images", extensions: ["jpg", "jpeg", "png", "webp", "gif", "bmp"] }] });
-  return typeof picked === "string" ? picked : null;
+  // return typeof picked === "string" ? picked : null;
+
+  // “Couldn’t read that image: No such file (os error 2)”
+  /*
+  Root cause: Android’s picker returns a content:// URI, not a path. Rust’s image::open() and the asset:// preview can’t open it.
+  That also explains the broken “New cover” preview in your screenshot.
+  */
+
+  if (typeof picked !== "string") return null;
+  // Android returns content:// — copy it into the cache folder and hand back a real path.
+  if (picked.startsWith("content://")) {
+    const { readFile, writeFile } = await import("@tauri-apps/plugin-fs");
+    const { tempDir, join } = await import("@tauri-apps/api/path");
+    const dest = await join(await tempDir(), `cover-${Date.now()}.img`);
+    await writeFile(dest, await readFile(picked));
+    return dest;
+  }
+  return picked;
 }
 
 export const previewSrc = (path: string) => convertFileSrc(path);
