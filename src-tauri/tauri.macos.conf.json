@@ -1,0 +1,6 @@
+{
+  "bundle": {
+    "externalBin": ["binaries/open_explorer", "binaries/yt-dlp", "binaries/whisper-cli"],
+    "resources": ["resources/models/*"]
+  }
+}
