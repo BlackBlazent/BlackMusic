@@ -1,14 +1,22 @@
 /* BlackMusic 2.2.0 — phone layout. Applies when the shell sets data-mobile="true" (UA or ≤ 720 px wide). */
 .app-shell[data-mobile="true"] { height: 100dvh; width: 100vw; padding-top: env(safe-area-inset-top, 0px); }
 .app-shell[data-mobile="true"] .app-shell__content { padding: var(--space-3); padding-bottom: var(--space-4); overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
-.app-shell[data-mobile="true"] .topbar { padding: 0 var(--space-3); gap: var(--space-2); }
+.app-shell[data-mobile="true"] .topbar { padding: none; gap: var(--space-2); } /*0 var(--space-3)*/
 .app-shell[data-mobile="true"] button, .app-shell[data-mobile="true"] a { -webkit-tap-highlight-color: transparent; }
 .app-shell[data-mobile="true"] .topbar button, .app-shell[data-mobile="true"] .playground__transport button, .app-shell[data-mobile="true"] .playground__secondary-row button { min-width: 40px; min-height: 40px; }
 
 /* Playground: stack, bigger touch targets, secondary row scrolls sideways instead of wrapping into a wall */
 .app-shell[data-mobile="true"] .playground { gap: var(--space-3); }
 .app-shell[data-mobile="true"] .playground__stage { min-height: 220px; }
-.app-shell[data-mobile="true"] .playground__transport { flex-wrap: wrap; justify-content: center; gap: var(--space-1); }
+.app-shell[data-mobile="true"] .playground__transport { 
+  gap: var(--space-1);
+  flex-wrap: nowrap; /*wrap*/
+  overflow-x: auto;
+  justify-content: flex-start; /*center*/
+  scrollbar-width: none;
+  padding-bottom: 2px;
+  -webkit-overflow-scrolling: touch; 
+}
 .app-shell[data-mobile="true"] .playground__secondary-row { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; scrollbar-width: none; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
 .app-shell[data-mobile="true"] .playground__secondary-row::-webkit-scrollbar { display: none; }
 .app-shell[data-mobile="true"] .playground__volume, .app-shell[data-mobile="true"] .playground__aspect { display: none; }
@@ -61,12 +69,12 @@ html[data-mobile="true"] *::-webkit-scrollbar, html[data-mobile="true"]::-webkit
 
 /* The shell uses the REAL viewport (dynamic height) and never wider than it — nothing may force horizontal overflow, which is
    what made Android shrink the whole page. min-width:0 lets flex children shrink instead of pushing the layout wider. */
-.app-shell[data-mobile="true"] { position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: 100%; overflow: hidden; padding-top: var(--safe-top, 0px); padding-left: var(--safe-left, 0px); padding-right: var(--safe-right, 0px); }
+.app-shell[data-mobile="true"] { position: fixed; inset: 0; width: 100%; height: 100dvh; max-width: 100%; overflow: unset; padding-top: var(--safe-top, 0px); padding-left: var(--safe-left, 0px); padding-right: var(--safe-right, 0px); } /* overflow:hidden whats make push the page to right so set it to overflow:unset or remove*/
 .app-shell[data-mobile="true"] .app-shell__main, .app-shell[data-mobile="true"] .app-shell__content { min-width: 0; max-width: 100%; }
 .app-shell[data-mobile="true"] .app-shell__content { overflow-x: hidden; }
-.app-shell[data-mobile="true"] .topbar { height: 52px; padding: 0 6px; gap: 2px; justify-content: center; overflow: visible; } /*Justify content space between*/
+.app-shell[data-mobile="true"] .topbar { height: 52px; padding: none; gap: 2px; justify-content: center; overflow: visible; } /*padding 0 6px | Justify content space between*/
 .app-shell[data-mobile="true"] .topbar__history { gap: 0; }
-.app-shell[data-mobile="true"] .topbar__history button, .app-shell[data-mobile="true"] .topbar__search-btn, .app-shell[data-mobile="true"] .topbar__actions button, .app-shell[data-mobile="true"] .notifications-popover > button { width: 40px; height: 40px; min-width: 40px; border-radius: 50%; display: grid; place-items: center; color: var(--color-text-muted); }
+.app-shell[data-mobile="true"] .topbar__history button, .app-shell[data-mobile="true"] .topbar__search-btn, .app-shell[data-mobile="true"] .topbar__actions button, .app-shell[data-mobile="true"] .notifications-popover > button { width: 100%; height: 40px; min-width: 40px; border-radius: 10px; display: grid; place-items: center; color: var(--color-text-muted); }
 .app-shell[data-mobile="true"] .topbar__actions { margin-left: 0; gap: 0; }
 .app-shell[data-mobile="true"] .services-menu__trigger { width: 40px; height: 40px; display: grid; place-items: center; flex-shrink: 0; }
 .app-shell[data-mobile="true"] .topbar__account { margin-left: 0; display: grid; place-items: center; }
