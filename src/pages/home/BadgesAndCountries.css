@@ -1,0 +1,20 @@
+.home-badges, .home-countries { margin-bottom: var(--space-6); }
+.home-badges h2, .home-countries h2 { margin: 0 0 var(--space-3); font-size: 13px; font-weight: 600; color: var(--color-text-muted); }
+.home-badges__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-3); }
+.home-badge { display: flex; flex-direction: column; gap: 4px; padding: var(--space-3); border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface-raised); }
+.home-badge[data-earned="false"] { opacity: 0.6; border-style: dashed; }
+.home-badge__emoji { font-size: 26px; }
+.home-badge strong { font-size: 13px; }
+.home-badge small { font-size: 11px; color: var(--color-text-muted); }
+.home-badge__bar { height: 4px; border-radius: 99px; background: var(--color-border); overflow: hidden; margin-top: 4px; }
+.home-badge__bar i { display: block; height: 100%; background: var(--color-accent); }
+.home-badges__hint { font-size: 12px; color: var(--color-text-muted); }
+.home-countries__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-3); }
+.home-country { border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface-raised); padding: var(--space-3); }
+.home-country header { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: var(--space-2); }
+.home-country h3 { margin: 0; font-size: 15px; }
+.home-country ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.home-country li button { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 6px 8px; border: 0; border-radius: 10px; background: transparent; color: var(--color-text); font: inherit; text-align: left; cursor: pointer; }
+.home-country li button:hover { background: var(--color-surface-hover, rgba(255, 255, 255, 0.06)); }
+.home-country__title { font-size: 13px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-country__meta, .home-country__note { font-size: 11px; color: var(--color-text-muted); }
