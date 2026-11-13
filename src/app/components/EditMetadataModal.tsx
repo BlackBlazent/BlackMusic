@@ -6,6 +6,9 @@ import { mbCoverCandidates, mbLookupBest } from "@/lib/services/musicbrainzClien
 import { lyricsManager } from "@/app/features/lyrics/services/LyricsManager";
 import { linesToLrc, segmentsToLyrics, transcribe } from "@/lib/whisper";
 import { useLibrary } from "@/app/context/LibraryContext";
+import { bumpStat } from "@/lib/library/stats";
+import { coverPrompt, generateCoverImage, useFalModelId } from "@/lib/services/falClient";
+import { COUNTRY_SUGGESTIONS, MOOD_SUGGESTIONS, getTrackExtras, setTrackExtras } from "@/lib/library/trackExtras";
 import { useNotifications } from "@/app/context/NotificationsContext";
 import { FloatingWindow } from "@/app/overlay/FloatingWindow";
 import "./EditMetadataModal.css";
@@ -34,6 +37,9 @@ export function EditMetadataModal({ track, onClose }: { track: Track; onClose: (
     comment: track.comment ?? "",
     lyrics: "",
   });
+  // FEAT-09: Country and Mood live in the app's own store (never written into the audio file).
+  const [extras, setExtras] = useState(() => ({ country: getTrackExtras(track.id).country ?? track.country ?? "", mood: getTrackExtras(track.id).mood ?? track.mood ?? "" }));
+  const [falModel] = useFalModelId();
   const [coverPath, setCoverPath] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<string[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
@@ -75,6 +81,12 @@ export function EditMetadataModal({ track, onClose }: { track: Track; onClose: (
     if (urls.length === 0) setError("No online covers found for this album.");
   });
 
+  // FEAT-09: fallback when online lookup finds nothing — generates a cover with the user's own fal.ai key.
+  const generateThumbnail = () => run("Generating thumbnail with fal.ai…", async () => {
+    const url = await generateCoverImage(coverPrompt({ title: f.title, artist: f.artist, album: f.album, genre: f.genre, mood: extras.mood }), falModel);
+    setCandidates((prev) => [url, ...prev.filter((u) => u !== url)]);
+  });
+
   const useCandidate = (url: string) => run("Downloading cover…", async () => setCoverPath(await downloadToTemp(url)));
 
   const lookup = () => run("Looking up MusicBrainz…", async () => {
@@ -112,7 +124,11 @@ export function EditMetadataModal({ track, onClose }: { track: Track; onClose: (
         lyrics: f.lyrics,
         coverPath: coverPath ?? undefined,
       });
+      setTrackExtras(track.id, extras);
+      bumpStat("editedMetadata");
       updateTrack(track.id, {
+        // country: extras.country.trim() || undefined,
+        // mood: extras.mood.trim() || undefined,
         title: f.title.trim() || track.title,
         artist: f.artist.trim() || "Unknown artist",
         album: f.album.trim() || "Unknown album",
@@ -165,6 +181,18 @@ export function EditMetadataModal({ track, onClose }: { track: Track; onClose: (
               {input("Genre / subgenre", "genre")}
             </div>
             {input("Composer / songwriter", "composer")}
+            <div className="edit-meta__row">
+              <label>
+                Country
+                <input list="bm-countries" value={extras.country} onChange={(e) => setExtras((x) => ({ ...x, country: e.target.value }))} placeholder="Original country of the artist" />
+                <datalist id="bm-countries">{COUNTRY_SUGGESTIONS.map((c) => <option key={c} value={c} />)}</datalist>
+              </label>
+              <label>
+                Mood
+                <input list="bm-moods" value={extras.mood} onChange={(e) => setExtras((x) => ({ ...x, mood: e.target.value }))} placeholder="Chill, Energetic…" />
+                <datalist id="bm-moods">{MOOD_SUGGESTIONS.map((c) => <option key={c} value={c} />)}</datalist>
+              </label>
+            </div>
             <label>
               Comments
               <textarea rows={2} value={f.comment} onChange={(e) => set("comment", e.target.value)} />
@@ -181,6 +209,7 @@ export function EditMetadataModal({ track, onClose }: { track: Track; onClose: (
             <div className="edit-meta__art-actions">
               <button type="button" onClick={onPickImage} disabled={Boolean(busy)}>Choose image…</button>
               <button type="button" onClick={findCovers} disabled={Boolean(busy)}>Find online</button>
+              <button type="button" onClick={generateThumbnail} disabled={Boolean(busy)} title="Uses your own fal.ai key (Settings → AI artwork)">Generate thumbnail</button>
               {coverPath && <button type="button" onClick={() => setCoverPath(null)}>Keep current</button>}
               <small>Embedded at up to 1200 px and re-encoded to stay under 500 KB.</small>
             </div>
@@ -214,7 +243,7 @@ export function EditMetadataModal({ track, onClose }: { track: Track; onClose: (
         <div className="edit-meta__actions">
           <button type="button" onClick={onClose}>Cancel</button>
           <button type="submit" className="edit-meta__save" disabled={saving || Boolean(busy)}>
-            {saving ? "Writing tags…" : "Save to file"}
+            {saving ? "Writing tags safely…" : "Save to file"}
           </button>
         </div>
       </form>
