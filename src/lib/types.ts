@@ -29,6 +29,9 @@ export interface Track {
   comment?: string;
   bitrate?: number;
   format?: string;
+  /** 3.0.0 (FEAT-07/09): kept in the app's own store, never written into the audio file (see lib/library/trackExtras.ts). */
+  country?: string;
+  mood?: string;
 }
 
 export type StreamRecipe =
