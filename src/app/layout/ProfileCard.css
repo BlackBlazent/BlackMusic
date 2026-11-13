@@ -1,4 +1,4 @@
-.profile-card { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.profile-card { display: flex; align-items: flex-start; gap: var(--space-3); min-width: 0; } /* center */
 .profile-card__avatar { border-radius: 50%; object-fit: cover; flex: none; background: var(--color-surface-sunken); border: 2px solid var(--color-accent); }
 .profile-card__text { display: flex; flex-direction: column; min-width: 0; }
 .profile-card__name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
