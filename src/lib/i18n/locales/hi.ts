@@ -78,4 +78,5 @@ export const hi: Catalog = {
   "online.list": "सूची",
   "folder.subfolders": "सब-फ़ोल्डर",
   "playground.nothing": "कुछ नहीं चल रहा",
+  "library.tab.country": "देश"
 };
