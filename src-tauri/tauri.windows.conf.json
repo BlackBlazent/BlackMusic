@@ -6,6 +6,11 @@
       "binaries/ggml.dll": "whisper-libs/ggml.dll",
       "binaries/ggml-base.dll": "whisper-libs/ggml-base.dll",
       "binaries/ggml-cpu.dll": "whisper-libs/ggml-cpu.dll"
-    }
+    },
+    "externalBin": [
+      "binaries/open_explorer",
+      "binaries/yt-dlp",
+      "binaries/whisper-cli"
+    ]
   }
 }
