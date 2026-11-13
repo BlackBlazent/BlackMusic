@@ -18,7 +18,21 @@ export interface Marker { id: string; at: number; label: string }
 export interface HueConfig { bridgeIp: string; appKey: string; lights: string }
 export interface Insights { bpm: number | null; key: string | null; energy: number; danceability: number; reactive: boolean }
 
+export interface EqPreset { id: string; name: string; gains: number[]; builtIn?: boolean }
+/** FEAT-03b presets: the four the spec names. "Custom" is the live slider state; user-saved presets are added next to them. */
+export const BUILT_IN_EQ_PRESETS: EqPreset[] = [
+  { id: "flat", name: "Flat", gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], builtIn: true },
+  { id: "bass-boost", name: "Bass Boost", gains: [7, 6, 5, 3, 1, 0, 0, 0, 0, 0], builtIn: true },
+  { id: "soft-vocal", name: "Soft Vocal", gains: [-2, -2, -1, 0, 2, 3, 3, 1, -1, -2], builtIn: true },
+  { id: "treble-punch", name: "Treble Punch", gains: [0, 0, 0, 0, 0, 1, 3, 5, 6, 6], builtIn: true },
+];
+
 interface AudioFxValue {
+  eq: number[];
+  setEq: (gains: number[]) => void;
+  eqPresets: EqPreset[];
+  saveEqPreset: (name: string, gains: number[]) => void;
+  deleteEqPreset: (id: string) => void;
   filters: Record<FilterId, boolean>;
   toggleFilter: (id: FilterId) => void;
   pitch: number;
@@ -76,6 +90,8 @@ export function AudioFxProvider({ children }: { children: ReactNode }) {
 
   const [filters, setFilters] = usePersistentState<Record<FilterId, boolean>>("fx.filters", DEFAULT_FILTERS);
   const [pitch, setPitch] = usePersistentState<number>("fx.pitch", 0);
+  const [eq, setEq] = usePersistentState<number[]>("fx.eq", [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const [customEq, setCustomEq] = usePersistentState<EqPreset[]>("fx.eqPresets", []);
   const [normalizer, setNormalizer] = usePersistentState<boolean>("fx.normalizer", false);
   const [autoVolume, setAutoVolume] = usePersistentState<boolean>("fx.autoVolume", false);
   const [deepSleep, setDeepSleep] = usePersistentState<boolean>("fx.deepSleep", false);
@@ -98,7 +114,7 @@ export function AudioFxProvider({ children }: { children: ReactNode }) {
   const pushGain = useCallback(() => setGainMultiplier(mult.current.auto * mult.current.sleep * mult.current.duck), [setGainMultiplier]);
 
   // ---- effect chain + normalizer ------------------------------------------------------------------------
-  const anyFx = Object.values(filters).some(Boolean) || pitch !== 0 || normalizer;
+  const anyFx = Object.values(filters).some(Boolean) || pitch !== 0 || normalizer || eq.some((g) => Math.abs(g) >= 0.05);
   const normalizeGainRef = useRef(1);
 
   // 2.2.0 root cause of "undo is delayed / effects stay on": the old code returned early when NO effect was left on, so switching
@@ -109,7 +125,7 @@ export function AudioFxProvider({ children }: { children: ReactNode }) {
     if (!audioElement || !fxAvailable) return;
     if (!anyFx && !isRouted()) return; // nothing was ever routed → nothing to undo
     const seq = ++rebuildSeq.current;
-    const settings = { filters, normalizeGain: normalizer ? normalizeGainRef.current : 1, pitchSemitones: pitch };
+    const settings = { filters, normalizeGain: normalizer ? normalizeGainRef.current : 1, pitchSemitones: pitch, eq };
     if (!isRouted()) {
       if (!canRouteThroughGraph(audioElement)) {
         setFxError("Effects only work on tracks from your library — streamed sources can't be processed.");
@@ -131,7 +147,7 @@ export function AudioFxProvider({ children }: { children: ReactNode }) {
     if (seq !== rebuildSeq.current) return; // a newer toggle superseded this one — apply only the latest state
     const result = applyEffects(settings);
     setFxError(result.ok ? null : (result.error ?? "An effect couldn't be applied."));
-  }, [audioElement, anyFx, filters, pitch, normalizer, fxAvailable]);
+  }, [audioElement, anyFx, filters, pitch, normalizer, eq, fxAvailable]);
 
   useEffect(() => {
     void rebuild();
@@ -351,6 +367,10 @@ export function AudioFxProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AudioFxValue>(
     () => ({
+      eq, setEq: (g) => setEq(g.map((v) => Math.max(-12, Math.min(12, v)))),
+      eqPresets: [...BUILT_IN_EQ_PRESETS, ...customEq],
+      saveEqPreset: (name, gains) => setCustomEq((all) => [...all.filter((p) => p.name.toLowerCase() !== name.trim().toLowerCase()), { id: `eq${Date.now()}`, name: name.trim(), gains: [...gains] }]),
+      deleteEqPreset: (id) => setCustomEq((all) => all.filter((p) => p.id !== id)),
       filters, toggleFilter: (id) => setFilters((f) => ({ ...f, [id]: !f[id] })),
       pitch, setPitch, normalizer, setNormalizer, normalizerStatus, fxAvailable, fxError,
       autoVolume, setAutoVolume, deepSleep, setDeepSleep, deepSleepStart, setDeepSleepStart,
@@ -363,7 +383,7 @@ export function AudioFxProvider({ children }: { children: ReactNode }) {
       removeMarker: (id) => setMarkersByTrack((all) => ({ ...all, [trackId]: (all[trackId] ?? []).filter((m) => m.id !== id) })),
       radio, setRadio, hue, setHue, hueSync, setHueSync, insights,
     }),
-    [filters, pitch, normalizer, normalizerStatus, fxAvailable, fxError, autoVolume, deepSleep, deepSleepStart, trackZones, trackId, activeZoneId, markersByTrack, radio, hue, hueSync, insights, setFilters, setPitch, setNormalizer, setAutoVolume, setDeepSleep, setDeepSleepStart, setZones, setMarkersByTrack, setRadio, setHue, setHueSync],
+    [eq, customEq, setEq, setCustomEq, filters, pitch, normalizer, normalizerStatus, fxAvailable, fxError, autoVolume, deepSleep, deepSleepStart, trackZones, trackId, activeZoneId, markersByTrack, radio, hue, hueSync, insights, setFilters, setPitch, setNormalizer, setAutoVolume, setDeepSleep, setDeepSleepStart, setZones, setMarkersByTrack, setRadio, setHue, setHueSync],
   );
   void duration;
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
