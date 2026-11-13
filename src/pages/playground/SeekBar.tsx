@@ -1,6 +1,8 @@
 import { useRef, useState, type KeyboardEvent, type MouseEvent as ReactMouseEvent } from "react";
 import { formatDuration } from "@/lib/formatDuration";
 import type { FocusZone, Marker } from "@/app/context/AudioFxContext";
+import { useSeekAnimation } from "@/lib/seekAnimation";
+import "@/app/components/SeekAnimations.css";
 import "./SeekBar.css";
 
 const MARKER_PRESETS = ["Best drop here! 🔥", "Chorus starts!", "Guitar solo 🎸"];
@@ -38,6 +40,7 @@ export function SeekBar({
   onAddMarker?: (label: string, at: number) => void;
   onRemoveMarker?: (id: string) => void;
 }) {
+  const [anim] = useSeekAnimation();
   const [adding, setAdding] = useState(false);
   const [markerDraft, setMarkerDraft] = useState("");
   const [markerAt, setMarkerAt] = useState(0);
@@ -103,7 +106,7 @@ export function SeekBar({
           {formatDuration(position)}
         </button>
       )}
-      <div className="seek-bar__track" ref={trackRef} onMouseMove={onMove} onMouseLeave={() => setHoverX(null)}>
+      <div className="seek-bar__track" ref={trackRef} data-seek-anim={anim} style={{ ["--seek-progress" as string]: `${progress * 100}%` }} onMouseMove={onMove} onMouseLeave={() => setHoverX(null)}>
         {hoverX !== null && !disabled && (
           <span className="seek-bar__preview" style={{ left: hoverX }}>
             {formatDuration(hoverTime)}
