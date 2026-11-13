@@ -14,6 +14,9 @@ import { isMobileOs } from "@/lib/useIsMobile";
 import type { Track } from "@/lib/types";
 import "./LibraryTools.css";
 
+import { conversionOutputDir, ffmpegRun, ffmpegSupported } from "@/lib/ffmpeg";
+import { NativeAddonMissing } from "@/lib/mobileNative";
+
 type ToolId = "bitrate" | "duplicates" | "memory" | "converter" | "organizer" | "mood" | "batch" | "smart";
 const DAY = 86_400_000;
 const LOSSLESS = new Set(["Flac", "Wav", "Aiff", "Ape", "WavPack"]);
@@ -38,9 +41,9 @@ export function LibraryCards() {
     { id: "duplicates", label: t("library.card.duplicates"), hint: "Same song, several files", icon: "🧬" },
     { id: "memory", label: t("library.card.memory"), hint: "Songs from your past", icon: "🕰" },
     { id: "mood", label: t("library.card.mood"), hint: "A queue for your mood", icon: "🎚" },
-    { id: "batch", label: "Batch Tag Editor", hint: "Fix many tags at once", icon: "🏷", desktopOnly: true },
-    { id: "converter", label: t("library.card.converter"), hint: "MP3 · FLAC · WAV · AAC", icon: "🔁", desktopOnly: true },
-    { id: "organizer", label: t("library.card.organizer"), hint: "Preview a tidy folder layout", icon: "🗂", desktopOnly: true },
+    { id: "batch", label: "Batch Tag Editor", hint: "Fix many tags at once", icon: "🏷" },
+    { id: "converter", label: t("library.card.converter"), hint: "MP3 · FLAC · WAV · AAC", icon: "🔁" },
+    { id: "organizer", label: t("library.card.organizer"), hint: "Preview a tidy folder layout", icon: "🗂" },
   ];
   return (
     <>
@@ -81,46 +84,43 @@ export function LibraryCards() {
       id: "bitrate",
       label: t("library.card.bitrate"),
       hint: "Find low-quality files",
-      icon: "/assets/media/images/icons/general/navigations/bitrate.png",
+      icon: "/assets/media/images/icons/general/navigations/bitrate.svg",
     },
     {
       id: "duplicates",
       label: t("library.card.duplicates"),
       hint: "Same song, several files",
-      icon: "/assets/media/images/icons/general/navigations/duplicates.png",
+      icon: "/assets/media/images/icons/general/navigations/duplicates.svg",
     },
     {
       id: "memory",
       label: t("library.card.memory"),
       hint: "Songs from your past",
-      icon: "/assets/media/images/icons/general/navigations/memory.png",
+      icon: "/assets/media/images/icons/general/navigations/memory.svg",
     },
     {
       id: "mood",
       label: t("library.card.mood"),
       hint: "A queue for your mood",
-      icon: "/assets/media/images/icons/general/navigations/moode.png",
+      icon: "/assets/media/images/icons/general/navigations/moode.svg",
     },
     {
       id: "batch",
       label: "Batch Tag Editor",
       hint: "Fix many tags at once",
-      icon: "/assets/media/images/icons/general/navigations/batch.png",
-      desktopOnly: true,
+      icon: "/assets/media/images/icons/general/navigations/batch.svg",
     },
     {
       id: "converter",
       label: t("library.card.converter"),
       hint: "MP3 · FLAC · WAV · AAC",
-      icon: "/assets/media/images/icons/general/navigations/converter.png",
-      desktopOnly: true,
+      icon: "/assets/media/images/icons/general/navigations/converter.svg",
     },
     {
       id: "organizer",
       label: t("library.card.organizer"),
       hint: "Preview a tidy folder layout",
-      icon: "/assets/media/images/icons/general/navigations/organizer.png",
-      desktopOnly: true,
+      icon: "/assets/media/images/icons/general/navigations/organizer.svg",
     },
   ];
 
@@ -405,18 +405,18 @@ function FormatConverter({ onClose }: { onClose: () => void }) {
 
   const convert = async () => {
     const chosen = local.filter((x) => picked.has(x.id));
-    const { open } = await import("@tauri-apps/plugin-dialog");
-    const dir = await open({ directory: true, title: "Choose an output folder" });
-    if (typeof dir !== "string") return;
-    const { invoke } = await import("@tauri-apps/api/core");
+    if (!ffmpegSupported()) { push("Converter", new NativeAddonMissing("ffmpeg").message); return; }
+    const dir = await conversionOutputDir();
+    if (!dir) return;
     const { join } = await import("@tauri-apps/api/path");
+    if (isMobileOs()) { try { const { mkdir } = await import("@tauri-apps/plugin-fs"); await mkdir(dir, { recursive: true }); } catch { /* the encoder creates it if it can */ } }
     const spec = FORMATS.find((f) => f.id === fmt)!;
     let ok = 0;
     for (const [i, x] of chosen.entries()) {
       setStatus(`Converting ${i + 1}/${chosen.length}: ${x.title}`);
       const out = await join(dir, `${x.artist} - ${x.title}`.replace(/[\\/:*?"<>|]/g, "_") + `.${fmt}`);
       try {
-        const r = await invoke<{ code: number; stderr: string }>("ffmpeg_run", { args: ["-y", "-i", x.path, "-vn", ...spec.args(kb), out] });
+        const r = await ffmpegRun(["-y", "-i", x.path, "-vn", ...spec.args(kb), out]);
         if (r.code === 0) ok++; else console.error("[ffmpeg]", r.stderr.split("\n").slice(-3).join(" "));
       } catch (e) { push("Converter", e instanceof Error ? e.message : String(e)); setStatus(null); return; }
     }
@@ -425,7 +425,7 @@ function FormatConverter({ onClose }: { onClose: () => void }) {
   };
   return (
     <Window id="converter" title="Format Converter" onClose={onClose} width={560}>
-      <p className="lib-tool__note">Converts copies into a folder you choose — originals are never changed. Needs ffmpeg (Settings → Plugins & Tools).</p>
+      <p className="lib-tool__note">Converts copies into a folder you choose — originals are never changed. {isMobileOs() ? "Saved to Music → BlackMusic Converted." : "Needs ffmpeg (Settings → Plugins & Tools)."}</p>
       <div className="lib-tool__chips">{FORMATS.map((f) => <button key={f.id} type="button" data-active={fmt === f.id} onClick={() => setFmt(f.id)}>{f.label}</button>)}</div>
       {(fmt === "mp3" || fmt === "m4a" || fmt === "ogg") && <label className="lib-tool__field">Bitrate: {kb} kbps<input type="range" min={96} max={320} step={32} value={kb} onChange={(e) => setKb(Number(e.target.value))} /></label>}
       <input className="lib-tool__search" placeholder="Filter tracks…" value={filter} onChange={(e) => setFilter(e.target.value)} />
