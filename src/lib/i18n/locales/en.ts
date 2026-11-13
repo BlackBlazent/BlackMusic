@@ -57,6 +57,7 @@ export const en = {
   "settings.tools.whisper": "whisper.cpp (speech-to-text)",
   "settings.tools.models": "Speech models",
   "library.tab.all": "All music",
+  "library.tab.country": "Country",
   "library.tab.albums": "Albums",
   "library.tab.artists": "Artists",
   "library.tab.playlists": "Playlists",
