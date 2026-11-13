@@ -31,6 +31,7 @@ import {
   PreviousIcon,
   QueueListIcon,
   RepeatIcon,
+  RepeatOneIcon,
   Rewind10Icon,
   ScissorsIcon,
   SearchIcon,
@@ -46,8 +47,14 @@ import { StageCanvas } from "./StageCanvas";
 import { useStageEffects, type CoverEffect } from "./useStageEffects";
 import type { VizMode } from "@/lib/audio/visualizers";
 import { CutterPanel, DeepSleepPanel, FiltersPanel, InsightsPanel, MoodPanel, NormalizerPanel, PitchPanel, RadioPanel, VisualizerPanel, ZonesPanel } from "./AccessoryPanels";
+import { useLyrics } from "@/app/features/lyrics/context/LyricsContext";
 import { LyricsOverlay } from "@/app/features/lyrics/components/LyricsOverlay";
 import { LyricsSettings } from "@/app/features/lyrics/components/LyricsSettings";
+import { LiveSessionWindow } from "./LiveSessionWindow";
+import { useLiveSession } from "@/app/context/LiveSessionContext";
+import { QueueWindow } from "./QueueWindow";
+import { EqualizerWindow } from "./EqualizerWindow";
+import { eqIsFlat } from "@/lib/audio/audioEngine";
 import { QueueStrip, type PlaylistFolder } from "./QueueStrip";
 import { LinkDropperModal } from "./LinkDropperModal";
 import type { Track } from "@/lib/types";
@@ -81,6 +88,7 @@ const PANEL_TITLES: Record<Exclude<Panel, null>, string> = {
 
 const STRIP_RENDER_LIMIT = 500;
 
+
 export function Playground() {
   const playback = usePlayback();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -92,6 +100,12 @@ export function Playground() {
   const [lyricsOpen, setLyricsOpen] = usePersistentState<boolean>("playground.lyricsOpen", false);
   const [openPanel, setOpenPanel] = useState<Panel>(null);
   const [stripFilter, setStripFilter] = useState("");
+  const lyricsCtl = useLyrics();
+  const lyricsFileRef = useRef<HTMLInputElement>(null);
+  const [queueOpen, setQueueOpen] = useState(false);
+  const [eqOpen, setEqOpen] = useState(false);
+  const [liveOpen, setLiveOpen] = useState(false);
+  const live = useLiveSession();
   const [filterOpen, setFilterOpen] = useState(false);
   const [linkInput, setLinkInput] = usePersistentState<string>("playground.linkInput", "");
   const [openLink, setOpenLink] = usePersistentState<string | null>("playground.openLink", null);
@@ -101,6 +115,12 @@ export function Playground() {
   const [fullscreen, setFullscreen] = useState(false);
   const [crop, setCrop] = usePersistentState<CropId>("playground.crop", "fit");
   const stageRef = useRef<HTMLElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  // FEAT-03e: with "Full controls in fullscreen" on (Settings → Playback look), the whole player — tabs, controls, secondary row and
+  // queue strip — goes fullscreen, and auto-hides when idle: click shows it, double-click hides it right away.
+  const [fsFullSetting] = useSharedSetting<boolean>("fullscreenControls", true);
+  const [chromeHidden, setChromeHidden] = useState(false);
+  const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rowRef = useRef<HTMLElement>(null);
   const artImgRef = useRef<HTMLImageElement>(null);
   const fx = useAudioFx();
@@ -166,7 +186,10 @@ export function Playground() {
     const q = stripFilter.trim().toLowerCase();
     return q ? layout.ordered.filter((t) => `${t.title} ${t.artist}`.toLowerCase().includes(q)) : layout.ordered;
   }, [layout.ordered, stripFilter]);
-  const stripTracks = stripFilter.trim() ? filtered : filtered.slice(0, STRIP_RENDER_LIMIT);
+  // IMP-04: window the strip AROUND the playing song instead of always showing the first 500 (bucketed so it doesn't jump).
+  const activeIdx = filtered.findIndex((t) => t.id === currentTrack?.id);
+  const windowStart = stripFilter.trim() || activeIdx < 0 ? 0 : Math.min(Math.max(0, Math.floor(activeIdx / 200) * 200 - 150), Math.max(0, filtered.length - STRIP_RENDER_LIMIT));
+  const stripTracks = stripFilter.trim() ? filtered : filtered.slice(windowStart, windowStart + STRIP_RENDER_LIMIT);
 
   const onSelectFromStrip = (track: Track) => playTrack(track, openFolder ? filtered : layout.ordered);
 
@@ -208,8 +231,8 @@ export function Playground() {
         const { getCurrentWindow } = await import("@tauri-apps/api/window");
         await getCurrentWindow().setFullscreen(true);
         viaWindow.current = true;
-      } else if (document.fullscreenEnabled && stageRef.current?.requestFullscreen) {
-        await stageRef.current.requestFullscreen();
+      } else if (document.fullscreenEnabled && (fsFullSetting ? rootRef.current : stageRef.current)?.requestFullscreen) {
+        await (fsFullSetting ? rootRef.current : stageRef.current)!.requestFullscreen();
         viaElementApi.current = true;
       }
     } catch (e) {
@@ -217,6 +240,22 @@ export function Playground() {
       console.warn("[playground] OS fullscreen unavailable — using the in-app immersive view", e);
     }
   };
+  const fsFull = fullscreen && fsFullSetting;
+  const armIdle = () => {
+    if (idleTimer.current) clearTimeout(idleTimer.current);
+    idleTimer.current = setTimeout(() => setChromeHidden(true), 3500);
+  };
+  useEffect(() => {
+    if (!fsFull) {
+      setChromeHidden(false);
+      if (idleTimer.current) clearTimeout(idleTimer.current);
+      return;
+    }
+    armIdle();
+    const onKey = () => { setChromeHidden(false); armIdle(); };
+    window.addEventListener("keydown", onKey);
+    return () => { window.removeEventListener("keydown", onKey); if (idleTimer.current) clearTimeout(idleTimer.current); };
+  }, [fsFull]); // eslint-disable-line react-hooks/exhaustive-deps
   const toggleFullscreen = () => void (fullscreen ? exitFullscreen() : enterFullscreen());
   useEffect(() => {
     // The user left element-fullscreen themselves (Esc / system gesture): leave immersive mode too.
@@ -290,7 +329,15 @@ export function Playground() {
   const ambientSrc = videoOnStage ? `https://i.ytimg.com/vi/${ui.activeVideoId}/hqdefault.jpg` : currentTrack?.artworkUrl;
 
   return (
-    <div className="playground" data-ambient={ui.ambient}>
+    <div
+      className="playground"
+      ref={rootRef}
+      data-ambient={ui.ambient}
+      data-fs={fsFull}
+      data-chrome={fsFull && chromeHidden ? "hidden" : "shown"}
+      onClick={fsFull ? () => { setChromeHidden(false); armIdle(); } : undefined}
+      onDoubleClick={fsFull ? () => { if (idleTimer.current) clearTimeout(idleTimer.current); setChromeHidden(true); } : undefined}
+    >
       {/* Ambient mode: a blurred, slowly drifting glow of the art/video behind the whole theater page. */}
       {ui.ambient && ambientSrc && <div className="playground__ambient" style={{ backgroundImage: `url("${ambientSrc}")` }} aria-hidden="true" />}
 
@@ -365,11 +412,12 @@ export function Playground() {
         )}
       </section>
 
+      <div className="playground__chrome-bottom">
       <SeekBar position={position} duration={duration} disabled={!currentTrack} onSeek={seek} markers={fx.markers} zones={fx.zones} onAddMarker={fx.addMarker} onRemoveMarker={fx.removeMarker} />
 
       <section className="playground__transport">
         <Tooltip label="Shuffle" side="top">
-          <button type="button" data-active={shuffle} onClick={toggleShuffle}><ShuffleIcon /></button>
+          <button type="button" data-active={shuffle} data-tone="pink" aria-pressed={shuffle} onClick={toggleShuffle}><ShuffleIcon /></button>
         </Tooltip>
         <Tooltip label="Previous" side="top">
           <button type="button" onClick={previous} disabled={!currentTrack}><PreviousIcon /></button>
@@ -389,14 +437,14 @@ export function Playground() {
         <Tooltip label="Next" side="top">
           <button type="button" onClick={next} disabled={!currentTrack}><NextIcon /></button>
         </Tooltip>
-        <Tooltip label={`Repeat: ${repeatMode}`} side="top">
-          <button type="button" data-active={repeatMode !== "off"} onClick={cycleRepeatMode}><RepeatIcon /></button>
+        <Tooltip label={repeatMode === "queue" ? "Repeat: whole queue" : repeatMode === "track" ? "Repeat: this track" : "Repeat: off"} side="top">
+          <button type="button" data-active={repeatMode !== "off"} data-tone={repeatMode === "queue" ? "pink" : repeatMode === "track" ? "blue" : undefined} aria-pressed={repeatMode !== "off"} onClick={cycleRepeatMode}>{repeatMode === "track" ? <RepeatOneIcon /> : <RepeatIcon />}</button>
         </Tooltip>
         <Tooltip label="Loop Creator" side="top">
           <button type="button" data-active={openPanel === "loop" || loopSection.enabled} onClick={() => togglePanel("loop")}><ScissorsIcon /></button>
         </Tooltip>
         <Tooltip label={currentTrack && isFavorite(currentTrack.id) ? "Unfavorite" : "Favorite"} side="top">
-          <button type="button" data-active={currentTrack ? isFavorite(currentTrack.id) : false} disabled={!currentTrack} onClick={() => currentTrack && toggleFavorite(currentTrack.id)}>
+          <button type="button" data-active={currentTrack ? isFavorite(currentTrack.id) : false} data-tone="pink" disabled={!currentTrack} onClick={() => currentTrack && toggleFavorite(currentTrack.id)}>
             <HeartIcon />
           </button>
         </Tooltip>
@@ -430,6 +478,20 @@ export function Playground() {
         <Tooltip label="Lyrics overlay" side="top">
           <button type="button" data-active={lyricsOpen} onClick={() => setLyricsOpen((v) => !v)}><CaptionsIcon /></button>
         </Tooltip>
+        <Tooltip label="Add lyrics file (.lrc / .txt)" side="top">
+          <button type="button" disabled={!currentTrack} onClick={() => lyricsFileRef.current?.click()} aria-label="Add lyrics file">LYR</button>
+        </Tooltip>
+        <input
+          ref={lyricsFileRef}
+          type="file"
+          accept=".lrc,.txt,text/plain"
+          hidden
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = ""; // allow choosing the same file again
+            if (f) void lyricsCtl.uploadLyrics(f);
+          }}
+        />
         <Tooltip label="Lyrics style" side="top">
           <button type="button" data-active={openPanel === "lyrics-style"} onClick={() => togglePanel("lyrics-style")}>Aa</button>
         </Tooltip>
@@ -447,11 +509,13 @@ export function Playground() {
         </Tooltip>
         <Tooltip label="Audio Cutter / Trimmer" side="top"><button type="button" data-active={openPanel === "cutter"} onClick={() => togglePanel("cutter")}>✂</button></Tooltip>
         <Tooltip label="Volume Normalizer" side="top"><button type="button" data-active={openPanel === "normalizer" || fx.normalizer} onClick={() => togglePanel("normalizer")}>dB</button></Tooltip>
-        <Tooltip label="Focus Zones" side="top"><button type="button" data-active={openPanel === "zones" || fx.activeZoneId !== null} onClick={() => togglePanel("zones")}>◎</button></Tooltip>
-        <Tooltip label="Pitch Shifter" side="top"><button type="button" data-active={openPanel === "pitch" || fx.pitch !== 0} onClick={() => togglePanel("pitch")}>♯♭</button></Tooltip>
+        <Tooltip label="Focus Zones" side="top"><button type="button" data-active={openPanel === "zones" || fx.activeZoneId !== null} onClick={() => togglePanel("zones")}>FZ</button></Tooltip>
+        <Tooltip label="Pitch Shifter" side="top"><button type="button" data-active={openPanel === "pitch" || fx.pitch !== 0} onClick={() => togglePanel("pitch")}>#PS</button></Tooltip>
+        <Tooltip label="Meet Room / Session Share" side="top"><button type="button" data-active={liveOpen || Boolean(live.active)} onClick={() => setLiveOpen((v) => !v)} aria-label="Meet Room and Session Share">MR</button></Tooltip>
+        <Tooltip label="Equalizer" side="top"><button type="button" data-active={eqOpen || !eqIsFlat(fx.eq)} onClick={() => setEqOpen((v) => !v)} aria-label="Equalizer">EQ</button></Tooltip>
         <Tooltip label="Audio Filters" side="top"><button type="button" data-active={openPanel === "filters" || Object.values(fx.filters).some(Boolean)} onClick={() => togglePanel("filters")}>FX</button></Tooltip>
-        <Tooltip label="Visualization Effects" side="top"><button type="button" data-active={openPanel === "viz" || vizOn} onClick={() => togglePanel("viz")}>▥</button></Tooltip>
-        <Tooltip label="Track Insights (BPM, key, energy)" side="top"><button type="button" data-active={openPanel === "insights"} onClick={() => togglePanel("insights")}>♩</button></Tooltip>
+        <Tooltip label="Visualization Effects" side="top"><button type="button" data-active={openPanel === "viz" || vizOn} onClick={() => togglePanel("viz")}>VI</button></Tooltip>
+        <Tooltip label="Track Insights (BPM, key, energy)" side="top"><button type="button" data-active={openPanel === "insights"} onClick={() => togglePanel("insights")}>TI</button></Tooltip>
         <Tooltip label="Radio Simulation" side="top"><button type="button" data-active={openPanel === "radio" || fx.radio} onClick={() => togglePanel("radio")}>FM</button></Tooltip>
         <Tooltip label="Sound Mood Lighting (Hue)" side="top"><button type="button" data-active={openPanel === "mood" || fx.hueSync} onClick={() => togglePanel("mood")}>SML</button></Tooltip>
         <Tooltip label="Deep Sleep Auto-Fader" side="top"><button type="button" data-active={openPanel === "deepsleep" || fx.deepSleep} onClick={() => togglePanel("deepsleep")}>zZ</button></Tooltip>
@@ -573,7 +637,13 @@ export function Playground() {
         onEdit={setEditing}
         onRemove={onRemoveFromStrip}
         onMove={layout.move}
+        onOpenQueue={() => setQueueOpen(true)}
       />
+      </div>
+
+      {queueOpen && <QueueWindow tracks={openFolder ? filtered : layout.ordered} currentTrackId={currentTrack?.id} onPlay={onSelectFromStrip} onClose={() => setQueueOpen(false)} />}
+      {eqOpen && <EqualizerWindow onClose={() => setEqOpen(false)} />}
+      {liveOpen && <LiveSessionWindow onClose={() => setLiveOpen(false)} />}
 
       {editing && <EditMetadataModal track={editing} onClose={() => setEditing(null)} />}
       {openLink && <LinkDropperModal url={openLink} onClose={() => setOpenLink(null)} />}
