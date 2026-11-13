@@ -10,7 +10,9 @@
 //! decoding), and returns the lot at once. Cover art is loaded lazily afterwards via
 //! `read_cover`, for the tracks that actually need it.
 
+use lofty::config::ParseOptions;
 use lofty::prelude::*;
+use lofty::probe::Probe;
 use lofty::tag::ItemKey;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -234,7 +236,14 @@ fn discover(root: &str, opts: &ScanOptions, report: &dyn Fn(usize)) -> Discovery
 }
 
 fn read_tags(path: &Path) -> Option<Tags> {
-    let tagged = lofty::read_from_path(path).ok()?;
+    // FIX-08 (3.0.0): `lofty::read_from_path` uses the default ParseOptions, which DECODES AND ALLOCATES every embedded
+    // cover picture. With multi-megabyte covers on thousands of files that is what turned imports from ~100 files/s into a
+    // crawl. The importer only needs text tags + properties; covers are loaded lazily, once per album, by `read_cover`.
+    let tagged = Probe::open(path)
+        .ok()?
+        .options(ParseOptions::new().read_cover_art(false))
+        .read()
+        .ok()?;
     let props = tagged.properties();
     let mut out = Tags::empty(props.duration().as_secs_f64());
     out.bitrate = props.audio_bitrate();
@@ -243,7 +252,9 @@ fn read_tags(path: &Path) -> Option<Tags> {
         out.title = non_empty(t.title().map(|v| v.to_string()));
         out.artist = non_empty(t.artist().map(|v| v.to_string()));
         out.album = non_empty(t.album().map(|v| v.to_string()));
-        out.has_cover = !t.pictures().is_empty();
+        // Pictures are no longer parsed here (see above), so "might have a cover" is assumed for any tagged file; the lazy
+        // `read_cover` pass asks ONE file per album and simply skips albums that turn out to have none.
+        out.has_cover = true;
         out.album_artist = non_empty(t.get_string(&ItemKey::AlbumArtist).map(|v| v.to_string()));
         out.composer = non_empty(t.get_string(&ItemKey::Composer).map(|v| v.to_string()));
         out.genre = non_empty(t.genre().map(|v| v.to_string()));
@@ -370,6 +381,8 @@ pub struct StorageVolume {
     pub removable: bool,
     /// Whether the folder can be listed RIGHT NOW (false before the media permission is granted, or when a card is ejected).
     pub readable: bool,
+    /// 3.0.0: WHY a folder can't be listed (permission denied, not mounted, …) — shown on the Folders page so a problem is never a mystery.
+    pub reason: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -385,6 +398,16 @@ pub struct StorageProbe {
 /// Mobile "automatic discovery": the volumes this app is allowed to look at. Android → internal storage plus every
 /// removable volume mounted under /storage (SD cards, USB OTG). iOS → the app's own Documents folder only, because iOS
 /// gives apps no access to other apps' files or the system music library. Desktop → nothing (folders are added by hand).
+/// A short, honest reason for a failed directory listing.
+#[cfg(any(target_os = "android", target_os = "ios"))]
+fn why(e: std::io::Error) -> String {
+    match e.kind() {
+        std::io::ErrorKind::PermissionDenied => "Not allowed yet — grant “Music and audio” access in system settings (on Android 11+ the card's top level stays locked; its Music folder works).".into(),
+        std::io::ErrorKind::NotFound => "Not mounted right now (card removed or ejected).".into(),
+        _ => format!("Couldn't open it ({e})."),
+    }
+}
+
 #[tauri::command]
 pub fn storage_probe(app: tauri::AppHandle) -> StorageProbe {
     probe_impl(&app)
@@ -394,7 +417,8 @@ pub fn storage_probe(app: tauri::AppHandle) -> StorageProbe {
 fn probe_impl(_app: &tauri::AppHandle) -> StorageProbe {
     let mut volumes: Vec<StorageVolume> = Vec::new();
     let internal = PathBuf::from("/storage/emulated/0");
-    volumes.push(StorageVolume { path: internal.to_string_lossy().to_string(), label: "Internal storage".into(), removable: false, readable: fs::read_dir(&internal).is_ok() });
+    let r = fs::read_dir(&internal);
+    volumes.push(StorageVolume { path: internal.to_string_lossy().to_string(), label: "Internal storage".into(), removable: false, readable: r.is_ok(), reason: r.err().map(why) });
     if let Ok(entries) = fs::read_dir("/storage") {
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().to_string();
@@ -405,7 +429,20 @@ fn probe_impl(_app: &tauri::AppHandle) -> StorageProbe {
             if !fs::metadata(&path).map(|m| m.is_dir()).unwrap_or(false) {
                 continue;
             }
-            volumes.push(StorageVolume { readable: fs::read_dir(&path).is_ok(), path: path.to_string_lossy().to_string(), label: format!("SD card / external ({name})"), removable: true });
+            // 3.0.0 (FIX-03): on Android 11+ the ROOT of an SD card is usually not listable by apps (scoped storage), but its media folders
+            // are. So when the root is refused, look inside the standard media folders and watch the ones that open.
+            let root = fs::read_dir(&path);
+            let root_ok = root.is_ok();
+            volumes.push(StorageVolume { readable: root_ok, path: path.to_string_lossy().to_string(), label: format!("SD card / external ({name})"), removable: true, reason: root.err().map(why) });
+            if !root_ok {
+                for sub in ["Music", "Download", "Audio", "Audiobooks", "Podcasts", "Recordings", "DCIM", "Documents"] {
+                    let p = path.join(sub);
+                    if fs::metadata(&p).map(|m| m.is_dir()).unwrap_or(false) {
+                        let r = fs::read_dir(&p);
+                        volumes.push(StorageVolume { readable: r.is_ok(), path: p.to_string_lossy().to_string(), label: format!("SD card · {sub}"), removable: true, reason: r.err().map(why) });
+                    }
+                }
+            }
         }
     }
     let any_readable = volumes.iter().any(|v| v.readable);
@@ -422,7 +459,8 @@ fn probe_impl(app: &tauri::AppHandle) -> StorageProbe {
     use tauri::Manager;
     let mut volumes = Vec::new();
     if let Ok(docs) = app.path().document_dir() {
-        volumes.push(StorageVolume { readable: fs::read_dir(&docs).is_ok(), path: docs.to_string_lossy().to_string(), label: "BlackMusic folder (Files app)".into(), removable: false });
+        let r = fs::read_dir(&docs);
+        volumes.push(StorageVolume { readable: r.is_ok(), path: docs.to_string_lossy().to_string(), label: "BlackMusic folder (Files app)".into(), removable: false, reason: r.err().map(why) });
     }
     let any_readable = volumes.iter().any(|v| v.readable);
     StorageProbe { platform: "ios", volumes, any_readable, note: Some("iOS only lets BlackMusic read its own Documents folder (visible in the Files app) and files you pick with Add folder.".into()) }
