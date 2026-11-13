@@ -1,0 +1,35 @@
+.ov-note { font-size: 12px; color: var(--color-text-muted); margin: 6px 0 12px; }
+.ov-map__svg { width: 100%; height: auto; display: block; }
+.ov-map__sea { fill: var(--color-surface-raised); }
+.ov-map__grid { stroke: var(--color-border); stroke-width: 0.3; }
+.ov-map__pin circle { fill: var(--color-accent); fill-opacity: 0.55; stroke: var(--color-accent); stroke-width: 0.8; cursor: pointer; transition: fill-opacity 0.15s; }
+.ov-map__pin:hover circle, .ov-map__pin[data-active="true"] circle { fill-opacity: 0.95; }
+.ov-map__list { display: grid; gap: 2px; }
+.ov-map__list h3 { margin: 8px 0; font-size: 15px; }
+.ov-map__list button { display: flex; flex-direction: column; align-items: flex-start; padding: 6px 10px; border: 0; border-radius: 10px; background: transparent; color: var(--color-text); font: inherit; text-align: left; cursor: pointer; }
+.ov-map__list button:hover { background: var(--color-surface-hover, rgba(255, 255, 255, 0.06)); }
+.ov-map__list small { color: var(--color-text-muted); font-size: 11px; }
+.ov-timeline { list-style: none; margin: 0; padding: 0 0 0 18px; border-left: 2px solid var(--color-border); display: grid; gap: 18px; }
+.ov-timeline li { position: relative; }
+.ov-timeline__dot { position: absolute; left: -25px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--color-accent); }
+.ov-timeline h3 { margin: 0 0 6px; font-size: 15px; }
+.ov-timeline h3 small { color: var(--color-text-muted); font-weight: 400; font-size: 11px; margin-left: 6px; }
+.ov-timeline__items { display: flex; flex-wrap: wrap; gap: 6px; }
+.ov-timeline__items button { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 5px 12px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface); color: var(--color-text); font: inherit; font-size: 12px; cursor: pointer; }
+.ov-timeline__items button:hover { border-color: var(--color-accent); }
+.ov-graph h3 { margin: 16px 0 8px; font-size: 13px; color: var(--color-text-muted); }
+.ov-bar { display: grid; grid-template-columns: minmax(70px, 150px) 1fr 32px; gap: 8px; align-items: center; margin-bottom: 5px; font-size: 12px; }
+.ov-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-bar i { display: block; height: 10px; border-radius: 99px; background: var(--color-surface-raised); overflow: hidden; }
+.ov-bar b { display: block; height: 100%; background: var(--color-accent); border-radius: 99px; }
+.ov-bar em { font-style: normal; color: var(--color-text-muted); text-align: right; }
+
+/* FEAT-06 — album art shine, Online page only (Settings → Playback look) */
+.online-page[data-shine="true"] .shelf-card__art, .online-page[data-shine="true"] .online-page__art { position: relative; overflow: hidden; }
+.online-page[data-shine="true"] .shelf-card__art::after, .online-page[data-shine="true"] .online-page__art::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; pointer-events: none;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.35), transparent); transform: skewX(-12deg);
+  animation: ov-shine 4.5s ease-in-out infinite;
+}
+@keyframes ov-shine { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+@media (prefers-reduced-motion: reduce) { .online-page[data-shine="true"] .shelf-card__art::after, .online-page[data-shine="true"] .online-page__art::after { animation: none; display: none; } }
