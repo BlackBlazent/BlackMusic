@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { usePromotions } from "@/app/context/PromotionsContext";
 import { useTheme, type Theme } from "@/app/providers/ThemeProvider";
 import { useAuth } from "@/app/context/AuthContext";
@@ -9,7 +9,7 @@ import { ProfileCard } from "@/app/layout/ProfileCard";
 import { ChangelogModal } from "@/app/components/ChangelogModal";
 import { BannerSettings, LanguageSection, PersonalizationSection, PluginsToolsSection } from "./PersonalizationSections";
 import { errorText } from "@/lib/updater";
-import { isMobileOs } from "@/lib/useIsMobile";
+import { isMobileOs, useIsMobile } from "@/lib/useIsMobile";
 import { LyricsSettings } from "@/app/features/lyrics/components/LyricsSettings";
 import { SERVICE_CLIENTS, SERVICE_KEYS_STORAGE_KEY, loadServiceKeys, type ServiceKeys } from "@/lib/services/serviceRegistry";
 import { useCustomApis } from "@/lib/services/useCustomApis";
@@ -18,6 +18,9 @@ import { checkForUpdate, installUpdateAndRelaunch, type UpdateInfo } from "@/lib
 import { APP_VERSION } from "@/lib/appVersion";
 import { isTauri } from "@/lib/platform";
 import { TrashIcon } from "@/app/layout/icons";
+import { SyncSection } from "./SyncSection";
+import { BackupSection } from "./BackupSection";
+import { AiArtworkSection, AutoUpdateToggle, LegalSection, OsScanSection, PlaybackLookSection } from "./Settings3";
 import "./Settings.css";
 
 const THEME_OPTIONS: { value: Theme; label: string }[] = [
@@ -27,17 +30,10 @@ const THEME_OPTIONS: { value: Theme; label: string }[] = [
 
 const KEYED_SERVICES = Object.values(SERVICE_CLIENTS).filter((c) => c.envKeys.length > 0);
 
-export function Settings() {
-  const { theme, setTheme } = useTheme();
+function AccountSection() {
   const { user, configured, signOut } = useAuth();
-  const { isEnabled, setEnabled } = useAppSettings();
-  const { hiddenCount, unhideAll } = useLibrary();
-  const [changelogOpen, setChangelogOpen] = useState(false);
-
   return (
-    <div className="settings">
-      <h1>Settings</h1>
-
+    <>
       <section className="settings__section">
         <h2>Account</h2>
         {!configured ? (
@@ -55,7 +51,14 @@ export function Settings() {
           <p>Not signed in — use the account icon in the top bar.</p>
         )}
       </section>
+    </>
+  );
+}
 
+function AppearanceSection() {
+  const { theme, setTheme } = useTheme();
+  return (
+    <>
       <section className="settings__section">
         <h2>Appearance</h2>
         <p>BlackMusic supports dark and light — no other theme variants.</p>
@@ -76,10 +79,14 @@ export function Settings() {
         </div>
               <BannerSettings />
       </section>
+    </>
+  );
+}
 
-      <PersonalizationSection />
-      <LanguageSection />
-
+function IntegrationsSection() {
+  const { isEnabled, setEnabled } = useAppSettings();
+  return (
+    <>
       <section className="settings__section">
         <h2>Integrations</h2>
         <p>
@@ -98,10 +105,14 @@ export function Settings() {
           ))}
         </div>
       </section>
+    </>
+  );
+}
 
-      <ServiceKeysSection />
-      <CustomApisSection />
-
+function LibrarySection() {
+  const { hiddenCount, unhideAll } = useLibrary();
+  return (
+    <>
       <section className="settings__section">
         <h2>Library</h2>
         <p>{hiddenCount === 0 ? "No tracks are hidden." : `${hiddenCount} track${hiddenCount === 1 ? " is" : "s are"} hidden from your library.`}</p>
@@ -109,16 +120,115 @@ export function Settings() {
           Unhide all tracks
         </button>
       </section>
-      
+    </>
+  );
+}
+
+function LyricsSection() {
+  return (
+    <>
       <section className="settings__section">
         <h2>Lyrics overlay</h2>
         <p>Style the lyrics shown over the Playground stage. Lyrics are fetched once and saved to your app data folder.</p>
         <LyricsSettings />
       </section>
-      
-      {import.meta.env.DEV && <PromotionsSection />} {/* TODO: For production {import.meta.env.DEV && <PromotionsSection />}. For my own: <PromotionsSection /> */}
-      <PluginsToolsSection />
-      <UpdatesSection onShowChangelog={() => setChangelogOpen(true)} />
+    </>
+  );
+}
+
+/**
+ * IMP-09 §9.1 — block layout inspired by phone system settings: a search bar, a profile block, then rounded blocks of rows
+ * (icon · title · hint · chevron). Each row opens its own page (full screen on phones, a side panel on wide screens).
+ * Only the LAYOUT follows that style; every section's content is exactly what it was.
+ */
+interface SettingsRow { id: string; title: string; hint: string; icon: string; tint: string; keywords: string; node: ReactNode }
+
+export function Settings() {
+  const { user, configured } = useAuth();
+  const mobile = useIsMobile();
+  const [changelogOpen, setChangelogOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [active, setActive] = useState<string | null>(null);
+
+  const groups = useMemo<{ title: string; rows: SettingsRow[] }[]>(() => [
+    { title: "Library & listening", rows: [
+      { id: "library", title: "Library", hint: "Hidden tracks, system Music folder", icon: "/assets/media/images/icons/general/navigations/library.svg", tint: "#e5a000", keywords: "library hidden unhide discovery scan folder music", node: <><LibrarySection /><OsScanSection /></> },
+      { id: "playback", title: "Playback look", hint: "Progress bar, fullscreen, album shine", icon: "/assets/media/images/icons/general/navigations/playback-look.svg", tint: "#3b9bff", keywords: "progress bar animation fullscreen shine playback", node: <PlaybackLookSection /> },
+      { id: "lyrics", title: "Lyrics overlay", hint: "Style the lyrics on the stage", icon: "/assets/media/images/icons/general/navigations/lyrics-overlay.svg", tint: "#9b6bff", keywords: "lyrics overlay style", node: <LyricsSection /> },
+    ] },
+    { title: "Appearance & language", rows: [
+      { id: "appearance", title: "Appearance", hint: "Dark or light, banner image", icon: "/assets/media/images/icons/general/navigations/appearance.svg", tint: "#4aa8a0", keywords: "theme dark light banner appearance", node: <AppearanceSection /> },
+      { id: "personalization", title: "Personalization", hint: "Cover effects, dock, Last.fm name", icon: "/assets/media/images/icons/general/navigations/personalization.svg", tint: "#e0568f", keywords: "personalization cover effect dock motion lastfm screensaver", node: <PersonalizationSection /> },
+      { id: "language", title: "Language", hint: "App language", icon: "/assets/media/images/icons/general/navigations/language.svg", tint: "#3b9bff", keywords: "language translate", node: <LanguageSection /> },
+    ] },
+    { title: "Online & services", rows: [
+      { id: "integrations", title: "Integrations", hint: "Turn services on or off", icon: "/assets/media/images/icons/general/navigations/integrations.svg", tint: "#2fb36d", keywords: "integrations services spotify youtube lastfm audius", node: <IntegrationsSection /> },
+      { id: "keys", title: "Service API keys", hint: "Your own keys, kept on this device", icon: "/assets/media/images/icons/general/navigations/services-api-key.svg", tint: "#e5a000", keywords: "api keys youtube spotify tidal lastfm genius custom", node: <><ServiceKeysSection /><CustomApisSection /></> },
+      { id: "ai", title: "AI artwork", hint: "fal.ai cover generation", icon: "/assets/media/images/icons/general/navigations/ai-artwork.svg", tint: "#9b6bff", keywords: "fal ai artwork thumbnail cover generate image model", node: <AiArtworkSection /> },
+      ...(import.meta.env.DEV ? [{ id: "promo", title: "Promotions", hint: "Developer diagnostics", icon: "/assets/media/images/icons/general/navigations/promotions.svg", tint: "#888", keywords: "promotions diagnostics", node: <PromotionsSection /> }] : []),
+    ] },
+    { title: "Sync & backup", rows: [
+      { id: "sync", title: "Music Portable Sync", hint: "Same library on phone and computer", icon: "/assets/media/images/icons/general/navigations/music-portable-sync.svg", tint: "#3b9bff", keywords: "sync devices transfer copy stream budget", node: <SyncSection /> },
+      { id: "backup", title: "Backup & export", hint: "JSON, M3U8, CSV, restore", icon: "/assets/media/images/icons/general/navigations/backup-export.svg", tint: "#2fb36d", keywords: "backup restore export json m3u csv playlist", node: <BackupSection /> },
+    ] },
+    { title: "Plug-ins & tools", rows: [
+      { id: "plugins", title: "Plug-ins & Tools", hint: "yt-dlp, whisper.cpp, FFmpeg, speech models", icon: "/assets/media/images/icons/general/navigations/plugins-tools.svg", tint: "#e0568f", keywords: "plugins tools ytdlp whisper ffmpeg models speech transcription", node: <PluginsToolsSection /> },
+    ] },
+    { title: "About", rows: [
+      { id: "legal", title: "Privacy Policy & Terms", hint: "How your data is handled", icon: "/assets/media/images/icons/general/navigations/privacy-terms.svg", tint: "#4aa8a0", keywords: "privacy policy terms legal conditions", node: <LegalSection /> },
+      { id: "updates", title: "Updates & version", hint: "Check for a new version", icon: "/assets/media/images/icons/general/navigations/updates-version.svg", tint: "#3b9bff", keywords: "update version changelog release", node: <UpdatesSection onShowChangelog={() => setChangelogOpen(true)} /> },
+    ] },
+  ], []);
+
+  const account: SettingsRow = { id: "account", title: user ? (user.fullName ?? user.email ?? "Account") : "Account", hint: !configured ? "Accounts aren't set up in this build" : user ? "Account & sign-out" : "Not signed in", icon: "/assets/media/images/icons/general/navigations/account-avatar.svg", tint: "#3b9bff", keywords: "account profile sign in log out", node: <AccountSection /> };
+  const all = useMemo(() => [account, ...groups.flatMap((g) => g.rows)], [groups, account.title, account.hint]); // eslint-disable-line react-hooks/exhaustive-deps
+  const q = query.trim().toLowerCase();
+  const matches = q ? all.filter((r) => `${r.title} ${r.hint} ${r.keywords}`.toLowerCase().includes(q)) : null;
+  const current = all.find((r) => r.id === (active ?? (mobile ? "" : "account"))) ?? null;
+
+  const row = (r: SettingsRow) => (
+    <button key={r.id} type="button" className="settings-row" data-active={current?.id === r.id} onClick={() => setActive(r.id)}>
+      {/*<span className="settings-row__icon" style={{ background: r.tint }} aria-hidden>{r.icon}</span>*/}
+      <span className="settings-row__icon" style={{ background: r.tint }} aria-hidden>
+        <img src={r.icon} alt="" />
+      </span>
+      <span className="settings-row__text"><strong>{r.title}</strong><small>{r.hint}</small></span>
+      <span className="settings-row__chev" aria-hidden>›</span>
+    </button>
+  );
+
+  const list = (
+    <nav className="settings-home" aria-label="Settings">
+      <input className="settings-search" type="search" placeholder="Search settings" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Search settings" />
+      {matches ? (
+        <div className="settings-block">
+          {matches.length === 0 ? <p className="settings-empty">Nothing matches “{query}”.</p> : matches.map(row)}
+        </div>
+      ) : (
+        <>
+          <div className="settings-block settings-block--profile">{row(account)}</div>
+          {groups.map((g) => (
+            <div key={g.title} className="settings-group">
+              <h2>{g.title}</h2>
+              <div className="settings-block">{g.rows.map(row)}</div>
+            </div>
+          ))}
+        </>
+      )}
+    </nav>
+  );
+
+  return (
+    <div className="settings" data-layout={mobile ? "stack" : "split"} data-detail={current ? "open" : "closed"}>
+      <h1>Settings</h1>
+      {(!mobile || !current) && list}
+      {current && (
+        <div className="settings-detail">
+          {mobile && <button type="button" className="settings-back" onClick={() => setActive(null)}>‹ Settings</button>}
+          <h2 className="settings-detail__title">{current.title}</h2>
+          {current.node}
+        </div>
+      )}
       {changelogOpen && <ChangelogModal onClose={() => setChangelogOpen(false)} />}
     </div>
   );
@@ -314,6 +424,7 @@ function UpdatesSection({ onShowChangelog }: { onShowChangelog: () => void }) {
   const [status, setStatus] = useState<"idle" | "checking" | "available" | "up-to-date" | "installing" | "error">("idle");
   const [update, setUpdate] = useState<UpdateInfo | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [pct, setPct] = useState<number | null>(null);
 
   const onCheck = async () => {
     setStatus("checking");
@@ -331,7 +442,8 @@ function UpdatesSection({ onShowChangelog }: { onShowChangelog: () => void }) {
   const onInstall = async () => {
     setStatus("installing");
     try {
-      await installUpdateAndRelaunch();
+      setPct(0);
+      await installUpdateAndRelaunch((done, total) => setPct(total ? Math.min(100, Math.round((done / total) * 100)) : null));
     } catch (error) {
       setErrorMessage(errorText(error));
       setStatus("error");
@@ -357,6 +469,12 @@ function UpdatesSection({ onShowChangelog }: { onShowChangelog: () => void }) {
             {status === "checking" ? "Checking…" : "Check for updates"}
           </button>
 
+          {status === "installing" && (
+            <p className="settings__integration-desc" aria-live="polite">
+              Installing update… {pct === null ? "downloading" : `${pct}%`} — BlackMusic will restart when it's done.
+            </p>
+          )}
+          <AutoUpdateToggle />
           {status === "up-to-date" && <p className="settings__integration-desc">You're on the latest version.</p>}
           {status === "error" && <p className="settings__update-error">{errorMessage}</p>}
 
