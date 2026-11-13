@@ -14,6 +14,10 @@ import { Tooltip } from "@/app/components/Tooltip";
 import { FolderIcon, FolderOpenIcon, GridIcon, RefreshIcon } from "@/app/layout/icons";
 import type { Track } from "@/lib/types";
 import { SubfolderStrip } from "./SubfolderStrip";
+import { SyncedFolderWindow } from "./SyncedFolderWindow";
+import { APP_VERSION } from "@/lib/appVersion";
+import { formatBytes } from "@/lib/formatBytes";
+import { syncTag, useSyncedFolders } from "@/lib/sync/syncedFolders";
 import "./Folder.css";
 
 const VIEW_STYLES = [
@@ -38,6 +42,8 @@ interface FolderInfo {
   tracks: Track[];
   count: number;
   totalSeconds: number;
+  /** IMP-08: sum of the audio files' sizes. */
+  bytes: number;
   artists: string[];
   topArtists: { name: string; count: number }[];
   formats: string[];
@@ -55,9 +61,11 @@ function buildInfo(folder: string, all: Track[]): FolderInfo {
   const formats = new Set<string>();
   const art: string[] = [];
   let totalSeconds = 0;
+  let bytes = 0;
   let addedAt = Infinity;
   for (const t of tracks) {
     totalSeconds += t.duration;
+    bytes += t.size ?? 0;
     byArtist.set(t.artist, (byArtist.get(t.artist) ?? 0) + 1);
     const dot = t.path.lastIndexOf(".");
     if (dot !== -1) formats.add(t.path.slice(dot + 1).toUpperCase());
@@ -74,6 +82,7 @@ function buildInfo(folder: string, all: Track[]): FolderInfo {
     tracks,
     count: tracks.length,
     totalSeconds,
+    bytes,
     artists: [...byArtist.keys()],
     topArtists,
     formats: [...formats].sort(),
@@ -95,7 +104,8 @@ function renderTemplate(template: string, info: FolderInfo): string {
     .replace(/\{count\}/g, String(info.count))
     .replace(/\{duration\}/g, formatLong(info.totalSeconds))
     .replace(/\{artists\}/g, String(info.artists.length))
-    .replace(/\{formats\}/g, info.formats.join("/"));
+    .replace(/\{formats\}/g, info.formats.join("/"))
+    .replace(/\{size\}/g, formatBytes(info.bytes));
 }
 
 export function Folder() {
@@ -112,11 +122,21 @@ export function Folder() {
   const promos = useManualPromotions("folder");
 
   const infos = useMemo(() => folders.map((f) => buildInfo(f, tracks)), [folders, tracks]);
+  const syncedFolders = useSyncedFolders();
+  const [openSynced, setOpenSynced] = useState<(typeof syncedFolders)[number] | null>(null);
+  // IMP-08: total across every added folder (a track inside two nested roots is only counted once).
+  const totals = useMemo(() => {
+    const seen = new Set<string>();
+    let bytes = 0;
+    let count = 0;
+    for (const info of infos) for (const t of info.tracks) if (!seen.has(t.path)) { seen.add(t.path); bytes += t.size ?? 0; count++; }
+    return { bytes, count };
+  }, [infos]);
   const countLabel = (info: FolderInfo) => {
     if (scanning) return "Scanning…";
     const status = scanReports[info.folder]?.status;
     if (status === "inaccessible") return "Can't open";
-    return `${info.count} Audio`;
+    return `${info.count} Audio · ${formatBytes(info.bytes)}`;
   };
   const onAdd = async () => {
     setAddNote(null);
@@ -187,6 +207,7 @@ export function Folder() {
                 <dl>
                   <div><dt>Tracks</dt><dd>{scanning ? "…" : info.count}</dd></div>
                   <div><dt>Total time</dt><dd>{formatLong(info.totalSeconds)}</dd></div>
+                  <div><dt>Size</dt><dd>{formatBytes(info.bytes)}</dd></div>
                   <div><dt>Artists</dt><dd>{info.artists.length}</dd></div>
                   <div><dt>Formats</dt><dd>{info.formats.join(", ") || "—"}</dd></div>
                 </dl>
@@ -433,10 +454,41 @@ export function Folder() {
           {" "}
           {probe?.volumes.map((v) => `${v.label}${v.readable ? "" : " (no access yet)"}`).join(" · ")}
           {probe?.note ? ` — ${probe.note}` : ""}
+          {probe && probe.volumes.some((v) => !v.readable) && (
+            <>
+              {" "}
+              <button type="button" className="pers__chip" onClick={() => void navigator.clipboard?.writeText(JSON.stringify({ app: APP_VERSION, platform: probe.platform, volumes: probe.volumes }, null, 2))} title="Copy what the app found, to send with a bug report">Copy storage details</button>
+              <span className="folder-page__reasons">{probe.volumes.filter((v) => !v.readable && v.reason).map((v) => <small key={v.path}>{v.label}: {v.reason}</small>)}</span>
+            </>
+          )}
+        </p>
+      )}
+
+      {folders.length > 0 && !scanning && (
+        <p className="folder-page__total" aria-label="Total size of local audio">
+          <strong>{formatBytes(totals.bytes)}</strong> across {totals.count.toLocaleString()} audio files
+          {infos.length > 1 && <> · {infos.map((i) => `${i.name} ${formatBytes(i.bytes)}`).join(" · ")}</>}
         </p>
       )}
 
       {folders.length > 0 && <SubfolderStrip roots={folders} />}
+
+      {syncedFolders.length > 0 && (
+        <section className="folder-page__synced" aria-label="Folders from your other devices">
+          <h2>On your other devices</h2>
+          <div className="folder-page__grid">
+            {syncedFolders.map((f) => (
+              <button type="button" key={`${f.deviceId}:${f.name}`} className="folder-card" data-synced="true" onClick={() => setOpenSynced(f)} title="Open — play or copy these songs">
+                <span className="folder-card__thumb"><FolderIcon /></span>
+                <span className="folder-card__name">{f.name}</span>
+                <span className="folder-card__count">{f.trackCount} Audio · {formatBytes(f.totalBytes)}</span>
+                <span className="folder-card__sync">{syncTag(f.deviceName)}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+      {openSynced && <SyncedFolderWindow folder={openSynced} onClose={() => setOpenSynced(null)} />}
 
       {folders.length === 0 ? (
         <div className="folder-page__empty">
