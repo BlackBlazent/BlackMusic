@@ -1,4 +1,7 @@
 import { isTauri } from "@/lib/platform";
+import { isMobileOs } from "@/lib/useIsMobile";
+import { NativeAddonMissing, nativeCall, nativeCapabilities } from "@/lib/mobileNative";
+import { ffmpegRun } from "@/lib/ffmpeg";
 import { getPreference, setPreference } from "@/lib/preferencesStore";
 import type { LyricsDocument } from "@/app/features/lyrics/types/lyrics.types";
 import type { Track } from "@/lib/types";
@@ -55,9 +58,10 @@ export const getActiveModel = () => getPreference<string>(MODEL_KEY, "tiny");
 export const setActiveModel = (id: string) => setPreference(MODEL_KEY, id);
 
 export async function transcribe(path: string, opts: { language?: string; translate?: boolean; model?: string } = {}): Promise<Segment[]> {
-  if (!isTauri()) throw new Error("whisper.cpp needs the desktop app.");
+  if (!isTauri()) throw new Error("whisper.cpp needs the BlackMusic app.");
   const { invoke } = await import("@tauri-apps/api/core");
   const modelId = opts.model ?? (await getActiveModel());
+  if (isMobileOs()) return transcribeOnDevice(path, modelId, opts.language);
   return invoke<Segment[]>("whisper_transcribe", { audioPath: path, modelId, language: opts.language ?? null, translate: Boolean(opts.translate) });
 }
 
@@ -91,4 +95,31 @@ export async function cacheWhisperLyrics(doc: LyricsDocument): Promise<void> {
 export function linesToLrc(doc: LyricsDocument): string {
   const stamp = (t: number) => `[${String(Math.floor(t / 60)).padStart(2, "0")}:${(t % 60).toFixed(2).padStart(5, "0")}]`;
   return doc.lines.map((l) => (l.startTime !== undefined ? `${stamp(l.startTime)}${l.text}` : l.text)).join("\n");
+}
+
+/**
+ * Mobile: whisper.cpp runs as a native library (add-on), not an executable. Pipeline: FFmpeg turns the song into 16 kHz mono WAV in
+ * the app cache → whisper reads the downloaded model → timed segments come back. The WAV is always deleted afterwards.
+ */
+async function transcribeOnDevice(path: string, modelId: string, language?: string): Promise<Segment[]> {
+  const caps = nativeCapabilities();
+  if (!caps.whisper) throw new NativeAddonMissing("whisper");
+  if (!caps.ffmpeg) throw new NativeAddonMissing("ffmpeg");
+  const { invoke } = await import("@tauri-apps/api/core");
+  const model = await invoke<string>("whisper_model_path", { id: modelId });
+  const { appCacheDir, join } = await import("@tauri-apps/api/path");
+  const { mkdir, remove } = await import("@tauri-apps/plugin-fs");
+  const dir = await appCacheDir();
+  await mkdir(dir, { recursive: true }).catch(() => undefined);
+  const wav = await join(dir, `whisper-${Date.now()}.wav`);
+  try {
+    const r = await ffmpegRun(["-y", "-i", path, "-vn", "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", wav]);
+    if (r.code !== 0) throw new Error("Couldn't prepare the audio for transcription. The file may be damaged or unsupported.");
+    const json = await nativeCall((id) => window.BMNative!.whisperTranscribe(id, model, wav, language ?? "auto"), 30 * 60_000);
+    const out = JSON.parse(json) as { error?: string; segments?: Segment[] };
+    if (out.error) throw new Error(out.error);
+    return out.segments ?? [];
+  } finally {
+    await remove(wav).catch(() => undefined);
+  }
 }
