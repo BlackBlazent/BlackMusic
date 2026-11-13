@@ -1,9 +1,9 @@
 {
   "name": "blackmusic",
   "productName": "BlackMusic",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "description": "BlackMusic — a local-first music player that bridges your own library with the services you already use.",
-  "license": "MIT",
+  "license": "all-rights-reserved",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -19,7 +19,8 @@
     "tauri:android": "tauri android build",
     "tauri:android:dev": "tauri android dev",
     "tauri:ios": "tauri ios build",
-    "promotions-server": "node server/promotions-server.mjs"
+    "promotions-server": "node server/promotions-server.mjs",
+    "build:webos": "node scripts/build-webos.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
