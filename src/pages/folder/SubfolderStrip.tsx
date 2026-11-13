@@ -4,6 +4,9 @@ import { usePlayback } from "@/app/context/PlaybackContext";
 import { useT } from "@/lib/i18n";
 import { FolderIcon } from "@/app/layout/icons";
 import type { Track } from "@/lib/types";
+import { formatBytes } from "@/lib/formatBytes";
+
+const bytesOf = (list: Track[]) => list.reduce((n, x) => n + (x.size ?? 0), 0);
 
 const sepOf = (p: string) => (p.includes("\\") ? "\\" : "/");
 const trimEnd = (p: string) => p.replace(/[\\/]+$/, "");
@@ -67,6 +70,7 @@ export function SubfolderStrip({ roots }: { roots: string[] }) {
             </span>
           ))}
         </nav>
+        <span className="subfolder-strip__size" title="Size of this folder including subfolders">{formatBytes(bytesOf(all))}</span>
         <button type="button" className="subfolder-strip__play" disabled={all.length === 0} onClick={() => playTrack(all[0], all)}>▶ {all.length}</button>
       </div>
       <div className="subfolder-strip__row">
@@ -74,7 +78,7 @@ export function SubfolderStrip({ roots }: { roots: string[] }) {
           <button key={name} type="button" className="subfolder-strip__item" onClick={() => setCurrent(trimEnd(current) + sepOf(current) + name)} title={name}>
             <span className="subfolder-strip__thumb">{list.find((x) => x.artworkUrl)?.artworkUrl ? <img src={list.find((x) => x.artworkUrl)!.artworkUrl} alt="" /> : <FolderIcon />}</span>
             <span className="subfolder-strip__name">{name}</span>
-            <small>{list.length}</small>
+            <small>{list.length} · {formatBytes(bytesOf(list))}</small>
           </button>
         ))}
         {children.length === 0 && direct.length > 0 && <small className="subfolder-strip__empty">{direct.length} tracks in this folder.</small>}
