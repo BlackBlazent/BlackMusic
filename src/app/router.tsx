@@ -8,6 +8,7 @@ import { Library } from "@/pages/library/Library";
 import { Folder } from "@/pages/folder/Folder";
 import { SearchResults } from "@/pages/search/SearchResults";
 import { Settings } from "@/pages/settings/Settings";
+import { RouteError } from "./components/ErrorScreens";
 
 // Hash routing: the production build is served from the filesystem inside the
 // Tauri webview, not from a server that can handle arbitrary history paths.
@@ -15,6 +16,7 @@ export const router = createHashRouter([
   {
     path: "/",
     element: <AppShell />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <Home /> },
       { path: "playground", element: <Playground /> },
