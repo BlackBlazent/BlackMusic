@@ -78,4 +78,5 @@ export const ja: Catalog = {
   "online.list": "リスト",
   "folder.subfolders": "サブフォルダ",
   "playground.nothing": "再生中の曲はありません",
+  "library.tab.country": "国"
 };
