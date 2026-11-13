@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- FEAT-03c: same-Wi-Fi Meet Room. iOS asks the user once before an app talks to devices on the local network. -->
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>BlackMusic connects to other devices on your Wi-Fi so you can listen together in a Meet Room.</string>
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsLocalNetworking</key>
+        <true/>
+    </dict>
+</dict>
+</plist>
