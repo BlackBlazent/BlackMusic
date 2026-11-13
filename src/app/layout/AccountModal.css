@@ -9,7 +9,7 @@
 }
 
 .account-modal {
-  width: 340px;
+  width: 100%; /*340px*/
   padding: var(--space-5);
   border-radius: var(--radius-lg);
   background: var(--color-surface);
