@@ -10,6 +10,8 @@ import { PromotionRow } from "@/app/components/Promotion";
 import { usePersistentState } from "@/lib/usePersistentState";
 import { formatDuration } from "@/lib/formatDuration";
 import { Tooltip } from "@/app/components/Tooltip";
+import { AlphaTabs } from "@/app/components/AlphaTabs";
+import { alphaBucket, bucketCounts, type AlphaKey } from "@/lib/library/alphaBucket";
 import { SkeletonRows } from "@/app/components/Skeleton";
 import {
   CheckSquareIcon,
@@ -21,6 +23,7 @@ import {
   PlayIcon,
   PlaygroundIcon,
   RefreshIcon,
+  SearchIcon,
   SortAscIcon,
   SortDescIcon,
 } from "@/app/layout/icons";
@@ -86,6 +89,10 @@ export function Local() {
   const [customOrder, setCustomOrder] = usePersistentState<string[]>("local.customOrder", []);
 
   const [filterOpen, setFilterOpen] = useState(false);
+  // FEAT-05: first-letter tab + mini search (Local page only)
+  const [alpha, setAlpha] = useState<AlphaKey>("all");
+  const [miniOpen, setMiniOpen] = useState(false);
+  const [mini, setMini] = useState("");
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [addToPlaylistOpen, setAddToPlaylistOpen] = useState(false);
@@ -100,7 +107,10 @@ export function Local() {
 
   const visibleTracks = useMemo(() => {
     const q = filters.query.trim().toLowerCase();
+    const miniQ = mini.trim().toLowerCase();
     const filtered = tracks.filter((t) => {
+      if (alpha !== "all" && alphaBucket(t.title) !== alpha) return false;
+      if (miniQ && !`${t.title} ${t.artist} ${t.album}`.toLowerCase().includes(miniQ)) return false;
       if (q) {
         const haystack =
           filters.scope === "all" ? `${t.title} ${t.artist} ${t.album}` : filters.scope === "title" ? t.title : filters.scope === "artist" ? t.artist : t.album;
@@ -131,7 +141,9 @@ export function Local() {
     const pinned = sorted.filter((t) => pinRank.has(t.id)).sort((a, b) => pinRank.get(a.id)! - pinRank.get(b.id)!);
     const rest = sorted.filter((t) => !pinRank.has(t.id));
     return [...pinned, ...rest];
-  }, [tracks, filters, sortKey, sortDir, customOrder, pinnedIds, favoriteIds]);
+  }, [tracks, filters, sortKey, sortDir, customOrder, pinnedIds, favoriteIds, alpha, mini]);
+
+  const alphaCounts = useMemo(() => bucketCounts(tracks, (t) => t.title), [tracks]);
 
   const onPlay = (track: Track) => playTrack(track, visibleTracks);
 
@@ -349,8 +361,27 @@ export function Local() {
               <RefreshIcon />
             </button>
           </Tooltip>
+          <Tooltip label="Search this page" side="bottom">
+            <button type="button" data-active={miniOpen || mini.length > 0} onClick={() => setMiniOpen((v) => !v)} aria-label="Search Local songs">
+              <SearchIcon />
+            </button>
+          </Tooltip>
+          {(miniOpen || mini) && (
+            <input
+              className="local-page__mini-search"
+              type="search"
+              autoFocus
+              placeholder="Search Local…"
+              value={mini}
+              onChange={(e) => setMini(e.target.value)}
+              onKeyDown={(e) => e.key === "Escape" && (setMini(""), setMiniOpen(false))}
+              aria-label="Search Local songs"
+            />
+          )}
         </div>
       </div>
+
+      <AlphaTabs value={alpha} counts={alphaCounts} onChange={setAlpha} />
 
       {filterOpen && (
         <div className="local-page__filter-panel">
