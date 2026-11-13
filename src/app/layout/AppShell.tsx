@@ -16,9 +16,14 @@ import { useIsMobile } from "@/lib/useIsMobile";
 import { useLanguage } from "@/lib/i18n";
 import { useMediaSession } from "@/lib/mediaSession";
 import { useEffect } from "react";
+import { useSyncRunner } from "@/lib/sync/useSyncRunner";
+import { GlobalErrorWatcher } from "@/app/components/ErrorScreens";
+import { TvMode } from "@/app/components/TvMode";
+import { UpdateWatcher } from "@/app/components/UpdateWatcher";
 import "./AppShell.css";
 
 export function AppShell() {
+  useSyncRunner(); // 3.0.0: optional background sync (only acts when the user turned it on and is signed in)
   const [banner] = useBanner();
   const [motion] = useButtonMotion();
   const mobile = useIsMobile();
@@ -28,6 +33,8 @@ export function AppShell() {
   useEffect(() => { document.documentElement.setAttribute("data-mobile", String(mobile)); }, [mobile]);
   return (
     <div className="app-shell" data-banner={banner.kind !== "none"} data-motion={motion} data-mobile={mobile}>
+      <TvMode />
+      <GlobalErrorWatcher />
       <Banner />
       <RouteResume />
       <FileOpenHandler />
@@ -36,6 +43,7 @@ export function AppShell() {
         <TopBar />
         <main className="app-shell__content">
           <Outlet />
+          <UpdateWatcher />
         </main>
         <GlobalPlaybackBar />
         {mobile ? <MobileNav /> : <Footer />}
