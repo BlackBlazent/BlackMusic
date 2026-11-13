@@ -1,8 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { readSharedSetting } from "@/lib/sharedSetting";
 import { getPreference, setPreference } from "@/lib/preferencesStore";
 import { isTauri } from "@/lib/platform";
 import { isMobileOs } from "@/lib/useIsMobile";
 import { folderPathFromPicker, isInside } from "@/lib/library/pathUtils";
+import { hasNativeFolderPicker, mediaStoreAudioDirs, pickAndroidFolder } from "@/lib/library/androidFolders";
 import { useNotifications } from "./NotificationsContext";
 
 const STORAGE_KEY = "blackmusic:watchedFolders";
@@ -17,6 +19,8 @@ export interface StorageVolume {
   label: string;
   removable: boolean;
   readable: boolean;
+  /** 3.0.0: why it can't be opened (permission, not mounted…). */
+  reason?: string | null;
 }
 export interface StorageProbe {
   platform: "android" | "ios" | "desktop";
@@ -36,6 +40,8 @@ interface FoldersContextValue {
   hydrated: boolean;
   addFolder: () => Promise<AddFolderResult>;
   removeFolder: (path: string) => void;
+  /** 3.0.0 (sync): add a folder by path, no picker — used for songs copied from another device. */
+  addFolderPath: (path: string) => Promise<void>;
   /** True for folders that mobile discovery added (whole storage volumes). */
   isAutoFolder: (path: string) => boolean;
   /** Mobile: (re)detect internal storage + SD cards and watch the ones we can read. `force` also re-adds ones the user removed. */
@@ -67,7 +73,30 @@ export function FoldersProvider({ children }: { children: ReactNode }) {
 
   const discover = useCallback(
     async (opts: { force?: boolean } = {}): Promise<StorageProbe | null> => {
-      if (!isTauri() || !isMobileOs() || discovering.current) return null;
+      if (!isTauri() || discovering.current) return null;
+      // FEAT-01 (desktop): optionally watch the operating system's own Music folder, in addition to the folders the user adds
+      // by hand (adding folders stays the default). Off until the user turns it on in Settings → Library.
+      if (!isMobileOs()) {
+        if (!readSharedSetting<boolean>("osScan.enabled", false)) return null;
+        discovering.current = true;
+        try {
+          const { audioDir } = await import("@tauri-apps/api/path");
+          const dir = (await audioDir()).replace(/[\\/]+$/, "");
+          const declined = opts.force ? [] : declinedRef.current;
+          if (dir && !foldersRef.current.includes(dir) && !declined.includes(dir)) {
+            const nextAuto = [...new Set([...autoRef.current, dir])];
+            autoRef.current = nextAuto;
+            setAutoFolders(nextAuto);
+            await setPreference(AUTO_KEY, nextAuto);
+            await persistFolders([...foldersRef.current, dir]);
+          }
+        } catch {
+          /* no system Music folder on this machine — nothing to add */
+        } finally {
+          discovering.current = false;
+        }
+        return null;
+      }
       discovering.current = true;
       try {
         const { invoke } = await import("@tauri-apps/api/core");
@@ -80,10 +109,26 @@ export function FoldersProvider({ children }: { children: ReactNode }) {
         }
         // Only volumes we can list right now. Before the media permission is granted (or with a card ejected) they're skipped —
         // and picked up on the next call, which fires every time the app comes back to the foreground.
-        const fresh = result.volumes
+
+        /*const fresh = result.volumes
           .filter((v) => v.readable)
           .map((v) => v.path)
           .filter((p) => !foldersRef.current.includes(p) && !declined.includes(p));
+          */
+
+        const probed = result.volumes
+          .filter((v) => v.readable)
+          .map((v) => v.path)
+          .filter((p) => !foldersRef.current.includes(p) && !declined.includes(p));
+        
+        // Android's own media index knows every folder with music on every volume (SD card included) — the built-in player uses
+        // it. Crawling /storage can't see a card whose top level is locked, or music in folders not named Music/Download/….
+        const indexed = (await mediaStoreAudioDirs()).filter(
+          (d) => !foldersRef.current.some((f) => isInside(d, f)) && !probed.some((r) => isInside(d, r)) && !declined.includes(d),
+        );
+        const topMost = indexed.filter((d) => !indexed.some((o) => o !== d && isInside(d, o)));
+        const fresh = [...new Set([...probed, ...topMost])];
+
         if (fresh.length > 0) {
           // A whole volume supersedes the individual standard folders an older version added for it.
           const superseded = (f: string) => autoRef.current.includes(f) && fresh.some((root) => isInside(f, root));
@@ -147,9 +192,21 @@ export function FoldersProvider({ children }: { children: ReactNode }) {
       return { ok: false, reason: "unsupported", message: "Folder picking needs the BlackMusic app (it can't run in a plain browser tab)." };
     }
     let selected: string | string[] | null;
+
+    /*
     try {
       const { open } = await import("@tauri-apps/plugin-dialog");
       selected = await open({ directory: true, multiple: false, title: "Add a music folder" });
+    } catch (e) {
+      */
+     try {
+      if (hasNativeFolderPicker()) {
+        // tauri-plugin-dialog throws "Folder picker is not implemented on mobile" for directories on Android.
+        selected = await pickAndroidFolder();
+      } else {
+        const { open } = await import("@tauri-apps/plugin-dialog");
+        selected = await open({ directory: true, multiple: false, title: "Add a music folder" });
+      }
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       push("Couldn't open the folder picker", message);
@@ -200,7 +257,7 @@ export function FoldersProvider({ children }: { children: ReactNode }) {
   const isAutoFolder = useCallback((path: string) => autoRef.current.includes(path), []);
 
   return (
-    <FoldersContext.Provider value={{ folders, hydrated, addFolder, removeFolder, isAutoFolder, discover, probe }}>
+    <FoldersContext.Provider value={{ addFolderPath: async (path: string) => { const p = path.replace(/[\\/]+$/, ""); if (p && !foldersRef.current.includes(p)) await persistFolders([...foldersRef.current, p]); }, folders, hydrated, addFolder, removeFolder, isAutoFolder, discover, probe }}>
       {children}
     </FoldersContext.Provider>
   );
