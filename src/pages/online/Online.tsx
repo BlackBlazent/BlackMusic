@@ -1,3 +1,6 @@
+import { MapView, MilestonesView, GraphView, buildDiscoverShelf } from "./OnlineViews";
+import { serviceState, credentialNote } from "@/lib/services/serviceStatus";
+import { useSharedSetting } from "@/lib/sharedSetting";
 import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useServices } from "@/app/context/ServicesContext";
@@ -21,7 +24,8 @@ import { buildSpotifyShelves, buildTrackShelves, isSpotifyAuthIssue, type Shelf,
 import { ShelfRow } from "./ShelfRow";
 import "./Online.css";
 
-type View = "shelves" | "list";
+type View = "shelves" | "map" | "milestones" | "graph" | "list";
+const LOAD_TIMEOUT_MS = 15_000;
 
 const SERVICE_NOTES: Record<string, string> = {
   spotify: "Plays through Spotify's Web Playback SDK — requires Spotify Premium and the desktop/mobile Spotify app to be closed so this device can become the active player.",
@@ -31,7 +35,7 @@ const SERVICE_NOTES: Record<string, string> = {
 };
 
 export function Online() {
-  const { activeServiceId, connectedIds, connect, disconnect } = useServices();
+  const { activeServiceId, connectedIds, connect, disconnect, setActiveService } = useServices();
   const { signInWithProvider } = useAuth();
   const { apis: customApis } = useCustomApis();
   const service =
@@ -53,6 +57,9 @@ export function Online() {
   const [needsKey, setNeedsKey] = useState(false);
   const [view, setView] = useState<View>("shelves");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+  const [shine] = useSharedSetting<boolean>("onlineArtShine", true);
+  const state = serviceState(activeServiceId);
   const promos = useApiPromotions("online");
   const hero = useManualPromotions("online-hero")[0];
 
@@ -71,12 +78,20 @@ export function Online() {
   }, [events, localTracks]);
 
   useEffect(() => {
-    if (!isConnected) return;
+    if (!isConnected || state.kind !== "ready") return;
     let cancelled = false;
     setLoading(true);
     setError(null);
     setNeedsKey(false);
     setShelves([]);
+
+    // IMP-02: never an endless spinner — after ~15 s stop and offer Retry.
+    const watchdog = setTimeout(() => {
+      if (cancelled) return;
+      cancelled = true;
+      setLoading(false);
+      setError({ message: `${service?.name ?? "This service"} is taking too long to answer. Check your connection and try again.`, reconnect: false });
+    }, LOAD_TIMEOUT_MS);
 
     (async () => {
       try {
@@ -110,16 +125,24 @@ export function Online() {
           // 2.2.0: say what actually went wrong instead of always blaming the connection.
           setError({ message: `Couldn't load ${service?.name ?? "this service"}: ${detail}`, reconnect: false });
         }
+        {/*}
       } finally {
         if (!cancelled) setLoading(false);
       }
+        */}
+        } finally {
+        clearTimeout(watchdog); // finished in time: don't let the timer fire later
+        if (!cancelled) setLoading(false);
+      }
+
     })();
 
     return () => {
       cancelled = true;
+      clearTimeout(watchdog);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- localTracks/recents only matter for the BlackMusic catalog
-  }, [activeServiceId, isConnected, service?.name, activeServiceId === "bmusic" ? localTracks.length : 0]);
+  }, [activeServiceId, isConnected, service?.name, retryKey, activeServiceId === "bmusic" ? localTracks.length : 0]);
 
   const playable = (t: Track) => Boolean(t.sourceUrl || t.path || t.resolve) || isSpotifyTrackId(t.id);
 
@@ -167,15 +190,31 @@ export function Online() {
     );
   }
 
+  if (state.kind === "unavailable") {
+    return (
+      <div className="online-page">
+        <h1>Online — {service?.name}</h1>
+        <div className="online-page__disconnected" role="status">
+          <p><strong>{state.title}</strong></p>
+          <p>{state.message}</p>
+          <button type="button" className="online-page__action" onClick={() => setActiveService("bmusic")}>Back to my BlackMusic library</button>
+        </div>
+      </div>
+    );
+  }
+
   const tracks = activeServiceId === "bmusic" ? localTracks : remoteTracks;
+  const discover = activeServiceId === "bmusic" ? null : buildDiscoverShelf(remoteTracks, localTracks, recents.map((t) => t.artist));
+  const playRemote = (t: Track) => playable(t) && playTrack(t, tracks.filter(playable));
 
   return (
-    <div className="online-page">
+    <div className="online-page" data-shine={shine}>
       <div className="online-page__titlebar">
         <h1>Online — {service?.name}</h1>
         <div className="online-page__views" role="tablist" aria-label="View">
-          <button type="button" role="tab" aria-selected={view === "shelves"} data-active={view === "shelves"} onClick={() => setView("shelves")}>Browse</button>
-          <button type="button" role="tab" aria-selected={view === "list"} data-active={view === "list"} onClick={() => setView("list")}>List</button>
+          {([["shelves", "Browse"], ["map", "Map"], ["milestones", "Milestones"], ["graph", "Graph"], ["list", "List"]] as [View, string][]).map(([v, label]) => (
+            <button key={v} type="button" role="tab" aria-selected={view === v} data-active={view === v} onClick={() => setView(v)}>{label}</button>
+          ))}
         </div>
       </div>
 
@@ -183,8 +222,9 @@ export function Online() {
 
       {needsKey && (
         <p className="online-page__notice">
-          {service?.name} is ready to go — it just needs its API key. Add it to <code>environments</code> or paste it in{" "}
-          Settings → Service API keys.
+          {credentialNote(activeServiceId) ?? (
+            <>{service?.name} is ready to go — it just needs its API key. Paste it in Settings → Service API keys.</>
+          )}
         </p>
       )}
 
@@ -192,6 +232,7 @@ export function Online() {
       {error && (
         <div className="online-page__error">
           <p>{error.message}</p>
+          <button type="button" className="online-page__action" onClick={() => setRetryKey((k) => k + 1)}>Try again</button>
           {error.reconnect && (
             <button type="button" className="online-page__action" onClick={() => void reconnectSpotify()}>Reconnect Spotify</button>
           )}
@@ -223,12 +264,17 @@ export function Online() {
             )}
           </section>
 
+          {discover && <ShelfRow key={discover.id} shelf={discover} onActivate={(i, sh) => void onActivate(i, sh)} busyId={busyId} />}
           {shelves.map((shelf) => (
             <ShelfRow key={shelf.id} shelf={shelf} onActivate={(i, s) => void onActivate(i, s)} busyId={busyId} />
           ))}
           {shelves.length === 0 && <p className="online-page__empty">Nothing to show from {service?.name} yet.</p>}
         </>
       )}
+
+      {view === "map" && !loading && !error && <MapView tracks={tracks} onPlay={playRemote} />}
+      {view === "milestones" && !loading && !error && <MilestonesView tracks={tracks} onPlay={playRemote} />}
+      {view === "graph" && !loading && !error && <GraphView tracks={tracks} />}
 
       {view === "list" && !loading && !error && (
         <div className="online-page__table">
