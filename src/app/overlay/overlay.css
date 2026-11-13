@@ -35,8 +35,12 @@
 /* Modal backdrops start below the navbar and end above the footer so those stay reachable. */
 .bm-modal-backdrop {
   position: fixed;
+  height: 100%;
+  /* Make it cover the entire viewport height! This can't be remove. */
+  /*
   top: var(--topbar-height);
   bottom: var(--footer-height, 36px);
+  */
   left: 0;
   right: 0;
   background: rgba(0, 0, 0, 0.55);
