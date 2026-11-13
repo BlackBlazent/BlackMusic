@@ -1,9 +1,10 @@
 mod audio_tools;
 mod file_open;
 mod importer;
+mod lan_room;
 mod metadata;
 mod tools;
-#[allow(dead_code)]
+#[allow(unused_imports)]
 use tauri::Manager;
 #[cfg(desktop)]
 use tauri::Emitter;
@@ -85,12 +86,15 @@ pub fn run() {
             tools::whisper_download_model,
             tools::whisper_import_model,
             tools::whisper_delete_model,
+            tools::whisper_model_path,
             tools::whisper_transcribe,
             tools::whisper_cancel,
             tools::ffmpeg_run,
             audio_tools::export_trim,
             audio_tools::analyze_loudness,
             audio_tools::default_music_dirs,
+            lan_room::lan_room_start,
+            lan_room::lan_room_stop,
         ])
         .setup(|_app| {
             // Dev builds aren't installed, so register the blackmusic:// scheme at runtime.
