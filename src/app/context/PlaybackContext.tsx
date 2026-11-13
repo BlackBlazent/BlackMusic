@@ -8,6 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { isRouted } from "@/lib/audio/audioEngine";
+import { serviceFetch } from "@/lib/services/serviceFetch";
 import type { LoopSection, RepeatMode, Track } from "@/lib/types";
 import { usePlaybackHistory } from "./PlaybackHistoryContext";
 import { useActionHistory } from "./ActionHistoryContext";
@@ -172,6 +174,15 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       if (!track) return;
 
       const requestId = ++loadRequestIdRef.current;
+
+      // Added lines
+      // Release the previous local or remote Blob URL whenever
+      // the playback source changes.
+      if (currentBlobUrlRef.current) {
+        URL.revokeObjectURL(currentBlobUrlRef.current);
+        currentBlobUrlRef.current = null;
+      }
+
       setCurrentIndex(index);
       // Sleep timer counts WHOLE tracks: a track that has started will finish.
       if (autoplay && sleepRef.current) {
@@ -202,6 +213,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       void spotifyPause(); // make sure a previous Spotify track isn't still playing underneath
       if (!audio) return;
 
+      {/*
       const assignAndMaybePlay = (src: string) => {
         if (loadRequestIdRef.current !== requestId) return; // superseded by a newer load
         audio.src = src;
@@ -212,6 +224,58 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
           recordPlay(track.id);
         }
       };
+      */}
+
+    const assignAndMaybePlay = async (rawSrc: string) => {
+      if (loadRequestIdRef.current !== requestId) return;
+    
+      let src = rawSrc;
+    
+      // Once the element has been routed through the effects graph (createMediaElementSource) it can never be un-routed, and a
+      // cross-origin stream played through that graph is SILENT while currentTime keeps advancing. Give it a same-origin blob.
+      if (isRouted() && /^https?:/i.test(rawSrc)) {
+        try {
+          const res = await serviceFetch(rawSrc);
+          if (!res.ok) throw new Error(`The stream answered ${res.status}.`);
+    
+          const blobUrl = URL.createObjectURL(await res.blob());
+    
+          if (loadRequestIdRef.current !== requestId) {
+            URL.revokeObjectURL(blobUrl);
+            return;
+          }
+    
+          if (currentBlobUrlRef.current) {
+            URL.revokeObjectURL(currentBlobUrlRef.current);
+          }
+    
+          currentBlobUrlRef.current = blobUrl;
+          src = blobUrl;
+        } catch (err) {
+          if (loadRequestIdRef.current !== requestId) return;
+    
+          pushNotification(
+            "Couldn't play track",
+            `${track.title}: ${err instanceof Error ? err.message : String(err)}`,
+          );
+          return;
+        }
+      }
+    
+      audio.src = src;
+    
+      if (autoplay) {
+        void audio.play().catch((err) => {
+          pushNotification(
+            "Couldn't play track",
+            `${track.title}: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        });
+    
+        recordPlay(track.id);
+      }
+    };
+        
 
       // Local files: read through the same fs call scanning already proves
       // works, and hand the <audio> element a plain blob: URL — see
@@ -219,10 +283,14 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       // Anything else (Audius, or any future remote source) already has a
       // normal http(s) stream URL that <audio> can use directly.
       if (track.path) {
+
+        /*
         if (currentBlobUrlRef.current) {
           URL.revokeObjectURL(currentBlobUrlRef.current);
           currentBlobUrlRef.current = null;
         }
+        */
+
         createLocalBlobUrl(track.path)
           .then((blobUrl) => {
             if (loadRequestIdRef.current !== requestId) {
@@ -230,7 +298,9 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
               return;
             }
             currentBlobUrlRef.current = blobUrl;
-            assignAndMaybePlay(blobUrl);
+            // assignAndMaybePlay(blobUrl);
+            // Add void
+            void assignAndMaybePlay(blobUrl);
           })
           .catch((err) => {
             if (loadRequestIdRef.current !== requestId) return;
@@ -249,7 +319,9 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
           .then(({ url, preview }) => {
             if (loadRequestIdRef.current !== requestId) return;
             if (preview) pushNotification("Playing a 30-second preview", "Only a preview of this track was available (install/enable yt-dlp for the full song).");
-            assignAndMaybePlay(url);
+            // assignAndMaybePlay(url);
+            // Add void
+            void assignAndMaybePlay(url);
           })
           .catch((err) => {
             if (loadRequestIdRef.current !== requestId) return;
@@ -258,7 +330,9 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      assignAndMaybePlay(track.sourceUrl);
+      // assignAndMaybePlay(track.sourceUrl);
+      // Add void
+      void assignAndMaybePlay(track.sourceUrl);
     },
     [recordPlay, handleSpotifyState, pushNotification],
   );
