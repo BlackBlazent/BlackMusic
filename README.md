@@ -23,7 +23,7 @@
 
 &nbsp;
 
-
+[![BlackMusic Release](https://github.com/BlackBlazent/BlackMusic/actions/workflows/release.yml/badge.svg)](https://github.com/BlackBlazent/BlackMusic/actions/workflows/release.yml) [![BlackMusic Mobile](https://github.com/BlackBlazent/BlackMusic/actions/workflows/mobile.yml/badge.svg)](https://github.com/BlackBlazent/BlackMusic/actions/workflows/mobile.yml) [![Apple TV add-on (manual)](https://github.com/BlackBlazent/BlackMusic/actions/workflows/build-appletv.yml/badge.svg)](https://github.com/BlackBlazent/BlackMusic/actions/workflows/build-appletv.yml) [![Dependabot Updates](https://github.com/BlackBlazent/BlackMusic/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/BlackBlazent/BlackMusic/actions/workflows/dependabot/dependabot-updates)
 
 ## Now
 
