@@ -112,12 +112,43 @@ jobs:
         shell: pwsh
         run: |
           $pfx = Join-Path $env:RUNNER_TEMP "codesign.pfx"
-          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
-          $pwd = ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -AsPlainText -Force
-          $cert = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $pwd
-          Remove-Item $pfx -Force
-          $env:WINDOWS_CERTIFICATE_THUMBPRINT = $cert.Thumbprint
-          node scripts/ci-set-windows-signing.mjs
+          try {
+            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE.Trim()))
+            $securePwd = ConvertTo-SecureString -String $env:WINDOWS_CERTIFICATE_PASSWORD -AsPlainText -Force
+            $cert = Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\CurrentUser\My -Password $securePwd -ErrorAction Stop
+            $env:WINDOWS_CERTIFICATE_THUMBPRINT = $cert.Thumbprint
+            node scripts/ci-set-windows-signing.mjs
+          } catch {
+            # A wrong WINDOWS_CERTIFICATE_PASSWORD (or a damaged base64 value) used to fail the whole release. The installer is
+            # still built — unsigned — and this warning says why. Fix the two secrets to get a signed build.
+            Write-Host "::warning title=Windows code signing skipped::$($_.Exception.Message) - check the WINDOWS_CERTIFICATE and WINDOWS_CERTIFICATE_PASSWORD secrets. Building UNSIGNED."
+          } finally {
+            if (Test-Path $pfx) { Remove-Item $pfx -Force }
+          }
+
+      # A macOS certificate secret that is set but not a valid Developer ID .p12 (e.g. empty, wrong base64 or wrong password) used to
+      # fail the whole build at "failed to import keychain certificate". Test it here; if it is unusable, blank every APPLE_* signing
+      # variable for the later steps so the .dmg is still built (unsigned). Free Apple IDs cannot produce a Developer ID certificate.
+      - name: Check macOS signing certificate
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          ok=0
+          if [ -n "$APPLE_CERTIFICATE" ]; then
+            kc="$RUNNER_TEMP/validate.keychain-db"
+            if echo "$APPLE_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/validate.p12" 2>/dev/null \
+               && security create-keychain -p "tmp-pass" "$kc" >/dev/null 2>&1 \
+               && security import "$RUNNER_TEMP/validate.p12" -k "$kc" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign >/dev/null 2>&1; then
+              ok=1
+            fi
+            rm -f "$RUNNER_TEMP/validate.p12"; security delete-keychain "$kc" >/dev/null 2>&1 || true
+          fi
+          if [ "$ok" = "1" ]; then
+            echo "macOS certificate is valid - the build will be signed."
+          else
+            echo "::warning title=macOS code signing skipped::No usable APPLE_CERTIFICATE secret (missing or not a valid .p12 / password). Building UNSIGNED."
+            for v in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do echo "$v=" >> "$GITHUB_ENV"; done
+          fi
 
       - name: Prepare bundled tools (yt-dlp, whisper.cpp, tiny model)
         shell: bash

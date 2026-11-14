@@ -36,8 +36,18 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Placeholder sidecars (desktop-only tools are not used on iOS)
         run: node scripts/fetch-sidecars.mjs --if-missing
+      - name: Install XcodeGen (Tauri uses it to generate the Xcode project)
+        run: brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
       - name: Generate the Xcode project
-        run: pnpm tauri ios init 2>&1 | tee ios-init.log
+        shell: bash
+        env:
+          # `tauri ios init` refuses an empty team ("apple.development-team is empty"). Without the secret, a placeholder team lets
+          # it generate the project for the unsigned simulator build below; a real secret is used as-is.
+          APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM || '0000000000' }}
+        run: |
+          set -o pipefail
+          pnpm tauri ios init --ci 2>&1 | tee ios-init.log
+          test -d src-tauri/gen/apple/Sources || { echo "::error::tauri ios init did not create src-tauri/gen/apple/Sources - see ios-init.log"; exit 1; }
       # FIX-02 (iOS): add the audio-interruption observer, then let XcodeGen pick up the new files.
       - name: Add iOS audio-interruption observer
         run: |
@@ -63,6 +73,7 @@ jobs:
       - name: Build iOS (unsigned simulator build — no team secret)
         if: env.APPLE_DEVELOPMENT_TEAM == ''
         env:
+          APPLE_DEVELOPMENT_TEAM: "0000000000"
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_SPOTIFY_CLIENT_ID: ${{ secrets.VITE_SPOTIFY_CLIENT_ID }}
@@ -107,6 +118,10 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: android-actions/setup-android@v3
+        with:
+          # The action's default list is "tools platform-tools"; the legacy `tools` package no longer exists in current
+          # cmdline-tools, which made sdkmanager exit 1 ("Failed to find package 'tools'"). The next step installs what we need.
+          packages: ""
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
@@ -115,7 +130,11 @@ jobs:
           workspaces: "./src-tauri -> target"
       - run: pnpm install --frozen-lockfile
       - run: node scripts/fetch-sidecars.mjs --if-missing
-      - run: sdkmanager "platforms;android-34" "build-tools;34.0.0" "ndk;26.1.10909125"
+      - name: Install Android SDK packages
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;26.1.10909125"
       # Optional native add-ons (FFmpeg audio + whisper.cpp). Put them in native/ yourself, OR let this step fetch them:
       #   repository variable WHISPER_CPP_REF   e.g. v1.7.6            -> clones https://github.com/ggml-org/whisper.cpp at that tag
       #   repository variable FFMPEG_KIT_AAR_URL (direct https link to an LGPL "audio" FFmpegKit .aar you are allowed to use)
@@ -134,7 +153,7 @@ jobs:
           fi
           echo "whisper.cpp: $([ -f native/android/whisper.cpp/CMakeLists.txt ] && echo present || echo not included)"
           echo "FFmpeg AAR:  $(ls native/android/ffmpeg-kit/*.aar >/dev/null 2>&1 && echo present || echo not included)"
-      - run: pnpm tauri android init
+      - run: pnpm tauri android init --ci
       - run: node scripts/android-post-init.mjs
       - name: Build Android
         env:
