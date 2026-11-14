@@ -117,7 +117,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
+      - uses: android-actions/setup-android@v4
         with:
           # The action's default list is "tools platform-tools"; the legacy `tools` package no longer exists in current
           # cmdline-tools, which made sdkmanager exit 1 ("Failed to find package 'tools'"). The next step installs what we need.
